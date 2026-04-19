@@ -1,0 +1,93 @@
+@import "tailwindcss";
+
+/* ─── Brand Design Tokens (Tailwind v4 CSS-first @theme) ──────────── */
+@theme {
+  /* Corporate Blue Palette */
+  --color-brand:       #1A56DB;   /* primary corporate blue  — CTAs, accents, icons  */
+  --color-brand-hover: #1447BF;   /* darker blue for hover states                    */
+  --color-brand-dark:  #0B1F3A;   /* deep navy — headers, footer, stat bars          */
+  --color-brand-navy:  #0D2550;   /* mid-navy — alternate dark sections              */
+  --color-brand-light: #EFF4FF;   /* pale blue tint — section backgrounds            */
+  --color-brand-muted: #DBEAFE;   /* light blue — badges, tags, chips                */
+
+  /* Fonts — DM Sans for body, Playfair Display for headings */
+  --font-sans:  var(--font-dm-sans), system-ui, sans-serif;
+  --font-serif: var(--font-playfair), Georgia, "Times New Roman", serif;
+}
+
+/* ─── Custom Easing Curves ─────────────────────────────────────────── */
+:root {
+  --ease-out-quart:    cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out-quart: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+/* ─── Button transitions (specific properties, not transition-all) ── */
+.btn-base {
+  transition:
+    color          150ms ease-out,
+    background-color 150ms ease-out,
+    border-color   150ms ease-out,
+    box-shadow     150ms ease-out,
+    transform      100ms ease-out;
+}
+
+/* ─── Scrollbar ───────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #f1f5f9; }
+::-webkit-scrollbar-thumb { background: #1A56DB; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #1447BF; }
+
+/* ─── Selection ──────────────────────────────────────────────────── */
+::selection { background: #1A56DB; color: white; }
+
+/* ─── Focus ring ─────────────────────────────────────────────────── */
+:focus-visible { outline: 2px solid #1A56DB; outline-offset: 2px; }
+
+/* ─── Smooth scroll + scroll-padding for fixed navbar ───────────── */
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem; /* matches navbar h-20 */
+}
+
+/* ─── Hero staggered entrance animations ─────────────────────────── */
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.hero-animate {
+  animation: fadeSlideUp 0.5s var(--ease-out-quart) both;
+}
+
+/* ─── Mobile menu slide-down animation ───────────────────────────── */
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.menu-animate {
+  animation: slideDown 0.2s var(--ease-out-quart) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-animate { animation: none; }
+  .menu-animate { animation: none; }
+}
+
+/* ─── Infinite trust-bar marquee ─────────────────────────────── */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+/* prefers-reduced-motion handled inline via style override */
+@media (prefers-reduced-motion: reduce) {
+  [style*="marquee"] { animation: none !important; }
+}
+
+/* ─── Scrollbar hide (horizontal image strips, trust bar) ────── */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar { display: none; }
