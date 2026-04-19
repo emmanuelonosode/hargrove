@@ -54,6 +54,13 @@ export const metadata: Metadata = {
     url: "https://haskerrealtygroup.com",
     siteName: "Hasker & Co. Realty Group",
   },
+  icons: {
+    icon: [
+      { url: '/icon.svg', type: 'image/svg+xml' },
+    ],
+    apple: '/apple-icon.png',
+    shortcut: '/icon.svg',
+  },
   robots: {
     index: true,
     follow: true,
