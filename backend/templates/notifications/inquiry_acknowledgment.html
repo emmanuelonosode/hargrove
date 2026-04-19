@@ -1,0 +1,78 @@
+{% extends "notifications/email_base.html" %}
+
+{% block subject %}We received your inquiry — Hasker &amp; Co. Realty Group{% endblock %}
+
+{% block content %}
+  <!-- Greeting -->
+  <p style="margin:0 0 24px 0;font-size:22px;font-weight:700;color:#0B1F3A;line-height:1.3;">
+    Hi {{ lead.first_name|default:lead.full_name }},
+  </p>
+
+  <p style="margin:0 0 16px 0;font-size:15px;color:#334155;line-height:1.7;">
+    Thank you for reaching out to <strong>Hasker &amp; Co. Realty Group</strong>. We've received your inquiry and a member of our team will be in touch with you within <strong>1 business day</strong>.
+  </p>
+
+  <!-- Inquiry summary card -->
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;margin:24px 0;">
+    <tr>
+      <td style="padding:20px 24px;">
+        <p style="margin:0 0 12px 0;font-size:11px;font-weight:700;color:#1A56DB;letter-spacing:1.5px;text-transform:uppercase;">Your Inquiry Details</p>
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="font-size:13px;color:#475569;line-height:2;">
+          <tr>
+            <td style="width:140px;color:#94a3b8;font-weight:600;">Reference #</td>
+            <td style="color:#0B1F3A;font-weight:700;">#{{ lead.pk|stringformat:"05d" }}</td>
+          </tr>
+          <tr>
+            <td style="color:#94a3b8;font-weight:600;">Name</td>
+            <td style="color:#0B1F3A;">{{ lead.full_name }}</td>
+          </tr>
+          {% if lead.property_interest %}
+          <tr>
+            <td style="color:#94a3b8;font-weight:600;">Property</td>
+            <td style="color:#0B1F3A;">{{ lead.property_interest.title }}</td>
+          </tr>
+          {% elif lead.preferred_location %}
+          <tr>
+            <td style="color:#94a3b8;font-weight:600;">Area of Interest</td>
+            <td style="color:#0B1F3A;">{{ lead.preferred_location }}</td>
+          </tr>
+          {% endif %}
+          {% if lead.assigned_agent %}
+          <tr>
+            <td style="color:#94a3b8;font-weight:600;">Your Agent</td>
+            <td style="color:#0B1F3A;">{{ lead.assigned_agent.get_full_name }}</td>
+          </tr>
+          {% endif %}
+          <tr>
+            <td style="color:#94a3b8;font-weight:600;">Submitted</td>
+            <td style="color:#0B1F3A;">{{ lead.created_at|date:"F j, Y" }}</td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+
+  <p style="margin:0 0 16px 0;font-size:15px;color:#334155;line-height:1.7;">
+    While you wait, feel free to browse our full list of available rentals — new listings are added regularly.
+  </p>
+
+  <!-- CTA button -->
+  <table cellpadding="0" cellspacing="0" border="0" style="margin:8px 0 28px 0;">
+    <tr>
+      <td style="background-color:#1A56DB;border-radius:6px;">
+        <a href="{{ frontend_url }}/properties" style="display:inline-block;padding:12px 28px;font-size:14px;font-weight:600;color:#ffffff;text-decoration:none;letter-spacing:0.3px;">
+          Browse Available Rentals
+        </a>
+      </td>
+    </tr>
+  </table>
+
+  <p style="margin:0;font-size:14px;color:#64748b;line-height:1.7;">
+    Have an urgent question? Call us directly at <a href="tel:+14045550182" style="color:#1A56DB;font-weight:600;text-decoration:none;">(404) 555-0182</a> or reply to this email.
+  </p>
+
+  <p style="margin:24px 0 0 0;font-size:14px;color:#334155;">
+    Warm regards,<br>
+    <strong style="color:#0B1F3A;">The Hasker &amp; Co. Realty Group Team</strong>
+  </p>
+{% endblock %}

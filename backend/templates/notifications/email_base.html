@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block subject %}Hasker &amp; Co. Realty Group{% endblock %}</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f4f7fb;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;">
+
+  <!-- Wrapper -->
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f4f7fb;padding:32px 16px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;">
+
+          <!-- Header -->
+          <tr>
+            <td style="background-color:#0B1F3A;border-radius:8px 8px 0 0;padding:28px 40px;">
+              <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td>
+                    <!-- Logo mark -->
+                    <span style="display:inline-block;vertical-align:middle;margin-right:12px;">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 52 52">
+                        <polygon points="0,26 16,4 32,26 16,46" fill="#1A56DB"/>
+                        <polygon points="8,26 16,14 24,26" fill="white"/>
+                        <rect x="9" y="26" width="14" height="10" rx="1" fill="white"/>
+                        <rect x="13" y="28" width="6" height="8" rx="1" fill="#1A56DB"/>
+                      </svg>
+                    </span>
+                    <span style="vertical-align:middle;">
+                      <span style="display:block;font-size:16px;font-weight:700;color:#ffffff;letter-spacing:1px;line-height:1.2;">HARGROVE</span>
+                      <span style="display:block;font-size:9px;font-weight:400;color:#1A56DB;letter-spacing:3px;line-height:1.4;">REALTY GROUP</span>
+                    </span>
+                  </td>
+                  <td align="right" style="color:#94a3b8;font-size:11px;vertical-align:middle;">
+                    Professional Property Management
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Blue accent bar -->
+          <tr>
+            <td style="background-color:#1A56DB;height:3px;font-size:0;line-height:0;">&nbsp;</td>
+          </tr>
+
+          <!-- Body card -->
+          <tr>
+            <td style="background-color:#ffffff;padding:40px 40px 32px 40px;border-left:1px solid #e2e8f0;border-right:1px solid #e2e8f0;">
+              {% block content %}{% endblock %}
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background-color:#f8fafc;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 8px 8px;padding:24px 40px;">
+              <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="color:#64748b;font-size:11px;line-height:1.7;text-align:center;">
+                    <strong style="color:#0B1F3A;">Hasker &amp; Co. Realty Group</strong><br>
+                    info@haskerrealtygroup.com &nbsp;·&nbsp; (404) 555-0182<br>
+                    <span style="color:#94a3b8;">Licensed Real Estate Professionals &nbsp;·&nbsp; Equal Housing Opportunity</span><br><br>
+                    <span style="color:#cbd5e1;font-size:10px;">
+                      This email was sent to you because you have an active inquiry or application with Hasker &amp; Co. Realty Group.<br>
+                      © {% now "Y" %} Hasker &amp; Co. Realty Group. All rights reserved.
+                    </span>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding-top:16px;text-align:center;">
+                    <!-- Equal Housing logo (text-based) -->
+                    <span style="display:inline-block;border:1px solid #cbd5e1;border-radius:4px;padding:4px 10px;font-size:10px;color:#94a3b8;letter-spacing:0.5px;">
+                      &#9632; EQUAL HOUSING OPPORTUNITY
+                    </span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>

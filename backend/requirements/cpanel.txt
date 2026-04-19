@@ -1,0 +1,6 @@
+# cPanel deployment requirements (no Gunicorn — Passenger handles WSGI)
+-r base.txt
+whitenoise==6.*
+dj-database-url==2.*
+mysqlclient==2.*
+sentry-sdk==2.*

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Invoice {{ invoice.invoice_number }}</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Georgia', serif; color: #1a1a1a; padding: 48px; font-size: 14px; }
+    .header { display: flex; justify-content: space-between; margin-bottom: 48px; }
+    .brand { font-size: 22px; font-weight: bold; color: #1e3a5f; letter-spacing: 0.5px; }
+    .brand-sub { font-size: 11px; color: #666; margin-top: 4px; letter-spacing: 2px; text-transform: uppercase; }
+    .invoice-meta { text-align: right; }
+    .invoice-meta h2 { font-size: 28px; color: #1e3a5f; text-transform: uppercase; letter-spacing: 2px; }
+    .invoice-meta p { color: #555; margin-top: 4px; }
+    .divider { border: none; border-top: 2px solid #1e3a5f; margin: 24px 0; }
+    .parties { display: flex; justify-content: space-between; margin-bottom: 40px; }
+    .party h4 { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #888; margin-bottom: 8px; }
+    .party p { line-height: 1.6; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 32px; }
+    thead th { background: #1e3a5f; color: white; padding: 10px 12px; text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+    tbody td { padding: 10px 12px; border-bottom: 1px solid #eee; }
+    tbody tr:last-child td { border-bottom: none; }
+    .totals { margin-left: auto; width: 280px; }
+    .totals table { margin-bottom: 0; }
+    .totals td { padding: 6px 12px; }
+    .totals .grand-total td { font-weight: bold; font-size: 16px; border-top: 2px solid #1e3a5f; }
+    .footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid #eee; font-size: 11px; color: #888; text-align: center; }
+    .status-badge { display: inline-block; padding: 4px 12px; border-radius: 99px; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; background: #dcfce7; color: #166534; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 48" height="44" width="210" style="display:block;margin-bottom:4px">
+        <polygon points="20,24 36,4 52,24 36,44" fill="#1A56DB"/>
+        <polygon points="28,24 36,13 44,24" fill="white"/>
+        <rect x="29" y="24" width="14" height="10" rx="1" fill="white"/>
+        <rect x="33" y="26" width="6" height="8" rx="1" fill="#1A56DB"/>
+        <text x="62" y="23" font-family="'Helvetica Neue',Helvetica,Arial,sans-serif" font-weight="700" font-size="18" fill="#0B1F3A" letter-spacing="0.5">HARGROVE</text>
+        <text x="63" y="37" font-family="'Helvetica Neue',Helvetica,Arial,sans-serif" font-weight="400" font-size="9" fill="#1A56DB" letter-spacing="3">REALTY GROUP</text>
+      </svg>
+      <div class="brand-sub">Luxury Real Estate</div>
+    </div>
+    <div class="invoice-meta">
+      <h2>Invoice</h2>
+      <p><strong>{{ invoice.invoice_number }}</strong></p>
+      <p>Issued: {{ invoice.issued_date|date:"F j, Y" }}</p>
+      <p>Due: {{ invoice.due_date|date:"F j, Y" }}</p>
+      <p style="margin-top:8px"><span class="status-badge">{{ invoice.get_status_display }}</span></p>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="parties">
+    <div class="party">
+      <h4>From</h4>
+      <p><strong>Hasker &amp; Co. Realty Group</strong></p>
+      <p>info@haskerrealtygroup.com</p>
+    </div>
+    <div class="party">
+      <h4>Billed To</h4>
+      <p><strong>{{ invoice.transaction.client.full_name }}</strong></p>
+      <p>{{ invoice.transaction.client.email }}</p>
+      {% if invoice.transaction.client.lead.phone %}
+      <p>{{ invoice.transaction.client.lead.phone }}</p>
+      {% endif %}
+    </div>
+    <div class="party">
+      <h4>Property</h4>
+      <p>{{ invoice.transaction.property.title }}</p>
+      <p>{{ invoice.transaction.property.address }}</p>
+      <p>{{ invoice.transaction.property.city }}, {{ invoice.transaction.property.state }}</p>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Description</th>
+        <th style="text-align:center">Qty</th>
+        <th style="text-align:right">Unit Price</th>
+        <th style="text-align:right">Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in invoice.line_items %}
+      <tr>
+        <td>{{ item.description }}</td>
+        <td style="text-align:center">{{ item.quantity }}</td>
+        <td style="text-align:right">${{ item.unit_price|floatformat:2 }}</td>
+        <td style="text-align:right">${{ item.total|floatformat:2 }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="totals">
+    <table>
+      <tr><td>Subtotal</td><td style="text-align:right">${{ invoice.subtotal|floatformat:2 }}</td></tr>
+      {% if invoice.tax_rate %}
+      <tr><td>Tax ({{ invoice.tax_rate }}%)</td><td style="text-align:right">${{ invoice.tax_amount|floatformat:2 }}</td></tr>
+      {% endif %}
+      <tr class="grand-total"><td>Total Due</td><td style="text-align:right">${{ invoice.total|floatformat:2 }}</td></tr>
+    </table>
+  </div>
+
+  <div class="footer">
+    Hasker &amp; Co. Realty Group &bull; info@haskerrealtygroup.com &bull; All amounts in USD
+  </div>
+</body>
+</html>
