@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Terms of Service — Hasker & Co. Realty Group",
+  title: "Terms of Service | Hasker & Co. Realty Group",
   description: "Terms and conditions for using Hasker & Co. Realty Group's website and services.",
   robots: { index: true, follow: true },
 };

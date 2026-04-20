@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Accessibility — Hasker & Co. Realty Group",
+  title: "Accessibility | Hasker & Co. Realty Group",
   description: "Hasker & Co. Realty Group's commitment to web accessibility and how to request assistance.",
   robots: { index: true, follow: true },
 };

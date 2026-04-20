@@ -18,8 +18,8 @@ const playfairDisplay = Playfair_Display({
 
 export const metadata: Metadata = {
   title: {
-    default: "Hasker & Co. Realty Group — Affordable Rental Homes & Apartments",
-    template: "%s — Hasker & Co. Realty Group",
+    default: "Hasker & Co. Realty Group | Affordable Rental Homes & Apartments",
+    template: "%s | Hasker & Co. Realty Group",
   },
   description:
     "Find affordable rental apartments and homes across Atlanta, Charlotte, Houston, Dallas, Nashville & more. No hidden fees, fast approvals, 500+ units available.",
@@ -56,10 +56,10 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/icon.png', type: 'image/png', sizes: '320x320' },
     ],
     apple: '/apple-icon.png',
-    shortcut: '/icon.svg',
+    shortcut: '/icon.png',
   },
   robots: {
     index: true,

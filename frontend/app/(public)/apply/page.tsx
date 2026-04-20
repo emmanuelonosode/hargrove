@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { RentalApplicationForm } from "@/components/public/RentalApplicationForm";
 
 export const metadata: Metadata = {
-  title: "Apply to Rent a Home — Hasker & Co. Realty Group",
+  title: "Apply to Rent a Home | Hasker & Co. Realty Group",
   description:
-    "Apply to rent an affordable home with Hasker & Co. Realty Group. Simple online application, reviewed within 24 hours. No hidden fees, no pressure — just fast, honest decisions.",
+    "Apply to rent an affordable home with Hasker & Co. Realty Group. Simple online application, reviewed within 24 hours. No hidden fees, no pressure. Fast, honest decisions.",
   keywords: [
     "apply to rent a home",
     "rental application",
@@ -14,9 +14,9 @@ export const metadata: Metadata = {
     "rental application online",
   ],
   openGraph: {
-    title: "Apply to Rent a Home — Hasker & Co. Realty Group",
+    title: "Apply to Rent a Home | Hasker & Co. Realty Group",
     description:
-      "Simple rental application reviewed in 24 hours. Affordable homes across 12+ cities — no hidden fees.",
+      "Simple rental application reviewed in 24 hours. Affordable homes across 12+ cities. No hidden fees.",
     type: "website",
     url: "https://haskerrealtygroup.com/apply",
   },
@@ -42,7 +42,7 @@ export default async function ApplyPage({ searchParams }: Props) {
         </p>
         <h1 className="font-serif text-4xl lg:text-5xl font-bold mb-4">Apply to Rent a Home</h1>
         <p className="text-blue-100 max-w-xl mx-auto text-sm leading-relaxed">
-          Fill out the form below — it takes less than 5 minutes. Our team reviews every
+          Fill out the form below. It takes less than 5 minutes. Our team reviews every
           application within 24 hours. No hidden fees, no pressure.
         </p>
       </div>

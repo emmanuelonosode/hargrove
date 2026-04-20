@@ -5,7 +5,7 @@ import { fetchPosts, type BlogPost } from "@/lib/blog";
 export const revalidate = 3600;
 
 export const metadata = {
-  title: "Renter's Guide & Housing Tips — Hasker & Co. Realty Group",
+  title: "Renter's Guide & Housing Tips | Hasker & Co. Realty Group",
   description:
     "Free renter guides, moving tips, budgeting advice, and housing market updates from the team at Hasker & Co. Realty Group. Written for real families finding affordable homes.",
   alternates: { canonical: "https://haskerrealtygroup.com/blog" },
@@ -62,7 +62,7 @@ export default async function BlogPage({ searchParams }: PageProps) {
         </p>
         <h1 className="font-serif text-4xl lg:text-5xl font-bold mb-4">Renter&apos;s Guide</h1>
         <p className="text-blue-100 max-w-xl mx-auto">
-          Practical tips, moving checklists, and budgeting guides written by our team — so you
+          Practical tips, moving checklists, and budgeting guides written by our team, so you
           can find and keep an affordable home with confidence.
         </p>
       </div>
@@ -92,7 +92,7 @@ export default async function BlogPage({ searchParams }: PageProps) {
         {posts.length === 0 && (
           <div className="text-center py-20 text-neutral-400">
             <p className="text-lg font-serif">No articles published yet.</p>
-            <p className="text-sm mt-2">Our team is writing renter guides — check back soon.</p>
+            <p className="text-sm mt-2">Our team is writing renter guides. Check back soon.</p>
           </div>
         )}
 

@@ -2,11 +2,11 @@ import { MapPin, Phone, Mail, Clock } from "lucide-react";
 import ContactForm from "./ContactForm";
 
 export const metadata = {
-  title: "Contact Us — Hasker & Co. Realty Group",
+  title: "Contact Us | Hasker & Co. Realty Group",
   description:
-    "Looking for an affordable home to rent or buy? Contact Hasker & Co. Realty Group. Our housing specialists respond within 24 hours with matching properties — no fees, no pressure.",
+    "Looking for an affordable home to rent or buy? Contact Hasker & Co. Realty Group. Our housing specialists respond within 24 hours with matching properties. No fees, no pressure.",
   alternates: { canonical: "https://haskerrealtygroup.com/contact" },
-  openGraph: { title: "Contact Us — Hasker & Co. Realty Group", description: "Our housing specialists respond within 24 hours. No fees, no pressure.", type: "website", url: "https://haskerrealtygroup.com/contact" },
+  openGraph: { title: "Contact Us | Hasker & Co. Realty Group", description: "Our housing specialists respond within 24 hours. No fees, no pressure.", type: "website", url: "https://haskerrealtygroup.com/contact" },
 };
 
 const offices = [
@@ -47,7 +47,7 @@ export default function ContactPage() {
         <h1 className="font-serif text-4xl lg:text-5xl font-bold mb-4">Find Your Next Home</h1>
         <p className="text-blue-100 max-w-xl mx-auto">
           Tell us what you&apos;re looking for and our rental specialists will match you with the
-          right options — fast. We respond within 24 hours.
+          right options fast. We respond within 24 hours.
         </p>
       </div>
 

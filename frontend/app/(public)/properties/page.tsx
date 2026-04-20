@@ -7,12 +7,12 @@ import { fetchProperties, toPropertyCardShape } from "@/lib/properties";
 export const revalidate = 300;
 
 export const metadata = {
-  title: "Affordable Homes to Rent & Buy — Hasker & Co. Realty Group",
+  title: "Affordable Homes to Rent & Buy | Hasker & Co. Realty Group",
   description:
     "Browse affordable apartments, rental homes, and homes for sale in Atlanta, Charlotte, Houston, Dallas, Nashville, Phoenix, Austin, Denver, Tampa & Raleigh. Honest prices, no hidden fees.",
   alternates: { canonical: "https://haskerrealtygroup.com/properties" },
   openGraph: {
-    title: "Affordable Homes to Rent & Buy — Hasker & Co. Realty Group",
+    title: "Affordable Homes to Rent & Buy | Hasker & Co. Realty Group",
     description: "Browse affordable rentals and homes for sale. Honest prices, no hidden fees.",
     type: "website",
     url: "https://haskerrealtygroup.com/properties",

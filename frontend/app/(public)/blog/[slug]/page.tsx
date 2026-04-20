@@ -18,10 +18,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
     const post = await fetchPostBySlug(slug);
     return {
-      title: `${post.title} — Hasker & Co. Realty Group`,
+      title: `${post.title} | Hasker & Co. Realty Group`,
       description: post.excerpt,
       alternates: { canonical: `https://haskerrealtygroup.com/blog/${slug}` },
-      openGraph: { title: `${post.title} — Hasker & Co. Realty Group`, description: post.excerpt, type: "article", url: `https://haskerrealtygroup.com/blog/${slug}` },
+      openGraph: { title: `${post.title} | Hasker & Co. Realty Group`, description: post.excerpt, type: "article", url: `https://haskerrealtygroup.com/blog/${slug}` },
     };
   } catch {
     return {};
@@ -162,7 +162,7 @@ export default async function BlogPostPage({ params }: Props) {
                 <p className="text-brand text-xs font-semibold tracking-wide mb-2">{post.author_role}</p>
                 <p className="text-sm text-neutral-500 leading-relaxed">
                   A housing specialist at Hasker & Co. Realty Group, helping families find affordable
-                  homes across 12+ cities. Have a question? Reach out directly — we always respond.
+                  homes across 12+ cities. Have a question? Reach out directly. We always respond.
                 </p>
               </div>
             </div>

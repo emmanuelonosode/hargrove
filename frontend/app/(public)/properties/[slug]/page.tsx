@@ -29,10 +29,10 @@ export async function generateMetadata({
     const { slug } = await params;
     const property = await fetchPropertyBySlug(slug);
     return {
-      title: `${property.title} — Hasker & Co. Realty Group`,
+      title: `${property.title} | Hasker & Co. Realty Group`,
       description: property.description?.slice(0, 160) ?? "",
       alternates: { canonical: `https://haskerrealtygroup.com/properties/${slug}` },
-      openGraph: { title: `${property.title} — Hasker & Co. Realty Group`, description: property.description?.slice(0, 160) ?? "", type: "website", url: `https://haskerrealtygroup.com/properties/${slug}` },
+      openGraph: { title: `${property.title} | Hasker & Co. Realty Group`, description: property.description?.slice(0, 160) ?? "", type: "website", url: `https://haskerrealtygroup.com/properties/${slug}` },
     };
   } catch {
     return { title: "Property Not Found" };
@@ -312,7 +312,7 @@ export default async function PropertyDetailPage({
                     Ready to Apply?
                   </p>
                   <p className="text-sm text-neutral-500 mb-4">
-                    Online rental application — decision within 24 hours.
+                    Online rental application. Decision within 24 hours.
                   </p>
                   <Button variant="accent" className="w-full" asChild>
                     <Link href={`/apply?property=${property.slug}`}>

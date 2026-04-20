@@ -7,7 +7,7 @@ import { formatPrice } from "@/lib/utils";
 export const revalidate = 300;
 
 export const metadata = {
-  title: "Our Housing Specialists — Hasker & Co. Realty Group",
+  title: "Our Housing Specialists | Hasker & Co. Realty Group",
   description:
     "Meet the housing specialists at Hasker & Co. Realty Group. Real people helping real families find affordable homes to rent and buy across Atlanta, Charlotte, Houston, Dallas, Nashville, Phoenix, and more.",
   keywords: [
@@ -19,9 +19,9 @@ export const metadata = {
     "rent a home fast",
   ],
   openGraph: {
-    title: "Our Housing Specialists — Hasker & Co. Realty Group",
+    title: "Our Housing Specialists | Hasker & Co. Realty Group",
     description:
-      "Real people helping real families find affordable homes. No jargon, no pressure — just honest, fast service.",
+      "Real people helping real families find affordable homes. No jargon, no pressure. Just honest, fast service.",
     type: "website",
     url: "https://haskerrealtygroup.com/agents",
   },
@@ -44,7 +44,7 @@ export default async function AgentsPage() {
         <h1 className="font-serif text-4xl lg:text-5xl font-bold mb-4">Meet Our Housing Specialists</h1>
         <p className="text-blue-100 max-w-xl mx-auto">
           Our team knows every neighbourhood, every price point, every shortcut. We work for
-          families — not commissions — and we find affordable homes fast.
+          families, not commissions, and we find affordable homes fast.
         </p>
       </div>
 

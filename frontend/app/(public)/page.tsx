@@ -10,9 +10,9 @@ import { fetchPosts } from "@/lib/blog";
 import { formatPrice } from "@/lib/utils";
 
 export const metadata = {
-  title: "Affordable Homes to Rent & Buy — Hasker & Co. Realty Group",
+  title: "Affordable Homes to Rent & Buy | Hasker & Co. Realty Group",
   description:
-    "Find your affordable home with Hasker & Co. Realty Group — cheap rentals and homes for sale in Atlanta, Charlotte, Houston, Dallas, Nashville & Phoenix. No hidden fees. Decisions in 24 hrs.",
+    "Find your affordable home with Hasker & Co. Realty Group. Cheap rentals and homes for sale in Atlanta, Charlotte, Houston, Dallas, Nashville and Phoenix. No hidden fees. Decisions in 24 hrs.",
   keywords: [
     "affordable homes for rent",
     "cheap apartments near me",
@@ -24,7 +24,7 @@ export const metadata = {
     "homes for sale affordable",
   ],
   openGraph: {
-    title: "Affordable Homes to Rent & Buy — Hasker & Co. Realty Group",
+    title: "Affordable Homes to Rent & Buy | Hasker & Co. Realty Group",
     description: "Quality homes at honest prices. No hidden fees. Fast approvals. 12+ cities.",
     type: "website",
     url: "https://haskerrealtygroup.com",
@@ -74,7 +74,7 @@ const LOCAL_BUSINESS_SCHEMA = {
   logo: `${BASE_URL}/logo.svg`,
   image: `${BASE_URL}/og-image.jpg`,
   description:
-    "Affordable homes to rent and buy — honest prices, no hidden fees, fast decisions. 2,000+ families housed across 12+ cities since 2012.",
+    "Affordable homes to rent and buy. Honest prices, no hidden fees, fast decisions. 2,000+ families housed across 12+ cities since 2012.",
   email: "info@haskerrealtygroup.com",
   priceRange: "$$",
   foundingDate: "2012",
@@ -160,12 +160,12 @@ const FAQ_SCHEMA = {
     {
       "@type": "Question",
       name: "How do I find affordable homes for a large family in the US?",
-      acceptedAnswer: { "@type": "Answer", text: "Hasker & Co. Realty Group has 3 and 4-bedroom houses from around $1,400/month across cities like Houston, Atlanta, and Charlotte. Many are pet-friendly and welcome large households. Apply online at haskerrealtygroup.com/apply — decisions in 24 hours." },
+      acceptedAnswer: { "@type": "Answer", text: "Hasker & Co. Realty Group has 3 and 4-bedroom houses from around $1,400/month across cities like Houston, Atlanta, and Charlotte. Many are pet-friendly and welcome large households. Apply online at haskerrealtygroup.com/apply. Decisions in 24 hours." },
     },
     {
       "@type": "Question",
       name: "What is the most affordable way to rent a house in America?",
-      acceptedAnswer: { "@type": "Answer", text: "Hasker & Co. Realty Group focuses exclusively on affordable rentals across 12+ US cities. There are no hidden admin fees — you pay the listed price plus the standard security deposit. Studios start from $800/mo and family homes from $1,400/mo." },
+      acceptedAnswer: { "@type": "Answer", text: "Hasker & Co. Realty Group focuses exclusively on affordable rentals across 12+ US cities. There are no hidden admin fees. You pay the listed price plus the standard security deposit. Studios start from $800/mo and family homes from $1,400/mo." },
     },
     {
       "@type": "Question",
@@ -175,7 +175,7 @@ const FAQ_SCHEMA = {
     {
       "@type": "Question",
       name: "Does Hasker & Co. Realty Group charge hidden fees?",
-      acceptedAnswer: { "@type": "Answer", text: "No. Hasker & Co. Realty Group's policy is that the listed price is what you pay — no administrative processing fees or convenience surcharges beyond the standard security deposit." },
+      acceptedAnswer: { "@type": "Answer", text: "No. Hasker & Co. Realty Group's policy is that the listed price is what you pay. No administrative processing fees or convenience surcharges beyond the standard security deposit." },
     },
   ],
 };
@@ -439,7 +439,7 @@ export default async function HomePage() {
                 Move-In Ready
               </p>
               <h2 className="font-sans text-4xl font-bold text-brand-dark">Homes Available Now</h2>
-              <p className="text-neutral-500 mt-2 text-sm">Affordable rentals &amp; homes for sale — updated daily, priced honestly.</p>
+              <p className="text-neutral-500 mt-2 text-sm">Affordable rentals &amp; homes for sale, updated daily and priced honestly.</p>
             </div>
             <Button variant="outline" asChild>
               <Link href="/properties" className="flex items-center gap-2">
@@ -513,7 +513,7 @@ export default async function HomePage() {
               </h2>
               <p className="text-neutral-600 leading-relaxed mb-8">
                 Everyone deserves a quality home they can actually afford. Hasker & Co. Realty Group
-                cuts through the noise — no inflated prices, no hidden admin fees, no bait-and-switch
+                cuts through the noise. No inflated prices, no hidden admin fees, no bait-and-switch
                 listings. Just honest homes for real families.
               </p>
 
@@ -525,7 +525,7 @@ export default async function HomePage() {
                   },
                   {
                     title: "24-Hour Application Decisions",
-                    desc: "Apply online in under 10 minutes. Our team reviews every application and responds within 24 hours — no unnecessary waiting.",
+                    desc: "Apply online in under 10 minutes. Our team reviews every application and responds within 24 hours. No unnecessary waiting.",
                   },
                   {
                     title: "Maintenance That Shows Up",
@@ -533,7 +533,7 @@ export default async function HomePage() {
                   },
                   {
                     title: "Your Whole Family Welcome",
-                    desc: "Kids, pets, extended family — we work with you. Many of our homes are pet-friendly and we'll always be upfront about policies.",
+                    desc: "Kids, pets, extended family. We work with you. Many of our homes are pet-friendly and we'll always be upfront about policies.",
                   },
                 ].map((item) => (
                   <div key={item.title} className="flex gap-4">
@@ -665,7 +665,7 @@ export default async function HomePage() {
               ))}
             </div>
           ) : (
-            <p className="text-center text-neutral-400 py-8">Meet our team in person — contact us to get started.</p>
+            <p className="text-center text-neutral-400 py-8">Meet our team in person. Contact us to get started.</p>
           )}
 
           <div className="text-center mt-10">
@@ -827,7 +827,7 @@ export default async function HomePage() {
                 Renter&apos;s Guide
               </h3>
               <p className="text-blue-100 text-sm leading-relaxed mb-6">
-                Everything you need to know before signing a lease — what to inspect, what to
+                Everything you need to know before signing a lease: what to inspect, what to
                 negotiate, and red flags to watch out for. Written by our rental experts.
               </p>
               <Button variant="accent" asChild>
@@ -894,7 +894,7 @@ export default async function HomePage() {
             </div>
           ) : (
             <div className="text-center py-10 text-neutral-400">
-              <p className="text-sm">No articles published yet — check back soon.</p>
+              <p className="text-sm">No articles published yet. Check back soon.</p>
             </div>
           )}
         </div>
