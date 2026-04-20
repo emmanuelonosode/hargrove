@@ -80,16 +80,16 @@ const LOCAL_BUSINESS_SCHEMA = {
   foundingDate: "2012",
   address: {
     "@type": "PostalAddress",
-    streetAddress: "1230 Peachtree Street NE, Suite 400",
-    addressLocality: "Atlanta",
-    addressRegion: "GA",
-    postalCode: "30309",
+    streetAddress: "213 Bob Ln",
+    addressLocality: "Virginia Beach",
+    addressRegion: "VA",
+    postalCode: "23454",
     addressCountry: "US",
   },
   geo: {
     "@type": "GeoCoordinates",
-    latitude: 33.8490,
-    longitude: -84.3880,
+    latitude: 36.7335,
+    longitude: -76.0435,
   },
   openingHoursSpecification: [
     { "@type": "OpeningHoursSpecification", dayOfWeek: ["Monday","Tuesday","Wednesday","Thursday","Friday"], opens: "09:00", closes: "18:00" },
@@ -130,10 +130,10 @@ const ORGANIZATION_SCHEMA = {
   email: "info@haskerrealtygroup.com",
   address: {
     "@type": "PostalAddress",
-    streetAddress: "1230 Peachtree Street NE, Suite 400",
-    addressLocality: "Atlanta",
-    addressRegion: "GA",
-    postalCode: "30309",
+    streetAddress: "213 Bob Ln",
+    addressLocality: "Virginia Beach",
+    addressRegion: "VA",
+    postalCode: "23454",
     addressCountry: "US",
   },
   contactPoint: {
@@ -578,6 +578,53 @@ export default async function HomePage() {
               <div className="absolute -top-3 -right-3 lg:-top-4 lg:-right-4 bg-brand text-white p-3 lg:p-4 rounded-sm">
                 <CheckCircle size={28} />
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── TECHNOLOGY EDGE / FOUNDER CREDENTIALS ─────────────── */}
+      <section className="py-16 lg:py-24 bg-brand-dark text-white">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-14 items-center">
+            <div>
+              <p className="text-brand text-xs font-semibold tracking-[0.3em] uppercase mb-4">
+                Our Edge
+              </p>
+              <h2 className="font-serif text-4xl lg:text-5xl font-bold leading-tight mb-6">
+                Built on Real Systems Expertise
+              </h2>
+              <p className="text-blue-100 leading-relaxed mb-4">
+                Hasker &amp; Co. Realty Group is led by an Information Systems specialist trained in
+                database architecture, information security, and AI-driven workflows. That academic
+                foundation shapes how we protect your data, match you to properties precisely, and
+                move faster than traditional agencies.
+              </p>
+              <p className="text-blue-200 text-sm leading-relaxed">
+                Our technology infrastructure is built to the standards of academic Information Systems
+                study at the university level — not retrofitted from off-the-shelf tools.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {[
+                {
+                  title: "Database Architecture",
+                  desc: "Secure, structured property and applicant data with no cross-contamination or data leaks.",
+                },
+                {
+                  title: "Information Security",
+                  desc: "Your personal details are encrypted end-to-end. We comply with U.S. data privacy standards.",
+                },
+                {
+                  title: "AI-Driven Matching",
+                  desc: "We use intelligent workflows to match applicants to available homes faster than manual review.",
+                },
+              ].map((item) => (
+                <div key={item.title} className="bg-white/5 border border-white/10 rounded-sm p-5">
+                  <h3 className="font-semibold text-white text-sm mb-2">{item.title}</h3>
+                  <p className="text-blue-200 text-xs leading-relaxed">{item.desc}</p>
+                </div>
+              ))}
             </div>
           </div>
         </div>

@@ -138,7 +138,13 @@
       "Bash(git add *)",
       "Bash(git commit -m ' *)",
       "Bash(git push *)",
-      "Bash(start *)"
+      "Bash(start *)",
+      "Bash(cp \"/c/Users/emmanuel onosode/Downloads/hargrove-realty-icon-C.png\" \"/c/Users/emmanuel onosode/Desktop/Estate/frontend/app/icon.png\")",
+      "Bash(cp \"/c/Users/emmanuel onosode/Downloads/hargrove-realty-icon-C.png\" \"/c/Users/emmanuel onosode/Desktop/Estate/frontend/app/apple-icon.png\")",
+      "WebSearch",
+      "Bash(cp \"/c/Users/emmanuel onosode/Desktop/Estate/frontend/public/logos/equal-housing.png\" \"/c/Users/emmanuel onosode/Desktop/Estate/frontend/public/logos/realtor.png\")",
+      "Bash(cp \"/c/Users/emmanuel onosode/Desktop/Estate/frontend/public/logos/equal-housing.png\" \"/c/Users/emmanuel onosode/Desktop/Estate/frontend/public/logos/virginia-realtors.png\")",
+      "Bash(cp \"/c/Users/emmanuel onosode/Desktop/Estate/frontend/public/logos/equal-housing.png\" \"/c/Users/emmanuel onosode/Desktop/Estate/frontend/public/logos/mls.png\")"
     ]
   }
 }

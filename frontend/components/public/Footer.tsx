@@ -1,5 +1,7 @@
 import Link from "next/link";
-import { Phone, Mail, MapPin } from "lucide-react";
+import Image from "next/image";
+import { Mail, MapPin } from "lucide-react";
+
 
 function InstagramIcon() {
   return (
@@ -60,7 +62,7 @@ export function Footer() {
               </div>
             </div>
             <p className="text-neutral-400 text-sm leading-relaxed max-w-xs">
-              Affordable homes to rent and buy — honest prices, no hidden fees, fast decisions.
+              Affordable homes to rent and buy. Honest prices, no hidden fees, fast decisions.
               We&apos;ve housed 2,000+ families across 12+ cities since 2012.
             </p>
 
@@ -75,9 +77,9 @@ export function Footer() {
               <div className="flex items-start gap-3 text-sm text-neutral-400">
                 <MapPin size={15} className="text-brand mt-0.5 shrink-0" />
                 <span>
-                  1230 Peachtree Street NE, Suite 400
+                  213 Bob Ln
                   <br />
-                  Atlanta, GA 30309
+                  Virginia Beach, VA 23454
                 </span>
               </div>
             </div>
@@ -124,6 +126,45 @@ export function Footer() {
               </ul>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* Compliance & Trust Strip */}
+      <div className="border-t border-white/5">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 py-8">
+          {/* Badge row */}
+          <div className="flex flex-wrap items-center gap-4 mb-6">
+            {/* Equal Housing Opportunity — official HUD/NAR logo */}
+            <div className="bg-white rounded-md p-2" title="Equal Housing Opportunity">
+              <Image
+                src="/logos/equal-housing.png"
+                alt="Equal Housing Opportunity"
+                width={48}
+                height={48}
+                className="object-contain"
+              />
+            </div>
+            {/* REALTOR® — replace /public/logos/realtor.svg with official logo from nar.realtor member portal */}
+            <div className="rounded-md overflow-hidden" title="REALTOR® Member">
+              <Image src="/logos/realtor.svg" alt="REALTOR® Member — National Association of REALTORS®" width={80} height={56} className="object-contain" />
+            </div>
+            {/* Virginia REALTORS® — replace /public/logos/virginia-realtors.svg with official logo from virginiarealtors.org */}
+            <div className="rounded-md overflow-hidden" title="Virginia REALTORS® Member">
+              <Image src="/logos/virginia-realtors.svg" alt="Virginia REALTORS®" width={96} height={56} className="object-contain" />
+            </div>
+            {/* MLS — replace /public/logos/mls.svg with official logo from your MLS provider (REIN) */}
+            <div className="rounded-md overflow-hidden" title="MLS Participant">
+              <Image src="/logos/mls.svg" alt="MLS Participant" width={80} height={56} className="object-contain" />
+            </div>
+          </div>
+          {/* Legal disclosure */}
+          <p className="text-[11px] text-neutral-500 leading-relaxed max-w-4xl">
+            <span className="font-semibold text-neutral-400">Hasker &amp; Co. Realty Group</span> is licensed in the Commonwealth of Virginia &mdash; Firm License&nbsp;
+            <span className="font-mono text-neutral-400">#[VREB-XXXXXXXX]</span>. Main office: 213 Bob Ln, Virginia Beach, VA 23454.
+            We operate in compliance with the Virginia Real Estate Board (VREB) and the Department of Professional and Occupational Regulation (DPOR).
+            All advertising conforms to the Fair Housing Act. &ldquo;REALTOR&reg;&rdquo; is a registered collective membership mark identifying real estate professionals
+            who are members of the National Association of REALTORS&reg; and subscribe to its Code of Ethics.
+          </p>
         </div>
       </div>
 
