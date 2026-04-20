@@ -148,7 +148,9 @@
       "Bash(python -m venv)",
       "Bash(ls .venv)",
       "Bash(ls venv *)",
-      "Bash(ls ../venv)"
+      "Bash(ls ../venv)",
+      "Bash(git reset *)",
+      "Bash(git restore *)"
     ]
   }
 }

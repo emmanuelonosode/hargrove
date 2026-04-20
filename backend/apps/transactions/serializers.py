@@ -2,6 +2,25 @@ from rest_framework import serializers
 from .models import Transaction, Payment, Invoice
 
 
+class ClientInvoiceSerializer(serializers.ModelSerializer):
+    property_title = serializers.CharField(source="transaction.property.title", read_only=True)
+    property_address = serializers.SerializerMethodField()
+    transaction_type = serializers.CharField(source="transaction.transaction_type", read_only=True)
+
+    class Meta:
+        model = Invoice
+        fields = [
+            "id", "invoice_number", "issued_date", "due_date",
+            "line_items", "subtotal", "tax_rate", "tax_amount", "total",
+            "pdf", "status", "created_at",
+            "property_title", "property_address", "transaction_type",
+        ]
+
+    def get_property_address(self, obj):
+        p = obj.transaction.property
+        return f"{p.address}, {p.city}, {p.state} {p.zip_code}"
+
+
 class PaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Payment

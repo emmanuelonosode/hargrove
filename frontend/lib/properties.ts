@@ -71,6 +71,9 @@ export interface PropertyDetailAPI extends PropertyListItemAPI {
   latitude: number | null;
   longitude: number | null;
   virtual_tour_url: string | null;
+  tour_360_url: string | null;
+  condition: string | null;
+  cross_street: string | null;
   images: PropertyImageAPI[];
   amenities: PropertyAmenityAPI[];
   amenity_categories: AmenityCategoryAPI[];
@@ -95,6 +98,10 @@ export interface FetchPropertiesParams {
   max_price?: string;
   is_featured?: string;
   agent?: string;
+  state?: string;
+  sort?: string;
+  type?: string;
+  page_size?: string;
 }
 
 export async function fetchProperties(
@@ -109,6 +116,10 @@ export async function fetchProperties(
   if (params?.max_price)   url.searchParams.set("max_price", params.max_price);
   if (params?.is_featured) url.searchParams.set("is_featured", params.is_featured);
   if (params?.agent)       url.searchParams.set("agent", params.agent);
+  if (params?.state)       url.searchParams.set("state", params.state);
+  if (params?.sort)        url.searchParams.set("sort", params.sort);
+  if (params?.type)        url.searchParams.set("type", params.type);
+  if (params?.page_size)   url.searchParams.set("page_size", params.page_size);
 
   const res = await fetch(url.toString(), { next: { revalidate: 300 } });
   if (!res.ok) throw new Error(`fetchProperties: ${res.status}`);

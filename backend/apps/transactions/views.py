@@ -8,7 +8,7 @@ from apps.accounts.permissions import IsAgentOrAbove, IsManagerOrAbove, IsAccoun
 from .models import Transaction, Payment, Invoice, TransactionStatus
 from .serializers import (
     TransactionListSerializer, TransactionDetailSerializer,
-    PaymentSerializer, InvoiceSerializer,
+    PaymentSerializer, InvoiceSerializer, ClientInvoiceSerializer,
 )
 
 
@@ -117,6 +117,23 @@ def send_invoice(request, transaction_pk, invoice_pk):
 
     Invoice.objects.filter(pk=invoice.pk).update(status="SENT")
     return Response({"detail": "Invoice queued for delivery."})
+
+
+@api_view(["GET"])
+@permission_classes([permissions.IsAuthenticated])
+def client_invoices(request):
+    """GET /api/v1/transactions/my-invoices/ — invoices for the logged-in client."""
+    invoices = (
+        Invoice.objects
+        .filter(
+            transaction__client__user=request.user,
+            status__in=["SENT", "PAID"],
+        )
+        .select_related("transaction__property")
+        .order_by("-issued_date")
+    )
+    serializer = ClientInvoiceSerializer(invoices, many=True)
+    return Response(serializer.data)
 
 
 @api_view(["POST"])

@@ -1,97 +1,72 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CreditCard, CheckCircle, Clock, AlertCircle, ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import {
+  FileText, CheckCircle, Clock, AlertCircle,
+  ArrowLeft, Download, Mail, Building2,
+} from "lucide-react";
 import { apiFetch } from "@/lib/auth";
-import { formatPrice } from "@/lib/utils";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
-const STRIPE_PK = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? "";
 
-interface Payment {
-  id: number;
-  amount: string;
-  status: string;
-  paid_at: string | null;
-  payment_method: string;
-  stripe_receipt_url: string;
+interface InvoiceLineItem {
+  description: string;
+  quantity: number;
+  unit_price: number;
+  total: number;
 }
 
-interface Transaction {
+interface Invoice {
   id: number;
-  agreed_price: string;
-  status: string;
+  invoice_number: string;
+  issued_date: string;
+  due_date: string;
+  line_items: InvoiceLineItem[];
+  subtotal: string;
+  tax_rate: string;
+  tax_amount: string;
+  total: string;
+  pdf: string;
+  status: "SENT" | "PAID" | "DRAFT" | "VOID";
+  created_at: string;
+  property_title: string;
+  property_address: string;
   transaction_type: string;
-  property: { title: string; city: string; state: string };
-  payments: Payment[];
 }
 
-const statusIcon = (s: string) => {
-  if (s === "SUCCESSFUL") return <CheckCircle size={14} className="text-green-500" />;
-  if (s === "FAILED") return <AlertCircle size={14} className="text-red-500" />;
-  return <Clock size={14} className="text-yellow-500" />;
+const STATUS_CONFIG: Record<string, { label: string; icon: React.ElementType; color: string; bg: string }> = {
+  SENT: { label: "Payment Due", icon: Clock, color: "text-amber-700", bg: "bg-amber-50" },
+  PAID: { label: "Paid", icon: CheckCircle, color: "text-green-700", bg: "bg-green-50" },
+  VOID: { label: "Voided", icon: AlertCircle, color: "text-neutral-500", bg: "bg-neutral-50" },
+  DRAFT: { label: "Draft", icon: FileText, color: "text-neutral-500", bg: "bg-neutral-50" },
 };
 
+function fmt(amount: string | number) {
+  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(
+    typeof amount === "string" ? parseFloat(amount) : amount
+  );
+}
+
+function fmtDate(d: string) {
+  return new Date(d).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+}
+
 export default function PaymentsPage() {
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
-  const [payingId, setPayingId] = useState<number | null>(null);
-  const [payStatus, setPayStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
-  const [payError, setPayError] = useState("");
+  const [expanded, setExpanded] = useState<number | null>(null);
 
   useEffect(() => {
-    apiFetch(`${API_BASE}/api/v1/transactions/`)
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        const results: Transaction[] = data?.results ?? (Array.isArray(data) ? data : []);
-        setTransactions(results);
-      })
+    apiFetch(`${API_BASE}/api/v1/transactions/my-invoices/`)
+      .then((r) => (r.ok ? r.json() : []))
+      .then((data) => setInvoices(Array.isArray(data) ? data : []))
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
 
-  async function handlePay(transactionId: number) {
-    setPayingId(transactionId);
-    setPayStatus("loading");
-    setPayError("");
-    try {
-      const res = await apiFetch(`${API_BASE}/api/v1/transactions/${transactionId}/pay/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.detail ?? "Payment failed.");
-
-      if (!STRIPE_PK) {
-        setPayStatus("error");
-        setPayError("Payment processing is not configured yet. Please contact our team.");
-        return;
-      }
-
-      const { loadStripe } = await import("@stripe/stripe-js");
-      const stripe = await loadStripe(STRIPE_PK);
-      if (!stripe) throw new Error("Stripe failed to load.");
-
-      const { error } = await stripe.confirmCardPayment(data.client_secret, {
-        payment_method: { card: { token: "tok_visa" } },
-      });
-
-      if (error) throw new Error(error.message);
-      setPayStatus("success");
-    } catch (err: unknown) {
-      setPayStatus("error");
-      setPayError(err instanceof Error ? err.message : "Payment failed.");
-    }
-  }
-
-  const activeTransaction = transactions.find(
-    (t) => t.status === "IN_PROGRESS" || t.status === "DEPOSIT_PAID"
-  );
-
-  const allPayments = transactions.flatMap((t) =>
-    (t.payments ?? []).map((p) => ({ ...p, property: t.property }))
-  );
+  const pending = invoices.filter((i) => i.status === "SENT");
+  const paid = invoices.filter((i) => i.status === "PAID");
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-8">
@@ -100,115 +75,203 @@ export default function PaymentsPage() {
           <ArrowLeft size={18} />
         </Link>
         <div>
-          <h1 className="font-serif text-2xl font-bold text-brand-dark">Payments</h1>
-          <p className="text-sm text-neutral-500">Pay rent and view your payment history</p>
+          <h1 className="font-serif text-2xl font-bold text-brand-dark">Invoices & Payments</h1>
+          <p className="text-sm text-neutral-500">Invoices sent by your property manager</p>
         </div>
       </div>
 
-      {/* Pay Now card */}
-      {activeTransaction && (
-        <div className="bg-white border border-neutral-200 rounded-lg p-6 mb-8 shadow-sm">
-          <h2 className="font-semibold text-brand-dark mb-4 flex items-center gap-2">
-            <CreditCard size={16} className="text-brand" />
-            Pay Rent
-          </h2>
+      {/* Payment instructions banner */}
+      <div className="bg-brand-light border border-brand-muted rounded-lg p-5 mb-8 flex flex-col sm:flex-row gap-4 items-start">
+        <div className="shrink-0 w-10 h-10 rounded-full bg-brand/10 flex items-center justify-center">
+          <Building2 size={18} className="text-brand" />
+        </div>
+        <div>
+          <p className="font-semibold text-brand-dark mb-1">How to pay your invoice</p>
+          <p className="text-sm text-neutral-600 leading-relaxed">
+            When an invoice is issued, you&apos;ll receive an email with full payment instructions —
+            bank account details, check payable info, and your reference number.
+            Use the invoice number as your payment reference.
+          </p>
+          <a
+            href="mailto:info@haskerrealtygroup.com"
+            className="inline-flex items-center gap-1.5 text-sm text-brand font-medium mt-2 hover:underline"
+          >
+            <Mail size={13} />
+            Questions? Email info@haskerrealtygroup.com
+          </a>
+        </div>
+      </div>
 
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <p className="text-xs text-neutral-400 uppercase tracking-wide mb-0.5">Property</p>
-              <p className="font-medium text-brand-dark">{activeTransaction.property.title}</p>
-              <p className="text-sm text-neutral-500">
-                {activeTransaction.property.city}, {activeTransaction.property.state}
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="text-xs text-neutral-400 uppercase tracking-wide mb-0.5">Amount Due</p>
-              <p className="font-serif text-3xl font-bold text-brand-dark">
-                {formatPrice(parseFloat(activeTransaction.agreed_price), { perMonth: true })}
-              </p>
-            </div>
-          </div>
-
-          {payStatus === "success" ? (
-            <div className="mt-5 flex items-center gap-2 text-green-700 bg-green-50 px-4 py-3 rounded-md text-sm font-medium">
-              <CheckCircle size={16} />
-              Payment submitted successfully!
-            </div>
-          ) : payStatus === "error" ? (
-            <div className="mt-5 space-y-3">
-              <div className="flex items-start gap-2 text-red-700 bg-red-50 px-4 py-3 rounded-md text-sm">
-                <AlertCircle size={16} className="shrink-0 mt-0.5" />
-                {payError}
+      {loading ? (
+        <div className="space-y-3 animate-pulse">
+          {[1, 2, 3].map((i) => <div key={i} className="h-20 bg-neutral-100 rounded-lg" />)}
+        </div>
+      ) : invoices.length === 0 ? (
+        <div className="bg-white border border-neutral-200 rounded-lg p-12 text-center shadow-sm">
+          <FileText size={40} className="text-neutral-200 mx-auto mb-4" />
+          <h2 className="font-serif text-xl font-bold text-brand-dark mb-2">No invoices yet</h2>
+          <p className="text-sm text-neutral-500 max-w-xs mx-auto">
+            When your property manager sends an invoice, it will appear here with payment instructions.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {/* Pending invoices */}
+          {pending.length > 0 && (
+            <section>
+              <h2 className="font-semibold text-brand-dark mb-3 text-sm uppercase tracking-wider">
+                Outstanding ({pending.length})
+              </h2>
+              <div className="space-y-3">
+                {pending.map((inv) => (
+                  <InvoiceCard
+                    key={inv.id}
+                    invoice={inv}
+                    expanded={expanded === inv.id}
+                    onToggle={() => setExpanded(expanded === inv.id ? null : inv.id)}
+                  />
+                ))}
               </div>
-              <button
-                onClick={() => { setPayStatus("idle"); setPayingId(null); }}
-                className="text-sm text-brand hover:underline"
-              >
-                Try again
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={() => handlePay(activeTransaction.id)}
-              disabled={payStatus === "loading"}
-              className="mt-5 inline-flex items-center gap-2 bg-brand text-white text-sm font-semibold px-6 py-2.5 rounded-md hover:bg-brand-hover transition-colors disabled:opacity-60"
-            >
-              <CreditCard size={14} />
-              {payStatus === "loading" ? "Processing…" : "Pay Now"}
-            </button>
+            </section>
+          )}
+
+          {/* Paid invoices */}
+          {paid.length > 0 && (
+            <section>
+              <h2 className="font-semibold text-brand-dark mb-3 text-sm uppercase tracking-wider">
+                Payment History ({paid.length})
+              </h2>
+              <div className="space-y-3">
+                {paid.map((inv) => (
+                  <InvoiceCard
+                    key={inv.id}
+                    invoice={inv}
+                    expanded={expanded === inv.id}
+                    onToggle={() => setExpanded(expanded === inv.id ? null : inv.id)}
+                  />
+                ))}
+              </div>
+            </section>
           )}
         </div>
       )}
+    </div>
+  );
+}
 
-      {/* Payment history */}
-      <div className="bg-white border border-neutral-200 rounded-lg shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-neutral-100">
-          <h2 className="font-semibold text-brand-dark">Payment History</h2>
+function InvoiceCard({
+  invoice,
+  expanded,
+  onToggle,
+}: {
+  invoice: Invoice;
+  expanded: boolean;
+  onToggle: () => void;
+}) {
+  const cfg = STATUS_CONFIG[invoice.status] ?? STATUS_CONFIG.SENT;
+  const StatusIcon = cfg.icon;
+  const isOverdue =
+    invoice.status === "SENT" && new Date(invoice.due_date) < new Date();
+
+  return (
+    <div className="bg-white border border-neutral-200 rounded-lg shadow-sm overflow-hidden">
+      <button
+        onClick={onToggle}
+        className="w-full px-6 py-4 flex items-center gap-4 text-left hover:bg-neutral-50 transition-colors"
+      >
+        <div className={`shrink-0 w-9 h-9 rounded-full ${cfg.bg} flex items-center justify-center`}>
+          <StatusIcon size={16} className={cfg.color} />
         </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-semibold text-brand-dark text-sm">{invoice.invoice_number}</span>
+            <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${cfg.bg} ${cfg.color}`}>
+              {isOverdue ? "Overdue" : cfg.label}
+            </span>
+          </div>
+          <p className="text-xs text-neutral-500 mt-0.5 truncate">{invoice.property_title}</p>
+        </div>
+        <div className="text-right shrink-0">
+          <p className="font-serif font-bold text-brand-dark">{fmt(invoice.total)}</p>
+          <p className="text-xs text-neutral-400">Due {fmtDate(invoice.due_date)}</p>
+        </div>
+      </button>
 
-        {loading ? (
-          <div className="p-6 space-y-3 animate-pulse">
-            {[1, 2, 3].map((i) => <div key={i} className="h-12 bg-neutral-100 rounded" />)}
+      {expanded && (
+        <div className="border-t border-neutral-100 px-6 py-5">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-5">
+            <div>
+              <p className="text-xs text-neutral-400 uppercase tracking-wide mb-0.5">Issued</p>
+              <p className="text-sm font-medium text-brand-dark">{fmtDate(invoice.issued_date)}</p>
+            </div>
+            <div>
+              <p className="text-xs text-neutral-400 uppercase tracking-wide mb-0.5">Due Date</p>
+              <p className={`text-sm font-medium ${isOverdue ? "text-red-600" : "text-brand-dark"}`}>
+                {fmtDate(invoice.due_date)}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-neutral-400 uppercase tracking-wide mb-0.5">Property</p>
+              <p className="text-sm font-medium text-brand-dark">{invoice.property_title}</p>
+            </div>
+            <div>
+              <p className="text-xs text-neutral-400 uppercase tracking-wide mb-0.5">Type</p>
+              <p className="text-sm font-medium text-brand-dark capitalize">
+                {invoice.transaction_type?.toLowerCase()}
+              </p>
+            </div>
           </div>
-        ) : allPayments.length === 0 ? (
-          <div className="p-10 text-center text-neutral-400 text-sm">
-            No payments recorded yet.
+
+          {/* Line items */}
+          {invoice.line_items?.length > 0 && (
+            <div className="border border-neutral-100 rounded-md overflow-hidden mb-4">
+              <table className="w-full text-sm">
+                <thead className="bg-neutral-50">
+                  <tr>
+                    <th className="text-left px-4 py-2 text-xs font-semibold text-neutral-500 uppercase tracking-wide">Description</th>
+                    <th className="text-right px-4 py-2 text-xs font-semibold text-neutral-500 uppercase tracking-wide">Amount</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-neutral-100">
+                  {invoice.line_items.map((item, i) => (
+                    <tr key={i}>
+                      <td className="px-4 py-2 text-neutral-700">{item.description}</td>
+                      <td className="px-4 py-2 text-right font-medium text-brand-dark">{fmt(item.total)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot className="bg-neutral-50 border-t border-neutral-200">
+                  <tr>
+                    <td className="px-4 py-2 font-semibold text-brand-dark">Total Due</td>
+                    <td className="px-4 py-2 text-right font-bold text-brand-dark font-serif text-base">{fmt(invoice.total)}</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          )}
+
+          <div className="flex flex-wrap gap-3">
+            {invoice.pdf && (
+              <a
+                href={invoice.pdf}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-sm font-medium text-brand border border-brand px-4 py-2 rounded-md hover:bg-brand hover:text-white transition-colors"
+              >
+                <Download size={14} />
+                Download PDF
+              </a>
+            )}
+            <a
+              href={`mailto:info@haskerrealtygroup.com?subject=Invoice ${invoice.invoice_number}`}
+              className="inline-flex items-center gap-2 text-sm font-medium text-neutral-600 border border-neutral-200 px-4 py-2 rounded-md hover:border-brand hover:text-brand transition-colors"
+            >
+              <Mail size={14} />
+              Email About This Invoice
+            </a>
           </div>
-        ) : (
-          <div className="divide-y divide-neutral-100">
-            {allPayments.map((p) => (
-              <div key={p.id} className="px-6 py-4 flex items-center justify-between gap-4">
-                <div className="flex items-center gap-3 min-w-0">
-                  {statusIcon(p.status)}
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-brand-dark truncate">
-                      {p.property.title}
-                    </p>
-                    <p className="text-xs text-neutral-400">
-                      {p.paid_at ? new Date(p.paid_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "Pending"}
-                    </p>
-                  </div>
-                </div>
-                <div className="text-right shrink-0">
-                  <p className="font-semibold text-brand-dark text-sm">
-                    {formatPrice(parseFloat(p.amount))}
-                  </p>
-                  {p.stripe_receipt_url && (
-                    <a
-                      href={p.stripe_receipt_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-brand hover:underline"
-                    >
-                      Receipt
-                    </a>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

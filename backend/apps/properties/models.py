@@ -3,6 +3,13 @@ from django.utils.text import slugify
 from cloudinary.models import CloudinaryField
 
 
+class PropertyCondition(models.TextChoices):
+    NEW = "new", "New Construction"
+    EXCELLENT = "excellent", "Excellent"
+    GOOD = "good", "Good"
+    FAIR = "fair", "Fair"
+
+
 class PropertyType(models.TextChoices):
     RESIDENTIAL = "residential", "Residential"
     COMMERCIAL = "commercial", "Commercial"
@@ -55,8 +62,18 @@ class Property(models.Model):
     longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     neighborhood = models.CharField(max_length=100, blank=True)
 
+    # Physical condition
+    condition = models.CharField(
+        max_length=20,
+        choices=PropertyCondition.choices,
+        default=PropertyCondition.GOOD,
+        blank=True,
+    )
+    cross_street = models.CharField(max_length=200, blank=True, help_text="Nearest cross street")
+
     # Media
-    virtual_tour_url = models.URLField(blank=True)
+    virtual_tour_url = models.URLField(blank=True, help_text="360° virtual tour embed URL")
+    tour_360_url = models.URLField(blank=True, help_text="Matterport / Zillow 3D Home URL")
 
     # Flags
     is_featured = models.BooleanField(default=False)

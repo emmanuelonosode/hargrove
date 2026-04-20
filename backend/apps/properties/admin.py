@@ -1,53 +1,86 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from unfold.admin import ModelAdmin, TabularInline
-from .models import Property, PropertyImage, PropertyAmenity
+from .models import Property, PropertyImage, PropertyAmenity, AmenityCategory
 
 
 class PropertyImageInline(TabularInline):
     model = PropertyImage
     extra = 1
     fields = ["image", "caption", "is_primary", "order"]
-    readonly_fields = []
+    ordering = ["order"]
 
 
 class PropertyAmenityInline(TabularInline):
     model = PropertyAmenity
     extra = 3
-    fields = ["name"]
+    fields = ["name", "category"]
+    autocomplete_fields = []
+
+
+@admin.register(AmenityCategory)
+class AmenityCategoryAdmin(ModelAdmin):
+    list_display = ["name", "icon", "order"]
+    ordering = ["order"]
+    search_fields = ["name"]
+    fields = ["name", "icon", "order"]
 
 
 @admin.register(Property)
 class PropertyAdmin(ModelAdmin):
     list_display = [
         "title", "type", "listing_type", "status_badge",
-        "price_display", "city", "state", "agent",
+        "price_display", "city", "state", "condition",
         "is_featured", "is_published", "created_at",
     ]
-    list_filter = ["type", "listing_type", "status", "is_featured", "is_published", "city", "state"]
-    search_fields = ["title", "address", "city", "neighborhood", "agent__email", "agent__first_name", "agent__last_name"]
+    list_filter = [
+        "type", "listing_type", "status", "condition",
+        "is_featured", "is_published", "state",
+    ]
+    search_fields = [
+        "title", "address", "city", "neighborhood", "zip_code",
+        "agent__email", "agent__first_name", "agent__last_name",
+    ]
     ordering = ["-created_at"]
-    prepopulated_fields = {}  # slug is auto-generated
     readonly_fields = ["slug", "created_at", "updated_at"]
     date_hierarchy = "created_at"
     inlines = [PropertyImageInline, PropertyAmenityInline]
     actions = ["publish_properties", "unpublish_properties", "mark_featured", "unmark_featured"]
 
     fieldsets = (
-        ("Core", {
-            "fields": ("title", "slug", "description", "type", "listing_type", "status", "agent"),
+        ("Listing Info", {
+            "fields": (
+                "title", "slug", "description",
+                "type", "listing_type", "status", "condition",
+                "agent",
+            ),
         }),
         ("Pricing", {
             "fields": ("price", "price_label"),
         }),
         ("Physical Details", {
-            "fields": ("bedrooms", "bathrooms", "sqft", "lot_size", "year_built", "garage", "stories"),
+            "fields": (
+                "bedrooms", "bathrooms", "sqft",
+                "lot_size", "year_built", "garage", "stories",
+            ),
         }),
         ("Location", {
-            "fields": ("address", "city", "state", "zip_code", "neighborhood", "latitude", "longitude"),
+            "fields": (
+                "address", "cross_street", "city", "state",
+                "zip_code", "neighborhood",
+                "latitude", "longitude",
+            ),
+            "description": "Enter the full street address. Cross street helps buyers orient the property.",
         }),
-        ("Media & Flags", {
-            "fields": ("virtual_tour_url", "is_featured", "is_published"),
+        ("Virtual Tours & 360°", {
+            "fields": ("virtual_tour_url", "tour_360_url"),
+            "description": (
+                "virtual_tour_url: paste a Matterport/Zillow embed URL for the in-page 360° viewer. "
+                "tour_360_url: paste any external 3D tour link (opens in new tab)."
+            ),
+        }),
+        ("Visibility", {
+            "fields": ("is_featured", "is_published"),
         }),
         ("Timestamps", {
             "fields": ("created_at", "updated_at"),
@@ -66,7 +99,7 @@ class PropertyAdmin(ModelAdmin):
         color = colors.get(obj.status, "#6b7280")
         return format_html(
             '<span style="background:{};color:#fff;padding:2px 8px;border-radius:9999px;font-size:11px">{}</span>',
-            color, obj.get_status_display()
+            color, obj.get_status_display(),
         )
     status_badge.short_description = "Status"
 
@@ -93,6 +126,3 @@ class PropertyAdmin(ModelAdmin):
     def unmark_featured(self, request, queryset):
         updated = queryset.update(is_featured=False)
         self.message_user(request, f"{updated} properties removed from featured.")
-
-
-# PropertyImage and PropertyAmenity are managed exclusively via inlines in PropertyAdmin.

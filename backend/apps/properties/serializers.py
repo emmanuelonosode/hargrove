@@ -58,11 +58,11 @@ class PropertyDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Property
         fields = [
-            "id", "slug", "title", "description", "type", "listing_type", "status",
+            "id", "slug", "title", "description", "type", "listing_type", "status", "condition",
             "price", "price_label",
             "bedrooms", "bathrooms", "sqft", "lot_size", "year_built", "garage", "stories",
-            "address", "city", "state", "zip_code", "latitude", "longitude", "neighborhood",
-            "virtual_tour_url", "is_featured", "is_published",
+            "address", "cross_street", "city", "state", "zip_code", "latitude", "longitude", "neighborhood",
+            "virtual_tour_url", "tour_360_url", "is_featured", "is_published",
             "images", "amenities", "amenity_categories", "agent", "agent_id",
             "created_at", "updated_at",
         ]

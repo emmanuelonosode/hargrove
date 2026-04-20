@@ -95,7 +95,11 @@ async function fetchMe(accessToken: string): Promise<AuthUser> {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
   if (!res.ok) throw new Error("Could not fetch user profile.");
-  return res.json();
+  const data = await res.json();
+  return {
+    ...data,
+    full_name: data.full_name ?? `${data.first_name} ${data.last_name}`.trim(),
+  };
 }
 
 export async function refreshAccessToken(): Promise<string | null> {
