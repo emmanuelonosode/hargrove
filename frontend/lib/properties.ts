@@ -15,6 +15,13 @@ export interface PropertyAmenityAPI {
   name: string;
 }
 
+export interface AmenityCategoryAPI {
+  id: number | null;
+  name: string;
+  icon: string;
+  amenities: PropertyAmenityAPI[];
+}
+
 export interface PropertyAgentAPI {
   id: number;
   first_name: string;
@@ -66,6 +73,7 @@ export interface PropertyDetailAPI extends PropertyListItemAPI {
   virtual_tour_url: string | null;
   images: PropertyImageAPI[];
   amenities: PropertyAmenityAPI[];
+  amenity_categories: AmenityCategoryAPI[];
   agent: PropertyAgentAPI;
   updated_at: string;
 }

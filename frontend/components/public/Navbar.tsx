@@ -4,9 +4,10 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Menu, X, Phone } from "lucide-react";
+import { Menu, X, Phone, User, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
+import { useAuth } from "@/context/AuthContext";
 
 const navLinks = [
   { label: "Browse Homes", href: "/properties" },
@@ -21,6 +22,7 @@ const HERO_PAGES = ["/"];
 
 export function Navbar() {
   const pathname = usePathname();
+  const { user, logout } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -108,9 +110,45 @@ export function Navbar() {
               <Phone size={14} />
               Email Us
             </a>
-            <Button variant="accent" size="sm" asChild>
-              <Link href="/apply">Apply Now</Link>
-            </Button>
+            {user ? (
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/portal/dashboard"
+                  className={cn(
+                    "flex items-center gap-1.5 text-sm font-medium transition-colors hover:text-brand",
+                    solidBg ? "text-brand-dark" : "text-white/90"
+                  )}
+                >
+                  <User size={14} />
+                  My Portal
+                </Link>
+                <button
+                  onClick={logout}
+                  className={cn(
+                    "text-sm font-medium transition-colors hover:text-red-500",
+                    solidBg ? "text-neutral-400" : "text-white/60"
+                  )}
+                  aria-label="Sign out"
+                >
+                  <LogOut size={14} />
+                </button>
+              </div>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className={cn(
+                    "text-sm font-medium transition-colors hover:text-brand",
+                    solidBg ? "text-brand-dark" : "text-white/90"
+                  )}
+                >
+                  Sign In
+                </Link>
+                <Button variant="accent" size="sm" asChild>
+                  <Link href="/apply">Apply Now</Link>
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Mobile toggle — 44 px touch target via p-2.5 */}
@@ -178,11 +216,41 @@ export function Navbar() {
               <Phone size={15} className="text-brand" />
               Email Us
             </a>
-            <Button variant="accent" className="w-full" asChild>
-              <Link href="/apply" onClick={() => setMobileOpen(false)}>
-                Apply Now
-              </Link>
-            </Button>
+            {user ? (
+              <>
+                <Link
+                  href="/portal/dashboard"
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center gap-2 text-brand font-medium text-sm py-1"
+                >
+                  <User size={15} className="text-brand" />
+                  My Tenant Portal
+                </Link>
+                <button
+                  onClick={() => { logout(); setMobileOpen(false); }}
+                  className="flex items-center gap-2 text-red-500 font-medium text-sm py-1 text-left"
+                >
+                  <LogOut size={15} />
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center gap-2 text-brand-dark font-medium text-sm py-1"
+                >
+                  <User size={15} className="text-brand" />
+                  Sign In
+                </Link>
+                <Button variant="accent" className="w-full" asChild>
+                  <Link href="/apply" onClick={() => setMobileOpen(false)}>
+                    Apply Now
+                  </Link>
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </div>

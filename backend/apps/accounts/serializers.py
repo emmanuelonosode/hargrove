@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CustomUser, AgentProfile
+from .models import CustomUser, AgentProfile, Role
 
 
 class AgentProfileSerializer(serializers.ModelSerializer):
@@ -69,3 +69,18 @@ class MeSerializer(serializers.ModelSerializer):
 
     def get_avatar_url(self, obj):
         return obj.avatar_url
+
+
+class RegisterSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, min_length=8)
+
+    class Meta:
+        model = CustomUser
+        fields = ["email", "first_name", "last_name", "phone", "password"]
+
+    def create(self, validated_data):
+        password = validated_data.pop("password")
+        user = CustomUser(**validated_data, role=Role.CLIENT)
+        user.set_password(password)
+        user.save()
+        return user

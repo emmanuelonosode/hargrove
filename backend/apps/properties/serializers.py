@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Property, PropertyImage, PropertyAmenity
+from .models import Property, PropertyImage, PropertyAmenity, AmenityCategory
 from apps.accounts.serializers import PublicAgentSerializer
 
 
@@ -46,6 +46,7 @@ class PropertyDetailSerializer(serializers.ModelSerializer):
     """Full serializer for detail views."""
     images = PropertyImageSerializer(many=True, read_only=True)
     amenities = PropertyAmenitySerializer(many=True, read_only=True)
+    amenity_categories = serializers.SerializerMethodField()
     agent = PublicAgentSerializer(read_only=True)
     agent_id = serializers.PrimaryKeyRelatedField(
         queryset=__import__("apps.accounts.models", fromlist=["CustomUser"]).CustomUser.objects.filter(role="AGENT"),
@@ -62,7 +63,30 @@ class PropertyDetailSerializer(serializers.ModelSerializer):
             "bedrooms", "bathrooms", "sqft", "lot_size", "year_built", "garage", "stories",
             "address", "city", "state", "zip_code", "latitude", "longitude", "neighborhood",
             "virtual_tour_url", "is_featured", "is_published",
-            "images", "amenities", "agent", "agent_id",
+            "images", "amenities", "amenity_categories", "agent", "agent_id",
             "created_at", "updated_at",
         ]
         read_only_fields = ["id", "slug", "created_at", "updated_at"]
+
+    def get_amenity_categories(self, obj):
+        all_amenities = obj.amenities.select_related("category").all()
+        grouped: dict = {}
+        uncategorized = []
+        for amenity in all_amenities:
+            if amenity.category_id:
+                cat = amenity.category
+                if cat.id not in grouped:
+                    grouped[cat.id] = {
+                        "id": cat.id,
+                        "name": cat.name,
+                        "icon": cat.icon,
+                        "order": cat.order,
+                        "amenities": [],
+                    }
+                grouped[cat.id]["amenities"].append({"id": amenity.id, "name": amenity.name})
+            else:
+                uncategorized.append({"id": amenity.id, "name": amenity.name})
+        result = sorted(grouped.values(), key=lambda x: x.pop("order", 0))
+        if uncategorized:
+            result.append({"id": None, "name": "Other Features", "icon": "", "amenities": uncategorized})
+        return result

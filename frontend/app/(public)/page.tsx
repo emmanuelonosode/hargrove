@@ -98,6 +98,9 @@ const LOCAL_BUSINESS_SCHEMA = {
   areaServed: [
     "Atlanta, GA", "Charlotte, NC", "Houston, TX",
     "Dallas, TX", "Nashville, TN", "Phoenix, AZ",
+    "Austin, TX", "Miami, FL", "Denver, CO", "Seattle, WA",
+    "Las Vegas, NV", "Tampa, FL", "Raleigh, NC", "Orlando, FL",
+    "San Antonio, TX", "Jacksonville, FL", "Philadelphia, PA",
     "Austin, TX", "Denver, CO", "Tampa, FL", "Raleigh, NC",
   ],
   sameAs: [
@@ -268,8 +271,8 @@ export default async function HomePage() {
               className="hero-animate text-white/90 text-base sm:text-lg leading-relaxed mb-10 max-w-xl"
               style={{ animationDelay: "180ms" }}
             >
-              Quality homes at honest prices. Studios to 4-bedroom houses in 12+ cities.
-              No hidden fees. No runaround.
+              Quality homes to rent and buy across America. Studios to 4-bedroom houses.
+              No hidden fees. Decisions in 24 hours.
             </p>
 
             {/* Search bar — WHITE, max contrast, undeniable CTA */}
@@ -289,7 +292,7 @@ export default async function HomePage() {
                 <MapPin size={10} />
                 Near you:
               </span>
-              {["Atlanta", "Charlotte", "Houston", "Dallas", "Nashville", "Phoenix"].map((city) => (
+              {["Atlanta", "Charlotte", "Houston", "Dallas", "Nashville", "Phoenix", "Austin", "Miami", "Denver", "Seattle", "Las Vegas", "Tampa"].map((city) => (
                 <Link
                   key={city}
                   href={`/properties?q=${city}`}

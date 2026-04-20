@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.utils import timezone
 from rest_framework import generics, permissions, status
 from rest_framework.decorators import api_view, permission_classes
@@ -116,3 +117,33 @@ def send_invoice(request, transaction_pk, invoice_pk):
 
     Invoice.objects.filter(pk=invoice.pk).update(status="SENT")
     return Response({"detail": "Invoice queued for delivery."})
+
+
+@api_view(["POST"])
+@permission_classes([permissions.IsAuthenticated])
+def create_payment_intent(request, pk):
+    """POST /api/v1/transactions/{pk}/pay/ — create Stripe PaymentIntent for rent payment."""
+    try:
+        if request.user.role == "CLIENT":
+            transaction = Transaction.objects.get(pk=pk, client__user=request.user)
+        else:
+            transaction = Transaction.objects.get(pk=pk)
+    except Transaction.DoesNotExist:
+        return Response({"detail": "Transaction not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    if not settings.STRIPE_SECRET_KEY:
+        return Response({"detail": "Payment processing is not configured."}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
+    try:
+        import stripe
+        stripe.api_key = settings.STRIPE_SECRET_KEY
+        intent = stripe.PaymentIntent.create(
+            amount=int(transaction.agreed_price * 100),
+            currency="usd",
+            metadata={"transaction_id": transaction.pk, "user_id": request.user.pk},
+        )
+        transaction.stripe_payment_intent_id = intent.id
+        transaction.save(update_fields=["stripe_payment_intent_id"])
+        return Response({"client_secret": intent.client_secret, "amount": float(transaction.agreed_price)})
+    except Exception as e:
+        return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)

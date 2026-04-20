@@ -123,8 +123,29 @@ class PropertyImage(models.Model):
         super().save(*args, **kwargs)
 
 
+class AmenityCategory(models.Model):
+    name = models.CharField(max_length=100)
+    icon = models.CharField(max_length=50, blank=True, help_text="Lucide icon name, e.g. 'home'")
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ["order"]
+        verbose_name = "Amenity Category"
+        verbose_name_plural = "Amenity Categories"
+
+    def __str__(self):
+        return self.name
+
+
 class PropertyAmenity(models.Model):
     property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name="amenities")
+    category = models.ForeignKey(
+        AmenityCategory,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="property_amenities",
+    )
     name = models.CharField(max_length=100)
 
     class Meta:

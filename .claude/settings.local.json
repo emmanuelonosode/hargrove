@@ -144,7 +144,11 @@
       "WebSearch",
       "Bash(cp \"/c/Users/emmanuel onosode/Desktop/Estate/frontend/public/logos/equal-housing.png\" \"/c/Users/emmanuel onosode/Desktop/Estate/frontend/public/logos/realtor.png\")",
       "Bash(cp \"/c/Users/emmanuel onosode/Desktop/Estate/frontend/public/logos/equal-housing.png\" \"/c/Users/emmanuel onosode/Desktop/Estate/frontend/public/logos/virginia-realtors.png\")",
-      "Bash(cp \"/c/Users/emmanuel onosode/Desktop/Estate/frontend/public/logos/equal-housing.png\" \"/c/Users/emmanuel onosode/Desktop/Estate/frontend/public/logos/mls.png\")"
+      "Bash(cp \"/c/Users/emmanuel onosode/Desktop/Estate/frontend/public/logos/equal-housing.png\" \"/c/Users/emmanuel onosode/Desktop/Estate/frontend/public/logos/mls.png\")",
+      "Bash(python -m venv)",
+      "Bash(ls .venv)",
+      "Bash(ls venv *)",
+      "Bash(ls ../venv)"
     ]
   }
 }

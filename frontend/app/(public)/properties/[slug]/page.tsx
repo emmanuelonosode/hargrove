@@ -56,7 +56,8 @@ export default async function PropertyDetailPage({
   const images = property.images ?? [];
   const primaryImage = images.find((i) => i.is_primary) ?? images[0];
   const otherImages  = images.filter((i) => !i.is_primary);
-  const amenities    = property.amenities ?? [];
+  const amenityCategories = property.amenity_categories ?? [];
+  const amenities    = amenityCategories.length === 0 ? (property.amenities ?? []) : [];
   const agent        = property.agent;
 
   const breadcrumb = { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Home", item: "https://haskerrealtygroup.com" }, { "@type": "ListItem", position: 2, name: "Properties", item: "https://haskerrealtygroup.com/properties" }, { "@type": "ListItem", position: 3, name: property.title, item: `https://haskerrealtygroup.com/properties/${slug}` }] };
@@ -288,8 +289,31 @@ export default async function PropertyDetailPage({
                 </div>
               </div>
 
-              {/* Amenities */}
-              {amenities.length > 0 && (
+              {/* Amenities — grouped by category */}
+              {amenityCategories.length > 0 ? (
+                <div>
+                  <h2 className="font-serif text-2xl font-bold text-brand-dark mb-6">
+                    Features &amp; Amenities
+                  </h2>
+                  <div className="space-y-6">
+                    {amenityCategories.map((cat) => (
+                      <div key={cat.id ?? "other"}>
+                        <p className="text-xs font-semibold tracking-widest uppercase text-brand mb-3">
+                          {cat.name}
+                        </p>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-2 gap-x-4">
+                          {cat.amenities.map((a) => (
+                            <div key={a.id} className="flex items-center gap-2 text-sm text-neutral-700">
+                              <Check size={13} className="text-brand shrink-0" />
+                              {a.name}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : amenities.length > 0 ? (
                 <div>
                   <h2 className="font-serif text-2xl font-bold text-brand-dark mb-5">
                     Features &amp; Amenities
@@ -303,7 +327,7 @@ export default async function PropertyDetailPage({
                     ))}
                   </div>
                 </div>
-              )}
+              ) : null}
 
               {/* Mobile-only: Quick apply CTA */}
               {(property.listing_type === "for-rent" || property.listing_type === "for-lease") && (
