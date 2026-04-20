@@ -134,7 +134,11 @@
       "Bash(rm -f frontend/public/next.svg frontend/public/vercel.svg frontend/public/window.svg frontend/public/globe.svg frontend/public/file.svg)",
       "Bash(rm -f backend/admin_sidebar_zoom.png)",
       "Bash(rm -rf backend/screenshots)",
-      "Bash(python *)"
+      "Bash(python *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(start *)"
     ]
   }
 }

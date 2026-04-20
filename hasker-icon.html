@@ -1,0 +1,574 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Hargrove Realty Group — Profile Icon Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand-blue: #1A56DB;
+    --brand-navy: #0B1F3A;
+    --page-bg: #F0F4FF;
+    --card-bg: #ffffff;
+    --ink-900: #0B1F3A;
+    --ink-700: #2b3a55;
+    --ink-500: #5a6b86;
+    --ink-400: #7b8aa3;
+    --ink-200: #e4e9f3;
+    --inbox-bg: #f5f7fb;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--page-bg);
+    font-family: 'DM Sans', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    color: var(--ink-900);
+    -webkit-font-smoothing: antialiased;
+    padding: 48px 24px 96px;
+  }
+
+  .page {
+    max-width: 1240px;
+    margin: 0 auto;
+  }
+
+  header.hero {
+    margin-bottom: 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .hero-title h1 {
+    font-weight: 900;
+    font-size: 40px;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin: 0 0 10px;
+  }
+  .hero-title p {
+    margin: 0;
+    color: var(--ink-500);
+    font-size: 16px;
+    max-width: 560px;
+    line-height: 1.5;
+  }
+  .hero-kicker {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--brand-blue);
+    margin-bottom: 12px;
+  }
+
+  .hero-meta {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .chip {
+    background: #fff;
+    border: 1px solid var(--ink-200);
+    border-radius: 999px;
+    padding: 8px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink-700);
+    letter-spacing: 0.02em;
+  }
+  .chip .dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--brand-blue);
+    margin-right: 8px;
+    vertical-align: 1px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+  @media (max-width: 1060px) { .grid { grid-template-columns: 1fr; } }
+
+  .variant-label {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--brand-blue);
+    margin: 0 0 10px 4px;
+  }
+
+  .card {
+    background: var(--card-bg);
+    border-radius: 20px;
+    padding: 28px 24px 24px;
+    box-shadow:
+      0 1px 2px rgba(11,31,58,0.04),
+      0 10px 30px rgba(11,31,58,0.06);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .preview-row {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 6px 20px;
+    border-bottom: 1px dashed var(--ink-200);
+    margin-bottom: 18px;
+  }
+  .preview-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  .size-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--ink-400);
+    letter-spacing: 0.06em;
+  }
+
+  /* A circle wrapper is rendered separately from the SVG mark so the
+     circle is part of the final downloaded artwork. */
+  .icon-circle {
+    display: block;
+    border-radius: 50%;
+    overflow: hidden;
+  }
+
+  /* Inbox simulation */
+  .inbox {
+    background: var(--inbox-bg);
+    border-radius: 14px;
+    padding: 14px 14px 16px;
+    border: 1px solid var(--ink-200);
+  }
+  .inbox-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .inbox-head .title {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--ink-400);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .inbox-head .badge {
+    font-size: 10px;
+    font-weight: 700;
+    background: #e8eefc;
+    color: var(--brand-blue);
+    padding: 3px 8px;
+    border-radius: 999px;
+    letter-spacing: 0.04em;
+  }
+  .inbox-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 6px;
+    border-radius: 10px;
+    background: #fff;
+    border: 1px solid #eef1f8;
+  }
+  .inbox-row + .inbox-row { margin-top: 8px; }
+  .inbox-avatar {
+    flex: 0 0 40px;
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+  }
+  .inbox-body { flex: 1; min-width: 0; }
+  .inbox-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    align-items: center;
+  }
+  .sender {
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--ink-900);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    letter-spacing: -0.005em;
+  }
+  .time {
+    font-size: 11px;
+    color: var(--ink-400);
+    font-weight: 500;
+    flex-shrink: 0;
+  }
+  .preview {
+    font-size: 13px;
+    color: var(--ink-500);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 2px;
+    line-height: 1.35;
+  }
+  .preview strong { color: var(--ink-700); font-weight: 700; }
+
+  .btn {
+    margin-top: 18px;
+    width: 100%;
+    background: var(--brand-blue);
+    color: #fff;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.02em;
+    border: 0;
+    border-radius: 12px;
+    padding: 13px 16px;
+    cursor: pointer;
+    transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
+    box-shadow: 0 4px 14px rgba(26,86,219,0.25);
+  }
+  .btn:hover { transform: translateY(-1px); background: #1449c4; box-shadow: 0 8px 22px rgba(26,86,219,0.32); }
+  .btn:active { transform: translateY(0); }
+  .btn .arrow { margin-left: 6px; }
+
+  .footer-note {
+    text-align: center;
+    color: var(--ink-400);
+    font-size: 12px;
+    margin-top: 48px;
+    letter-spacing: 0.02em;
+  }
+
+  /* Hidden offscreen stage for rendering the full 320px SVGs into canvas */
+  .render-stage {
+    position: absolute;
+    left: -99999px;
+    top: -99999px;
+    width: 320px;
+    height: 320px;
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <header class="hero">
+    <div class="hero-title">
+      <span class="hero-kicker">Brand Assets · Profile Icons</span>
+      <h1>Hargrove Realty Group</h1>
+      <p>Three clean circular variants of the Hargrove mark, ready to drop into Gmail, Google Business, WhatsApp, and social profiles. Export each as a 320×320 PNG.</p>
+    </div>
+    <div class="hero-meta">
+      <span class="chip"><span class="dot"></span>Brand Blue #1A56DB</span>
+      <span class="chip"><span class="dot" style="background:#0B1F3A"></span>Navy #0B1F3A</span>
+      <span class="chip">320 × 320 PNG</span>
+    </div>
+  </header>
+
+  <div class="grid">
+
+    <!-- VARIANT A -->
+    <div>
+      <p class="variant-label">Variant A · Navy background</p>
+      <div class="card">
+        <div class="preview-row">
+          <div class="preview-cell">
+            <div class="icon-circle" style="width:120px;height:120px;background:#0B1F3A;">
+              <svg viewBox="0 0 320 320" width="120" height="120" aria-label="Hargrove Realty Group mark">
+                <polygon points="76,160 160,56 244,160 160,264" fill="#1A56DB"/>
+                <polygon points="120,160 160,104 200,160" fill="#ffffff"/>
+                <rect x="124" y="160" width="72" height="50" rx="5" fill="#ffffff"/>
+                <rect x="146" y="170" width="28" height="40" rx="4" fill="#1A56DB"/>
+              </svg>
+            </div>
+            <span class="size-label">120 px</span>
+          </div>
+          <div class="preview-cell">
+            <div class="icon-circle" style="width:64px;height:64px;background:#0B1F3A;">
+              <svg viewBox="0 0 320 320" width="64" height="64">
+                <polygon points="76,160 160,56 244,160 160,264" fill="#1A56DB"/>
+                <polygon points="120,160 160,104 200,160" fill="#ffffff"/>
+                <rect x="124" y="160" width="72" height="50" rx="5" fill="#ffffff"/>
+                <rect x="146" y="170" width="28" height="40" rx="4" fill="#1A56DB"/>
+              </svg>
+            </div>
+            <span class="size-label">64 px</span>
+          </div>
+          <div class="preview-cell">
+            <div class="icon-circle" style="width:40px;height:40px;background:#0B1F3A;">
+              <svg viewBox="0 0 320 320" width="40" height="40">
+                <polygon points="76,160 160,56 244,160 160,264" fill="#1A56DB"/>
+                <polygon points="120,160 160,104 200,160" fill="#ffffff"/>
+                <rect x="124" y="160" width="72" height="50" rx="5" fill="#ffffff"/>
+                <rect x="146" y="170" width="28" height="40" rx="4" fill="#1A56DB"/>
+              </svg>
+            </div>
+            <span class="size-label">40 px</span>
+          </div>
+        </div>
+
+        <div class="inbox">
+          <div class="inbox-head">
+            <span class="title">Primary · Gmail preview</span>
+            <span class="badge">NEW</span>
+          </div>
+          <div class="inbox-row">
+            <div class="inbox-avatar" style="background:#0B1F3A;">
+              <svg viewBox="0 0 320 320" width="40" height="40">
+                <polygon points="76,160 160,56 244,160 160,264" fill="#1A56DB"/>
+                <polygon points="120,160 160,104 200,160" fill="#ffffff"/>
+                <rect x="124" y="160" width="72" height="50" rx="5" fill="#ffffff"/>
+                <rect x="146" y="170" width="28" height="40" rx="4" fill="#1A56DB"/>
+              </svg>
+            </div>
+            <div class="inbox-body">
+              <div class="inbox-top">
+                <span class="sender">Hargrove Realty Group</span>
+                <span class="time">9:42 AM</span>
+              </div>
+              <div class="preview"><strong>Your Atlanta home is ready</strong> — no hi…</div>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn" onclick="downloadIcon('A')">Download PNG 320×320 <span class="arrow">↓</span></button>
+      </div>
+    </div>
+
+    <!-- VARIANT B -->
+    <div>
+      <p class="variant-label">Variant B · White background</p>
+      <div class="card">
+        <div class="preview-row">
+          <div class="preview-cell">
+            <div class="icon-circle" style="width:120px;height:120px;background:#ffffff;border:1px solid #e4e9f3;">
+              <svg viewBox="0 0 320 320" width="120" height="120">
+                <polygon points="76,160 160,56 244,160 160,264" fill="#1A56DB"/>
+                <polygon points="120,160 160,104 200,160" fill="#ffffff"/>
+                <rect x="124" y="160" width="72" height="50" rx="5" fill="#ffffff"/>
+                <rect x="146" y="170" width="28" height="40" rx="4" fill="#1A56DB"/>
+              </svg>
+            </div>
+            <span class="size-label">120 px</span>
+          </div>
+          <div class="preview-cell">
+            <div class="icon-circle" style="width:64px;height:64px;background:#ffffff;border:1px solid #e4e9f3;">
+              <svg viewBox="0 0 320 320" width="64" height="64">
+                <polygon points="76,160 160,56 244,160 160,264" fill="#1A56DB"/>
+                <polygon points="120,160 160,104 200,160" fill="#ffffff"/>
+                <rect x="124" y="160" width="72" height="50" rx="5" fill="#ffffff"/>
+                <rect x="146" y="170" width="28" height="40" rx="4" fill="#1A56DB"/>
+              </svg>
+            </div>
+            <span class="size-label">64 px</span>
+          </div>
+          <div class="preview-cell">
+            <div class="icon-circle" style="width:40px;height:40px;background:#ffffff;border:1px solid #e4e9f3;">
+              <svg viewBox="0 0 320 320" width="40" height="40">
+                <polygon points="76,160 160,56 244,160 160,264" fill="#1A56DB"/>
+                <polygon points="120,160 160,104 200,160" fill="#ffffff"/>
+                <rect x="124" y="160" width="72" height="50" rx="5" fill="#ffffff"/>
+                <rect x="146" y="170" width="28" height="40" rx="4" fill="#1A56DB"/>
+              </svg>
+            </div>
+            <span class="size-label">40 px</span>
+          </div>
+        </div>
+
+        <div class="inbox">
+          <div class="inbox-head">
+            <span class="title">Light mode · Gmail preview</span>
+            <span class="badge">NEW</span>
+          </div>
+          <div class="inbox-row">
+            <div class="inbox-avatar" style="background:#ffffff;border:1px solid #e4e9f3;">
+              <svg viewBox="0 0 320 320" width="40" height="40">
+                <polygon points="76,160 160,56 244,160 160,264" fill="#1A56DB"/>
+                <polygon points="120,160 160,104 200,160" fill="#ffffff"/>
+                <rect x="124" y="160" width="72" height="50" rx="5" fill="#ffffff"/>
+                <rect x="146" y="170" width="28" height="40" rx="4" fill="#1A56DB"/>
+              </svg>
+            </div>
+            <div class="inbox-body">
+              <div class="inbox-top">
+                <span class="sender">Hargrove Realty Group</span>
+                <span class="time">9:42 AM</span>
+              </div>
+              <div class="preview"><strong>Your Atlanta home is ready</strong> — no hi…</div>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn" onclick="downloadIcon('B')">Download PNG 320×320 <span class="arrow">↓</span></button>
+      </div>
+    </div>
+
+    <!-- VARIANT C -->
+    <div>
+      <p class="variant-label">Variant C · Brand Blue background</p>
+      <div class="card">
+        <div class="preview-row">
+          <div class="preview-cell">
+            <div class="icon-circle" style="width:120px;height:120px;background:#1A56DB;">
+              <svg viewBox="0 0 320 320" width="120" height="120">
+                <polygon points="76,160 160,56 244,160 160,264" fill="#ffffff"/>
+                <polygon points="120,160 160,104 200,160" fill="#1A56DB"/>
+                <rect x="124" y="160" width="72" height="50" rx="5" fill="#1A56DB"/>
+                <rect x="146" y="170" width="28" height="40" rx="4" fill="#ffffff"/>
+              </svg>
+            </div>
+            <span class="size-label">120 px</span>
+          </div>
+          <div class="preview-cell">
+            <div class="icon-circle" style="width:64px;height:64px;background:#1A56DB;">
+              <svg viewBox="0 0 320 320" width="64" height="64">
+                <polygon points="76,160 160,56 244,160 160,264" fill="#ffffff"/>
+                <polygon points="120,160 160,104 200,160" fill="#1A56DB"/>
+                <rect x="124" y="160" width="72" height="50" rx="5" fill="#1A56DB"/>
+                <rect x="146" y="170" width="28" height="40" rx="4" fill="#ffffff"/>
+              </svg>
+            </div>
+            <span class="size-label">64 px</span>
+          </div>
+          <div class="preview-cell">
+            <div class="icon-circle" style="width:40px;height:40px;background:#1A56DB;">
+              <svg viewBox="0 0 320 320" width="40" height="40">
+                <polygon points="76,160 160,56 244,160 160,264" fill="#ffffff"/>
+                <polygon points="120,160 160,104 200,160" fill="#1A56DB"/>
+                <rect x="124" y="160" width="72" height="50" rx="5" fill="#1A56DB"/>
+                <rect x="146" y="170" width="28" height="40" rx="4" fill="#ffffff"/>
+              </svg>
+            </div>
+            <span class="size-label">40 px</span>
+          </div>
+        </div>
+
+        <div class="inbox">
+          <div class="inbox-head">
+            <span class="title">Monochrome · Gmail preview</span>
+            <span class="badge">NEW</span>
+          </div>
+          <div class="inbox-row">
+            <div class="inbox-avatar" style="background:#1A56DB;">
+              <svg viewBox="0 0 320 320" width="40" height="40">
+                <polygon points="76,160 160,56 244,160 160,264" fill="#ffffff"/>
+                <polygon points="120,160 160,104 200,160" fill="#1A56DB"/>
+                <rect x="124" y="160" width="72" height="50" rx="5" fill="#1A56DB"/>
+                <rect x="146" y="170" width="28" height="40" rx="4" fill="#ffffff"/>
+              </svg>
+            </div>
+            <div class="inbox-body">
+              <div class="inbox-top">
+                <span class="sender">Hargrove Realty Group</span>
+                <span class="time">9:42 AM</span>
+              </div>
+              <div class="preview"><strong>Your Atlanta home is ready</strong> — no hi…</div>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn" onclick="downloadIcon('C')">Download PNG 320×320 <span class="arrow">↓</span></button>
+      </div>
+    </div>
+
+  </div>
+
+  <p class="footer-note">Tip: upload the Navy or Brand Blue variant to Google Business Profile · the White variant works best as an email signature avatar in light-mode clients.</p>
+</div>
+
+<!-- Full-size 320x320 renderables for download (offscreen). Each version
+     bakes the background circle INTO the SVG so the PNG export is correct. -->
+<div class="render-stage">
+  <svg id="iconA" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" width="320" height="320">
+    <circle cx="160" cy="160" r="160" fill="#0B1F3A"/>
+    <polygon points="76,160 160,56 244,160 160,264" fill="#1A56DB"/>
+    <polygon points="120,160 160,104 200,160" fill="#ffffff"/>
+    <rect x="124" y="160" width="72" height="50" rx="5" fill="#ffffff"/>
+    <rect x="146" y="170" width="28" height="40" rx="4" fill="#1A56DB"/>
+  </svg>
+
+  <svg id="iconB" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" width="320" height="320">
+    <circle cx="160" cy="160" r="159" fill="#ffffff" stroke="#e4e9f3" stroke-width="2"/>
+    <polygon points="76,160 160,56 244,160 160,264" fill="#1A56DB"/>
+    <polygon points="120,160 160,104 200,160" fill="#ffffff"/>
+    <rect x="124" y="160" width="72" height="50" rx="5" fill="#ffffff"/>
+    <rect x="146" y="170" width="28" height="40" rx="4" fill="#1A56DB"/>
+  </svg>
+
+  <svg id="iconC" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" width="320" height="320">
+    <circle cx="160" cy="160" r="160" fill="#1A56DB"/>
+    <polygon points="76,160 160,56 244,160 160,264" fill="#ffffff"/>
+    <polygon points="120,160 160,104 200,160" fill="#1A56DB"/>
+    <rect x="124" y="160" width="72" height="50" rx="5" fill="#1A56DB"/>
+    <rect x="146" y="170" width="28" height="40" rx="4" fill="#ffffff"/>
+  </svg>
+</div>
+
+<script>
+  function downloadIcon(variant) {
+    const id = 'icon' + variant;
+    const svg = document.getElementById(id);
+    if (!svg) return;
+
+    const serializer = new XMLSerializer();
+    let source = serializer.serializeToString(svg);
+
+    // Ensure xmlns is present for safety
+    if (!source.match(/^<svg[^>]+xmlns="http:\/\/www\.w3\.org\/2000\/svg"/)) {
+      source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+    }
+
+    const svgBlob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(svgBlob);
+
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 320;
+      canvas.height = 320;
+      const ctx = canvas.getContext('2d');
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, 0, 0, 320, 320);
+      URL.revokeObjectURL(url);
+
+      canvas.toBlob(function(blob) {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'hargrove-realty-icon-' + variant + '.png';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+          document.body.removeChild(a);
+          URL.revokeObjectURL(a.href);
+        }, 100);
+      }, 'image/png');
+    };
+    img.onerror = function(e) {
+      console.error('Failed to render SVG to image', e);
+      alert('Sorry — your browser blocked the export. Try opening this file directly (double-click) instead of over a restricted protocol.');
+    };
+    img.src = url;
+  }
+</script>
+
+</body>
+</html>
