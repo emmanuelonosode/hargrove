@@ -58,6 +58,8 @@ export interface PropertyListItemAPI {
   primary_image_url: string | null;
   agent_name: string;
   created_at: string;
+  latitude: number | null;
+  longitude: number | null;
 }
 
 /** Shape returned by GET /api/v1/properties/<slug>/ (detail) */
@@ -102,6 +104,7 @@ export interface FetchPropertiesParams {
   sort?: string;
   type?: string;
   page_size?: string;
+  page?: string;
 }
 
 export async function fetchProperties(
@@ -120,6 +123,7 @@ export async function fetchProperties(
   if (params?.sort)        url.searchParams.set("sort", params.sort);
   if (params?.type)        url.searchParams.set("type", params.type);
   if (params?.page_size)   url.searchParams.set("page_size", params.page_size);
+  if (params?.page)        url.searchParams.set("page", params.page);
 
   const res = await fetch(url.toString(), { next: { revalidate: 300 } });
   if (!res.ok) throw new Error(`fetchProperties: ${res.status}`);

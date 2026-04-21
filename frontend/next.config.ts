@@ -37,13 +37,13 @@ const securityHeaders = [
       // Fonts
       "font-src 'self' https://fonts.gstatic.com",
       // Images: same origin, Cloudinary, Unsplash
-      "img-src 'self' data: blob: https://res.cloudinary.com https://images.unsplash.com",
+      "img-src 'self' data: blob: https://res.cloudinary.com https://images.unsplash.com https://images.invitationhomes.com https://maps.gstatic.com https://maps.googleapis.com https://*.tile.openstreetmap.org https://unpkg.com",
       // API connections: same origin + backend API
-      "connect-src 'self' https://admin.haskerrealtygroup.com http://localhost:8000 http://localhost:3000",
+      "connect-src 'self' https://admin.haskerrealtygroup.com http://localhost:8000 http://localhost:3000 https://*.tile.openstreetmap.org",
       // Media
       "media-src 'self'",
-      // Iframes (none allowed)
-      "frame-src 'none'",
+      // Iframes: Google Maps embed + virtual tour providers
+      "frame-src https://maps.google.com https://www.google.com https://www.insidemaps.com https://www.zillow.com https://my.matterport.com",
       // Object tags (none)
       "object-src 'none'",
       // Base URI
@@ -65,6 +65,11 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "res.cloudinary.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "images.invitationhomes.com",
         pathname: "/**",
       },
     ],

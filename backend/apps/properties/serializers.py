@@ -35,6 +35,7 @@ class PropertyListSerializer(serializers.ModelSerializer):
             "price", "price_label", "bedrooms", "bathrooms", "sqft",
             "address", "city", "state", "neighborhood",
             "is_featured", "primary_image_url", "agent_name", "created_at",
+            "latitude", "longitude",
         ]
 
     def get_primary_image_url(self, obj):
