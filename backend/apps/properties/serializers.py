@@ -11,7 +11,10 @@ class PropertyImageSerializer(serializers.ModelSerializer):
         fields = ["id", "image_url", "caption", "is_primary", "order"]
 
     def get_image_url(self, obj):
-        return obj.image.url if obj.image else None
+        if not obj.image:
+            return None
+        val = str(obj.image)
+        return val if val.startswith("http") else obj.image.url
 
 
 class PropertyAmenitySerializer(serializers.ModelSerializer):
@@ -36,7 +39,10 @@ class PropertyListSerializer(serializers.ModelSerializer):
 
     def get_primary_image_url(self, obj):
         img = obj.primary_image
-        return img.image.url if img else None
+        if not img or not img.image:
+            return None
+        val = str(img.image)
+        return val if val.startswith("http") else img.image.url
 
     def get_agent_name(self, obj):
         return obj.agent.full_name
