@@ -16,5 +16,8 @@ EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 # Relax password validation locally
 AUTH_PASSWORD_VALIDATORS = []
 
+ALLOWED_HOSTS = ["*"]
+CORS_ALLOW_ALL_ORIGINS = True
+
 # SQLite fallback if no DATABASE_URL is set
 # (base.py already handles this via DATABASE_URL detection)

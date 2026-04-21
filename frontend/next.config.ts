@@ -39,7 +39,7 @@ const securityHeaders = [
       // Images: same origin, Cloudinary, Unsplash
       "img-src 'self' data: blob: https://res.cloudinary.com https://images.unsplash.com",
       // API connections: same origin + backend API
-      "connect-src 'self' https://admin.haskerrealtygroup.com",
+      "connect-src 'self' https://admin.haskerrealtygroup.com http://localhost:8000 http://localhost:3000",
       // Media
       "media-src 'self'",
       // Iframes (none allowed)
@@ -68,6 +68,16 @@ const nextConfig: NextConfig = {
         pathname: "/**",
       },
     ],
+  },
+
+  async rewrites() {
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+    return [
+      {
+        source: "/api/v1/:path*",
+        destination: `${backendUrl}/api/v1/:path*`,
+      },
+    ];
   },
 
   async headers() {

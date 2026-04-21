@@ -1,4 +1,5 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+// Use relative path — Next.js rewrites proxy /api/v1/* to the backend (avoids CORS/CSP)
+const API_BASE = typeof window !== "undefined" ? "" : (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000");
 
 export interface AuthUser {
   id: number;
