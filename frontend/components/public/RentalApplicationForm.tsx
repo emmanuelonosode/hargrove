@@ -393,6 +393,11 @@ export function RentalApplicationForm({ propertySlug }: Props) {
     }
     if (s === REVIEW_STEP) {
       if (!form.confirmed) e.confirmed = "Please confirm the information is accurate";
+    }
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  }
+
   function goBack() { setStep((s) => Math.max(0, s - 1)); setServerError(null); }
 
   function goNext() {
@@ -433,6 +438,7 @@ export function RentalApplicationForm({ propertySlug }: Props) {
     }
 
     setAuthLoading(true);
+    setAuthForm((f) => ({ ...f, email: emailVal, password: passVal }));
     try {
       if (authMode === "register") {
         await register({
