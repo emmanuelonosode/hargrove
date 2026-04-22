@@ -393,11 +393,6 @@ export function RentalApplicationForm({ propertySlug }: Props) {
     }
     if (s === REVIEW_STEP) {
       if (!form.confirmed) e.confirmed = "Please confirm the information is accurate";
-    }
-    setErrors(e);
-    return Object.keys(e).length === 0;
-  }
-
   function goBack() { setStep((s) => Math.max(0, s - 1)); setServerError(null); }
 
   function goNext() {
@@ -413,28 +408,36 @@ export function RentalApplicationForm({ propertySlug }: Props) {
 
   async function handleAuth() {
     setAuthError(null);
+    
+    // Read directly from DOM to bypass React state sync issues with browser autofill
+    const domEmail = (document.getElementById("auth-email") as HTMLInputElement)?.value;
+    const domPassword = (document.getElementById("auth-password") as HTMLInputElement)?.value;
+    const domConfirm = (document.getElementById("auth-confirm") as HTMLInputElement)?.value;
+
+    const emailVal = (domEmail || authForm.email || form.email || "").trim();
+    const passVal = domPassword || authForm.password || "";
+    const confirmVal = domConfirm || authForm.confirm || "";
+
     if (authMode === "register") {
       const fName = authForm.first_name.trim() || form.first_name.trim();
       const lName = authForm.last_name.trim() || form.last_name.trim();
-      const emailVal = authForm.email.trim() || form.email.trim();
 
       if (!fName || !lName) {
         setAuthError("Enter your full name."); return;
       }
       if (!emailVal) { setAuthError("Enter your email."); return; }
-      if (authForm.password.length < 8) { setAuthError("Password must be at least 8 characters."); return; }
-      if (authForm.password !== authForm.confirm) { setAuthError("Passwords don't match."); return; }
+      if (passVal.length < 8) { setAuthError("Password must be at least 8 characters."); return; }
+      if (passVal !== confirmVal) { setAuthError("Passwords don't match."); return; }
     } else {
-      const emailVal = authForm.email.trim() || form.email.trim();
-      if (!emailVal || !authForm.password) { setAuthError("Enter email and password."); return; }
+      if (!emailVal || !passVal) { setAuthError("Enter email and password."); return; }
     }
 
     setAuthLoading(true);
     try {
       if (authMode === "register") {
         await register({
-          email: authForm.email || form.email,
-          password: authForm.password,
+          email: emailVal,
+          password: passVal,
           first_name: authForm.first_name || form.first_name,
           last_name: authForm.last_name || form.last_name,
           phone: form.cell_phone,
@@ -442,7 +445,7 @@ export function RentalApplicationForm({ propertySlug }: Props) {
         setAuthMode("verify");
         setResendCooldown(60);
       } else {
-        await login(authForm.email, authForm.password);
+        await login(emailVal, passVal);
       }
       // user state update triggers useEffect to advance step
     } catch (err: unknown) {
@@ -816,6 +819,7 @@ export function RentalApplicationForm({ propertySlug }: Props) {
                   <div>
                     <Label>Email Address</Label>
                     <Input
+                      id="auth-email"
                       type="email"
                       value={authForm.email || form.email}
                       onChange={(e) => setAuthForm((f) => ({ ...f, email: e.target.value }))}
@@ -827,6 +831,7 @@ export function RentalApplicationForm({ propertySlug }: Props) {
                     <Label>Password</Label>
                     <div className="relative">
                       <Input
+                        id="auth-password"
                         type={showPass ? "text" : "password"}
                         value={authForm.password}
                         onChange={(e) => setAuthForm((f) => ({ ...f, password: e.target.value }))}
@@ -847,6 +852,7 @@ export function RentalApplicationForm({ propertySlug }: Props) {
                     <div>
                       <Label>Confirm Password</Label>
                       <Input
+                        id="auth-confirm"
                         type={showPass ? "text" : "password"}
                         value={authForm.confirm}
                         onChange={(e) => setAuthForm((f) => ({ ...f, confirm: e.target.value }))}
