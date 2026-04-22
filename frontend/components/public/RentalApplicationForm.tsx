@@ -298,7 +298,7 @@ function NavButtons({
 interface Props { propertySlug?: string; }
 
 export function RentalApplicationForm({ propertySlug }: Props) {
-  const { user, login, register } = useAuth();
+  const { user, login, register, verifyEmail, resendOTP } = useAuth();
   const router = useRouter();
 
   const [form, setForm] = useState<FormData>(() => ({
@@ -312,11 +312,22 @@ export function RentalApplicationForm({ propertySlug }: Props) {
   const [serverError, setServerError] = useState<string | null>(null);
 
   // Auth gate state
-  const [authMode, setAuthMode] = useState<"register" | "login">("register");
+  const [authMode, setAuthMode] = useState<"register" | "login" | "verify">("register");
   const [authForm, setAuthForm] = useState({ email: "", password: "", confirm: "", first_name: "", last_name: "" });
   const [authError, setAuthError] = useState<string | null>(null);
   const [authLoading, setAuthLoading] = useState(false);
   const [showPass, setShowPass] = useState(false);
+  const [otpCode, setOtpCode] = useState(["", "", "", "", "", ""]);
+  const [resendCooldown, setResendCooldown] = useState(0);
+
+  // Cooldown effect
+  useEffect(() => {
+    let t: NodeJS.Timeout;
+    if (resendCooldown > 0) {
+      t = setTimeout(() => setResendCooldown(c => c - 1), 1000);
+    }
+    return () => clearTimeout(t);
+  }, [resendCooldown]);
 
   // Total steps: Personal, Address, Rental, Household, [Account if no user], Review
   const TOTAL_STEPS = user ? 5 : 6;
@@ -421,7 +432,10 @@ export function RentalApplicationForm({ propertySlug }: Props) {
           password: authForm.password,
           first_name: authForm.first_name || form.first_name,
           last_name: authForm.last_name || form.last_name,
+          phone: form.cell_phone,
         });
+        setAuthMode("verify");
+        setResendCooldown(60);
       } else {
         await login(authForm.email, authForm.password);
       }
@@ -432,6 +446,56 @@ export function RentalApplicationForm({ propertySlug }: Props) {
       setAuthLoading(false);
     }
   }
+
+  async function handleVerify(e?: React.FormEvent) {
+    if (e) e.preventDefault();
+    const otp = otpCode.join("");
+    if (otp.length < 6) { setAuthError("Please enter the 6-digit code."); return; }
+    setAuthLoading(true); setAuthError(null);
+    try {
+      await verifyEmail(authForm.email || form.email, otp);
+      // user state update triggers useEffect to advance step
+    } catch (err: unknown) {
+      setAuthError(err instanceof Error ? err.message : "Invalid verification code.");
+    } finally {
+      setAuthLoading(false);
+    }
+  }
+
+  async function handleResend() {
+    if (resendCooldown > 0) return;
+    setAuthError(null);
+    try {
+      await resendOTP(authForm.email || form.email);
+      setResendCooldown(60);
+    } catch (err: unknown) {
+      setAuthError(err instanceof Error ? err.message : "Failed to resend code.");
+    }
+  }
+
+  const handleOtpChange = (index: number, value: string) => {
+    if (value.length > 1) {
+       const pasted = value.slice(0, 6).split('');
+       const newCode = [...otpCode];
+       for(let i=0; i<pasted.length; i++){
+          if(index + i < 6) newCode[index + i] = pasted[i];
+       }
+       setOtpCode(newCode);
+       const nextIndex = Math.min(index + pasted.length, 5);
+       document.getElementById(`apply-otp-${nextIndex}`)?.focus();
+       return;
+    }
+    const newCode = [...otpCode];
+    newCode[index] = value;
+    setOtpCode(newCode);
+    if (value && index < 5) document.getElementById(`apply-otp-${index + 1}`)?.focus();
+  };
+
+  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Backspace" && !otpCode[index] && index > 0) {
+      document.getElementById(`apply-otp-${index - 1}`)?.focus();
+    }
+  };
 
   // ── Final submit ───────────────────────────────────────────────────────────
 
@@ -655,23 +719,13 @@ export function RentalApplicationForm({ propertySlug }: Props) {
               </div>
               <div>
                 <h2 className="text-[16px] font-semibold text-[#1D1D1F] tracking-tight">
-                  {authMode === "register" ? "Create your account" : "Sign in to continue"}
+                  {authMode === "register" ? "Create your account" : authMode === "verify" ? "Verify your email" : "Sign in to continue"}
                 </h2>
                 <p className="text-[12px] text-[#6E6E73]">
-                  We&apos;ll use this to track your application and send updates
+                  {authMode === "verify" ? "Enter the 6-digit code sent to your email" : "We'll use this to track your application and send updates"}
                 </p>
               </div>
             </div>
-
-            {/* Pre-fill notice */}
-            {form.first_name && authMode === "register" && (
-              <div className="mt-4 bg-[#F5F5F7] rounded-xl px-4 py-3 flex items-start gap-2">
-                <Check size={14} className="text-[#34C759] mt-0.5 shrink-0" />
-                <p className="text-[12px] text-[#1D1D1F]">
-                  Your application details are saved. After creating your account you&apos;ll go straight to review.
-                </p>
-              </div>
-            )}
 
             {authError && (
               <div className="mt-4 bg-red-50 border border-red-200/60 text-red-600 text-[12px] rounded-xl px-4 py-3 flex items-start gap-2">
@@ -680,99 +734,153 @@ export function RentalApplicationForm({ propertySlug }: Props) {
               </div>
             )}
 
-            <div className="mt-5 space-y-3">
-              {authMode === "register" && (
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label>First Name</Label>
-                    <Input
-                      value={authForm.first_name || form.first_name}
-                      onChange={(e) => setAuthForm((f) => ({ ...f, first_name: e.target.value }))}
-                      placeholder="Jane"
+            {authMode === "verify" ? (
+              <div className="mt-5 space-y-5">
+                <div className="flex justify-between gap-2 max-w-[320px] mx-auto">
+                  {otpCode.map((digit, index) => (
+                    <input
+                      key={index}
+                      id={`apply-otp-${index}`}
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={6}
+                      value={digit}
+                      onChange={(e) => handleOtpChange(index, e.target.value)}
+                      onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                      className="w-12 h-14 text-center text-[20px] font-semibold text-[#1D1D1F] bg-[#F5F5F7] rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-brand/30 focus:shadow-[0_0_0_1px_#1A56DB] transition-all"
                     />
-                  </div>
-                  <div>
-                    <Label>Last Name</Label>
-                    <Input
-                      value={authForm.last_name || form.last_name}
-                      onChange={(e) => setAuthForm((f) => ({ ...f, last_name: e.target.value }))}
-                      placeholder="Smith"
-                    />
-                  </div>
+                  ))}
                 </div>
-              )}
 
-              <div>
-                <Label>Email Address</Label>
-                <Input
-                  type="email"
-                  value={authForm.email || form.email}
-                  onChange={(e) => setAuthForm((f) => ({ ...f, email: e.target.value }))}
-                  placeholder="you@example.com"
-                />
-              </div>
+                <button
+                  type="button"
+                  onClick={() => handleVerify()}
+                  disabled={authLoading}
+                  className="w-full flex items-center justify-center gap-2 bg-brand text-white text-[13px] font-semibold py-3 rounded-xl hover:bg-brand-hover transition-colors disabled:opacity-50"
+                >
+                  {authLoading ? (
+                    <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : "Verify & Continue"}
+                </button>
 
-              <div>
-                <Label>Password</Label>
-                <div className="relative">
-                  <Input
-                    type={showPass ? "text" : "password"}
-                    value={authForm.password}
-                    onChange={(e) => setAuthForm((f) => ({ ...f, password: e.target.value }))}
-                    placeholder={authMode === "register" ? "Min. 8 characters" : "Your password"}
-                    className="pr-11"
-                  />
+                <div className="text-center">
                   <button
                     type="button"
-                    onClick={() => setShowPass((s) => !s)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6E6E73] hover:text-[#1D1D1F] transition-colors"
+                    onClick={handleResend}
+                    disabled={resendCooldown > 0}
+                    className="text-[12px] text-[#6E6E73] hover:text-[#1D1D1F] transition-colors disabled:opacity-50"
                   >
-                    {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
+                    {resendCooldown > 0 ? `Resend code in ${resendCooldown}s` : "Didn't receive code? Resend"}
                   </button>
                 </div>
               </div>
+            ) : (
+              <>
+                {/* Pre-fill notice */}
+                {form.first_name && authMode === "register" && (
+                  <div className="mt-4 bg-[#F5F5F7] rounded-xl px-4 py-3 flex items-start gap-2">
+                    <Check size={14} className="text-[#34C759] mt-0.5 shrink-0" />
+                    <p className="text-[12px] text-[#1D1D1F]">
+                      Your application details are saved. After creating your account you'll verify your email and go straight to review.
+                    </p>
+                  </div>
+                )}
 
-              {authMode === "register" && (
-                <div>
-                  <Label>Confirm Password</Label>
-                  <Input
-                    type={showPass ? "text" : "password"}
-                    value={authForm.confirm}
-                    onChange={(e) => setAuthForm((f) => ({ ...f, confirm: e.target.value }))}
-                    placeholder="Re-enter password"
-                  />
+                <div className="mt-5 space-y-3">
+                  {authMode === "register" && (
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <Label>First Name</Label>
+                        <Input
+                          value={authForm.first_name || form.first_name}
+                          onChange={(e) => setAuthForm((f) => ({ ...f, first_name: e.target.value }))}
+                          placeholder="Jane"
+                        />
+                      </div>
+                      <div>
+                        <Label>Last Name</Label>
+                        <Input
+                          value={authForm.last_name || form.last_name}
+                          onChange={(e) => setAuthForm((f) => ({ ...f, last_name: e.target.value }))}
+                          placeholder="Smith"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <div>
+                    <Label>Email Address</Label>
+                    <Input
+                      type="email"
+                      value={authForm.email || form.email}
+                      onChange={(e) => setAuthForm((f) => ({ ...f, email: e.target.value }))}
+                      placeholder="you@example.com"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Password</Label>
+                    <div className="relative">
+                      <Input
+                        type={showPass ? "text" : "password"}
+                        value={authForm.password}
+                        onChange={(e) => setAuthForm((f) => ({ ...f, password: e.target.value }))}
+                        placeholder={authMode === "register" ? "Min. 8 characters" : "Your password"}
+                        className="pr-11"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPass((s) => !s)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6E6E73] hover:text-[#1D1D1F] transition-colors"
+                      >
+                        {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {authMode === "register" && (
+                    <div>
+                      <Label>Confirm Password</Label>
+                      <Input
+                        type={showPass ? "text" : "password"}
+                        value={authForm.confirm}
+                        onChange={(e) => setAuthForm((f) => ({ ...f, confirm: e.target.value }))}
+                        placeholder="Re-enter password"
+                      />
+                    </div>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={handleAuth}
+                    disabled={authLoading}
+                    className="w-full flex items-center justify-center gap-2 bg-brand text-white text-[13px] font-semibold py-3 rounded-xl hover:bg-brand-hover transition-colors disabled:opacity-50"
+                  >
+                    {authLoading ? (
+                      <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    ) : authMode === "register" ? "Create Account & Continue" : "Sign In & Continue"}
+                  </button>
+
+                  <div className="text-center">
+                    <button
+                      type="button"
+                      onClick={() => { setAuthMode((m) => m === "register" ? "login" : "register"); setAuthError(null); }}
+                      className="text-[12px] text-brand font-semibold hover:underline"
+                    >
+                      {authMode === "register"
+                        ? "Already have an account? Sign in instead"
+                        : "Don't have an account? Create one"}
+                    </button>
+                  </div>
                 </div>
-              )}
-
-              <button
-                type="button"
-                onClick={handleAuth}
-                disabled={authLoading}
-                className="w-full flex items-center justify-center gap-2 bg-brand text-white text-[13px] font-semibold py-3 rounded-xl hover:bg-brand-hover transition-colors disabled:opacity-50"
-              >
-                {authLoading ? (
-                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                ) : authMode === "register" ? "Create Account & Continue" : "Sign In & Continue"}
-              </button>
-
-              <div className="text-center">
-                <button
-                  type="button"
-                  onClick={() => { setAuthMode((m) => m === "register" ? "login" : "register"); setAuthError(null); }}
-                  className="text-[12px] text-brand font-semibold hover:underline"
-                >
-                  {authMode === "register"
-                    ? "Already have an account? Sign in instead"
-                    : "Don't have an account? Create one"}
-                </button>
-              </div>
-            </div>
+              </>
+            )}
           </div>
 
           {/* Back only — no next button since next is the auth button above */}
           <button
             type="button"
-            onClick={goBack}
+            onClick={authMode === "verify" ? () => { setAuthMode("login"); setOtpCode(["", "", "", "", "", ""]); setAuthError(null); } : goBack}
             className="flex items-center gap-1.5 text-[13px] font-semibold text-[#6E6E73] hover:text-[#1D1D1F] transition-colors px-4 py-3 rounded-xl hover:bg-black/[0.04]"
           >
             <ChevronLeft size={15} strokeWidth={2.5} />
