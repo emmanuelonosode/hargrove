@@ -105,12 +105,55 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         self.email_verification_code = "".join([str(secrets.randbelow(10)) for _ in range(6)])
         self.email_verification_expires = timezone.now() + timedelta(minutes=15)
         self.save(update_fields=['email_verification_code', 'email_verification_expires'])
-        
-        # Schedule the email task
-        from apps.notifications.tasks import send_verification_email
-        send_verification_email.delay(self.id)
-        
+
+        # Try Celery async first; fall back to sync send if Celery/Redis is unavailable
+        # (shared hosting does not keep Celery workers alive).
+        try:
+            from apps.notifications.tasks import send_verification_email
+            send_verification_email.delay(self.id)
+        except Exception:
+            self._send_verification_email_sync()
+
         return self.email_verification_code
+
+    def _send_verification_email_sync(self):
+        """Send the OTP email synchronously when Celery is not available."""
+        try:
+            from django.conf import settings
+            from django.core.mail import EmailMessage
+            from django.template.loader import render_to_string
+
+            from_email = settings.DEFAULT_FROM_EMAIL
+            connection = None
+            try:
+                from apps.notifications.models import EmailConfiguration
+                config = EmailConfiguration.get_active()
+                if config:
+                    from_email = config.get_from_header()
+                    connection = config.get_connection()
+            except Exception:
+                pass
+
+            subject = f"{self.email_verification_code} is your Hasker & Co. verification code"
+            body = render_to_string(
+                "notifications/email_verification.html",
+                {
+                    "user": self,
+                    "frontend_url": getattr(settings, "FRONTEND_URL", "https://www.haskerrealtygroup.com"),
+                },
+            )
+            msg = EmailMessage(
+                subject=subject,
+                body=body,
+                from_email=from_email,
+                to=[self.email],
+                connection=connection,
+            )
+            msg.content_subtype = "html"
+            msg.send()
+        except Exception:
+            # Email failure must never block user registration
+            pass
 
     def verify_code(self, code):
         """Verify the provided code against the stored code."""
