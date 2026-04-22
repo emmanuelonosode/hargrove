@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { fetchPropertiesForSitemap } from "@/lib/properties";
 import { fetchPostsForSitemap } from "@/lib/blog";
 import { fetchAgents } from "@/lib/agents";
+import { getAllCitySlugs } from "@/lib/cities";
 
 const BASE_URL = "https://haskerrealtygroup.com";
 
@@ -53,8 +54,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.5,
   }));
 
+  // ── City rental landing pages ──────────────────────────────────────────────
+  const cityPages: MetadataRoute.Sitemap = getAllCitySlugs().map((slug) => ({
+    url: `${BASE_URL}/rentals/${slug}`,
+    lastModified: new Date(),
+    changeFrequency: "weekly" as const,
+    priority: 0.85,
+  }));
+
   return [
     ...staticPages,
+    ...cityPages,
     ...propertyPages,
     ...blogPages,
     ...agentPages,
