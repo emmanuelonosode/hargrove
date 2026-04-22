@@ -64,3 +64,21 @@ export async function fetchPostBySlug(slug: string): Promise<BlogPost> {
   if (!res.ok) throw new Error(`Failed to fetch post: ${res.status}`);
   return res.json();
 }
+
+/** For sitemap.ts: returns slug + lastModified for all published blog posts. */
+export async function fetchPostsForSitemap(): Promise<{ slug: string; lastModified: string }[]> {
+  try {
+    const url = new URL(`${API_BASE}/api/v1/blog/posts/`);
+    url.searchParams.set("is_published", "true");
+    url.searchParams.set("page_size", "500");
+    const res = await fetch(url.toString(), { next: { revalidate: 3600 } });
+    if (!res.ok) return [];
+    const data: PaginatedResponse<BlogPost> = await res.json();
+    return data.results.map((p) => ({
+      slug: p.slug,
+      lastModified: p.updated_at || p.published_at || new Date().toISOString(),
+    }));
+  } catch {
+    return [];
+  }
+}

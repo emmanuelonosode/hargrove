@@ -179,6 +179,24 @@ export async function fetchAllPropertySlugs(): Promise<string[]> {
   }
 }
 
+/** For sitemap.ts: returns slug + lastModified for all published properties. */
+export async function fetchPropertiesForSitemap(): Promise<{ slug: string; lastModified: string }[]> {
+  try {
+    const url = new URL(`${API_BASE}/api/v1/properties/`);
+    url.searchParams.set("is_published", "true");
+    url.searchParams.set("page_size", "1000");
+    const res = await fetch(url.toString(), { next: { revalidate: 3600 } });
+    if (!res.ok) return [];
+    const data: PaginatedProperties = await res.json();
+    return data.results.map((p) => ({
+      slug: p.slug,
+      lastModified: p.created_at,
+    }));
+  } catch {
+    return [];
+  }
+}
+
 // ─── Mapper: API list item → Property type (for PropertyCard) ─────────────
 
 import type { Property } from "@/types";
