@@ -40,6 +40,11 @@ class PropertyFilter(django_filters.FilterSet):
             | Q(zip_code__icontains=value)
         )
 
+    lat_min = django_filters.NumberFilter(field_name="latitude", lookup_expr="gte")
+    lat_max = django_filters.NumberFilter(field_name="latitude", lookup_expr="lte")
+    lng_min = django_filters.NumberFilter(field_name="longitude", lookup_expr="gte")
+    lng_max = django_filters.NumberFilter(field_name="longitude", lookup_expr="lte")
+
     def sort_filter(self, queryset, name, value):
         sort_map = {
             "price_asc": "price",

@@ -43,7 +43,7 @@ const securityHeaders = [
       // Media
       "media-src 'self'",
       // Iframes: Google Maps embed + virtual tour providers
-      "frame-src https://maps.google.com https://www.google.com https://www.insidemaps.com https://www.zillow.com https://my.matterport.com",
+      "frame-src https://maps.google.com https://www.google.com https://www.insidemaps.com https://insidemap.app https://*.insidemaps.com https://www.zillow.com https://my.matterport.com https://*.matterport.com https://*.tours.com https://*.kuula.co https://kuula.co https://*.roundme.com https://*.panoraven.com https://*.viewstl.com https://*.immoviewer.com https://*.ogulo.com https://ogulo.com",
       // Object tags (none)
       "object-src 'none'",
       // Base URI
@@ -55,6 +55,10 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // Prevent Next.js from redirecting /api/v1/auth/token/ → /api/v1/auth/token
+  // before the rewrite proxy runs. Without this, POST bodies are lost on 308.
+  skipTrailingSlashRedirect: true,
+
   images: {
     remotePatterns: [
       {
@@ -78,9 +82,15 @@ const nextConfig: NextConfig = {
   async rewrites() {
     const backendUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
     return [
+      // Rule 1: URL already has trailing slash — pass through as-is
+      {
+        source: "/api/v1/:path*/",
+        destination: `${backendUrl}/api/v1/:path*/`,
+      },
+      // Rule 2: URL has no trailing slash (Next.js stripped it) — add one for Django
       {
         source: "/api/v1/:path*",
-        destination: `${backendUrl}/api/v1/:path*`,
+        destination: `${backendUrl}/api/v1/:path*/`,
       },
     ];
   },

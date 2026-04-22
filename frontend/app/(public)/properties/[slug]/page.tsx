@@ -3,14 +3,23 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   Bed, Bath, Maximize, MapPin, Calendar,
-  Check, Phone, Mail, Home,
+  Phone, Mail, Home,
   RotateCcw, Share2, Heart,
+  Utensils, Zap, Waves, PawPrint, Thermometer,
+  Wind, WashingMachine, Car, Shield, Dumbbell,
+  TreePine, CheckCircle2, Refrigerator, Microwave,
+  Flame, ShowerHead, Wifi, Fence,
+  type LucideIcon,
 } from "lucide-react";
 import { fetchPropertyBySlug, fetchAllPropertySlugs, fetchProperties, toPropertyCardShape } from "@/lib/properties";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { PropertyInquiryForm } from "@/components/public/PropertyInquiryForm";
+import { VirtualTourButton } from "@/components/public/VirtualTourButton";
+import { PropertyImageGallery } from "@/components/public/PropertyImageGallery";
 import { PropertyCard } from "@/components/public/PropertyCard";
+import { PropertyDetailMapLoader } from "@/components/public/PropertyDetailMapLoader";
+import type { DetailMarker } from "@/components/public/PropertyDetailMap";
 import { formatPrice, formatNumber } from "@/lib/utils";
 
 export const revalidate = 300;
@@ -60,12 +69,50 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
   const amenities = amenityCategories.length === 0 ? (property.amenities ?? []) : [];
   const agent = property.agent;
 
-  // Similar homes from same city
+  // Similar homes from same city (used for cards + map)
   const similarRaw = await fetchProperties({ q: property.city, listing_type: property.listing_type }).catch(() => null);
-  const similar = (similarRaw?.results ?? [])
-    .filter((p) => p.slug !== property.slug)
-    .slice(0, 3)
-    .map(toPropertyCardShape);
+  const similarResults = (similarRaw?.results ?? []).filter((p) => p.slug !== property.slug);
+  const similar = similarResults.slice(0, 3).map(toPropertyCardShape);
+
+  // Map markers for the detail page map
+  const currentMarker: DetailMarker = {
+    slug: property.slug,
+    title: property.title,
+    price: Number(property.price),
+    price_label: property.price_label ?? "",
+    lat: Number((property as any).latitude ?? 0),
+    lng: Number((property as any).longitude ?? 0),
+    image_url: primaryImage?.image_url ?? null,
+    beds: property.bedrooms ?? 0,
+    baths: property.bathrooms ?? 0,
+    city: property.city,
+    state: property.state,
+  };
+  const nearbyMarkers: DetailMarker[] = similarResults
+    .filter((p) => Number.isFinite(Number(p.latitude)) && Number(p.latitude) !== 0)
+    .slice(0, 20)
+    .map((p) => ({
+      slug: p.slug,
+      title: p.title,
+      price: Number(p.price),
+      price_label: p.price_label ?? "",
+      lat: Number(p.latitude),
+      lng: Number(p.longitude),
+      image_url: p.primary_image_url ?? null,
+      beds: p.bedrooms ?? 0,
+      baths: p.bathrooms ?? 0,
+      city: p.city,
+      state: p.state,
+    }));
+
+  // Pet policy: check if any amenity is pet-related
+  const allAmenityNames = [
+    ...amenityCategories.flatMap((c: any) => c.amenities.map((a: any) => a.name as string)),
+    ...(property.amenities ?? []).map((a) => a.name),
+  ];
+  const isPetFriendly = allAmenityNames.some((n) =>
+    /pet|dog|cat|animal/i.test(n)
+  );
 
   const listingLabel =
     property.listing_type === "for-sale" ? "For Sale" :
@@ -81,7 +128,6 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
       : formatPrice(property.price);
 
   const fullAddress = `${property.address}, ${property.city}, ${property.state} ${property.zip_code}`;
-  const mapEmbedUrl = `https://maps.google.com/maps?q=${encodeURIComponent(fullAddress)}&output=embed`;
 
   const virtualTourUrl = (property as any).virtual_tour_url || (property as any).tour_360_url;
 
@@ -125,94 +171,48 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(listingSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
 
-      <div className="pt-20 pb-24 lg:pb-0 bg-white">
+      <div className="pt-20 bg-white">
 
         {/* ── PHOTO GALLERY ──────────────────────────────────────── */}
         <div className="relative">
-          {/* Desktop: 5-photo grid */}
-          <div className="hidden md:grid grid-cols-4 grid-rows-2 gap-1.5 h-[520px]">
-            {/* Primary — spans 2 rows */}
-            <div className="col-span-2 row-span-2 relative overflow-hidden">
-              <Image
-                src={primaryImage?.image_url ?? FALLBACK_IMAGE}
-                alt={primaryImage?.caption ?? property.title}
-                fill
-                className="object-cover"
-                priority
-                sizes="50vw"
-              />
-            </div>
-            {/* 4 small images */}
-            {galleryImages.slice(1, 5).map((img, i) => (
-              <div key={img.id} className="relative overflow-hidden bg-neutral-100">
-                <Image
-                  src={img.image_url ?? FALLBACK_IMAGE}
-                  alt={img.caption ?? `Photo ${i + 2}`}
-                  fill
-                  className="object-cover hover:scale-105 transition-transform duration-300"
-                  sizes="25vw"
-                />
-                {/* "View all" overlay on last visible thumbnail */}
-                {i === 3 && images.length > 5 && (
-                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                    <span className="text-white font-semibold text-sm">+{images.length - 5} photos</span>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
+          <PropertyImageGallery
+            images={images}
+            title={property.title}
+            fallback={FALLBACK_IMAGE}
+          />
 
-          {/* Mobile: single hero image */}
-          <div className="md:hidden relative aspect-[4/3] bg-neutral-100">
-            <Image
-              src={primaryImage?.image_url ?? FALLBACK_IMAGE}
-              alt={property.title}
-              fill
-              className="object-cover"
-              priority
-              sizes="100vw"
-            />
-            {images.length > 1 && (
-              <div className="absolute bottom-3 right-3 bg-black/60 text-white text-xs px-2.5 py-1 rounded-sm">
-                1 / {images.length}
-              </div>
-            )}
-          </div>
-
-          {/* Mobile thumbnail strip */}
-          {images.length > 1 && (
-            <div className="md:hidden flex gap-1.5 overflow-x-auto px-4 py-2 bg-neutral-50 border-b border-neutral-100 scrollbar-hide">
-              {images.map((img, idx) => (
-                <div key={img.id} className="relative w-16 h-12 shrink-0 rounded overflow-hidden bg-neutral-200">
-                  <Image src={img.image_url ?? FALLBACK_IMAGE} alt={`Photo ${idx + 1}`} fill className="object-cover" sizes="64px" />
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* 360° Tour button overlay */}
+          {/* 360° Tour pill — desktop overlay on gallery */}
           {virtualTourUrl && (
-            <a
-              href={virtualTourUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="absolute bottom-4 left-4 bg-white text-brand-dark text-xs font-semibold px-3 py-2 rounded-md shadow-lg flex items-center gap-1.5 hover:bg-brand hover:text-white transition-colors z-10"
-            >
-              <RotateCcw size={13} />
-              360° Virtual Tour
-            </a>
+            <div className="hidden md:flex absolute bottom-4 left-4 z-10 gap-2">
+              <a
+                href={virtualTourUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-white/95 backdrop-blur-sm text-brand-dark text-xs font-semibold px-3 py-2 rounded-lg shadow-lg flex items-center gap-1.5 hover:bg-brand hover:text-white transition-colors"
+              >
+                <RotateCcw size={13} />
+                360° Virtual Tour
+              </a>
+            </div>
           )}
 
-          {/* Save / Share buttons */}
-          <div className="absolute bottom-4 right-4 flex gap-2 z-10">
-            <button className="bg-white text-neutral-500 hover:text-red-500 text-xs font-medium px-3 py-2 rounded-md shadow-lg flex items-center gap-1.5 transition-colors">
+          {/* Save / Share — desktop overlay */}
+          <div className="hidden md:flex absolute bottom-4 right-4 gap-2 z-10">
+            <button className="bg-white/95 backdrop-blur-sm text-neutral-500 hover:text-red-500 text-xs font-medium px-3 py-2 rounded-lg shadow-lg flex items-center gap-1.5 transition-colors">
               <Heart size={13} /> Save
             </button>
-            <button className="bg-white text-neutral-500 hover:text-brand text-xs font-medium px-3 py-2 rounded-md shadow-lg flex items-center gap-1.5 transition-colors">
+            <button className="bg-white/95 backdrop-blur-sm text-neutral-500 hover:text-brand text-xs font-medium px-3 py-2 rounded-lg shadow-lg flex items-center gap-1.5 transition-colors">
               <Share2 size={13} /> Share
             </button>
           </div>
         </div>
+
+        {/* Mobile: 360 tour banner (below gallery, above content) */}
+        {virtualTourUrl && (
+          <div className="md:hidden border-b border-neutral-100 bg-neutral-50">
+            <VirtualTourButton url={virtualTourUrl} thumbnailUrl={primaryImage?.image_url} mobile />
+          </div>
+        )}
 
         {/* ── MAIN CONTENT ────────────────────────────────────────── */}
         <div className="max-w-7xl mx-auto px-4 lg:px-8 py-6 lg:py-10">
@@ -271,7 +271,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
                     </div>
                     <div>
                       <p className="font-bold text-brand-dark text-lg leading-none">{value}</p>
-                      <p className="text-[10px] text-neutral-400 uppercase tracking-wide mt-0.5">{label}</p>
+                      <p className="text-xs text-neutral-400 uppercase tracking-wide mt-0.5">{label}</p>
                     </div>
                   </div>
                 ))}
@@ -301,7 +301,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
                     ...((property as any).condition ? [{ label: "Condition", value: (property as any).condition === "new" ? "New Construction" : (property as any).condition }] : []),
                   ].map(({ label, value }) => (
                     <div key={label}>
-                      <p className="text-[10px] font-semibold tracking-widest uppercase text-neutral-400 mb-1">{label}</p>
+                      <p className="text-xs font-semibold tracking-widest uppercase text-neutral-400 mb-1">{label}</p>
                       <p className="text-sm text-brand-dark font-medium capitalize">{String(value)}</p>
                     </div>
                   ))}
@@ -318,10 +318,12 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
                         <p className="text-xs font-semibold tracking-widest uppercase text-brand mb-3 pb-1 border-b border-brand-muted">
                           {cat.name}
                         </p>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-2.5 gap-x-4">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-3 gap-x-4">
                           {cat.amenities.map((a: any) => (
                             <div key={a.id} className="flex items-center gap-2 text-sm text-neutral-700">
-                              <Check size={13} className="text-brand shrink-0" />
+                              <span className="w-6 h-6 rounded-md bg-brand/10 flex items-center justify-center shrink-0">
+                                <AmenityIcon name={a.name} />
+                              </span>
                               {a.name}
                             </div>
                           ))}
@@ -336,7 +338,9 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     {amenities.map((a) => (
                       <div key={a.id} className="flex items-center gap-2 text-sm text-neutral-700">
-                        <Check size={13} className="text-brand shrink-0" />
+                        <span className="w-6 h-6 rounded-md bg-brand/10 flex items-center justify-center shrink-0">
+                          <AmenityIcon name={a.name} />
+                        </span>
                         {a.name}
                       </div>
                     ))}
@@ -344,52 +348,74 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
                 </div>
               ) : null}
 
-              {/* ── MAP ── */}
+              {/* ── Pet Policy Banner ── */}
+              {isPetFriendly && (
+                <div className="rounded-xl border-2 border-green-200 bg-green-50 p-5 flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+                    <PawPrint size={24} className="text-green-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-green-800 text-lg mb-1">Pets Welcome!</h3>
+                    <p className="text-green-700 text-sm leading-relaxed">
+                      This home welcomes your furry family members. Cats and dogs are welcome —
+                      contact us for breed/weight restrictions and pet deposit details.
+                    </p>
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {[
+                        { label: "Dogs OK", icon: "🐕" },
+                        { label: "Cats OK", icon: "🐈" },
+                        { label: "Pet Deposit May Apply", icon: "💰" },
+                      ].map(({ label, icon }) => (
+                        <span key={label} className="inline-flex items-center gap-1.5 text-xs font-semibold bg-green-100 text-green-700 px-3 py-1 rounded-full border border-green-200">
+                          {icon} {label}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ── Neighborhood Map ── */}
               <div>
-                <h2 className="font-serif text-2xl font-bold text-brand-dark mb-2">Neighborhood Overview</h2>
+                <h2 className="font-serif text-2xl font-bold text-brand-dark mb-1">Neighborhood &amp; Nearby Homes</h2>
                 <p className="text-sm text-neutral-500 mb-4 flex items-center gap-1.5">
                   <MapPin size={13} className="text-brand" />
                   {fullAddress}
                 </p>
-                <div className="rounded-lg overflow-hidden border border-neutral-200 shadow-sm">
-                  <iframe
-                    src={mapEmbedUrl}
-                    width="100%"
-                    height="380"
-                    style={{ border: 0, display: "block" }}
-                    allowFullScreen
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                    title={`Map of ${fullAddress}`}
+                <div className="rounded-xl overflow-hidden border border-neutral-200 shadow-sm" style={{ height: 400 }}>
+                  <PropertyDetailMapLoader
+                    current={currentMarker}
+                    nearby={nearbyMarkers}
                   />
                 </div>
-                <a
-                  href={`https://maps.google.com/maps?q=${encodeURIComponent(fullAddress)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-xs text-brand mt-2 hover:underline"
-                >
-                  Open in Google Maps →
-                </a>
+                <p className="text-xs text-neutral-400 mt-2">
+                  Hover price bubbles to preview nearby listings · Click to view
+                </p>
               </div>
 
-              {/* ── 360° Virtual Tour (inline embed if possible) ── */}
+              {/* ── 360° Virtual Tour ── */}
               {(property as any).virtual_tour_url && (
                 <div>
                   <h2 className="font-serif text-2xl font-bold text-brand-dark mb-4">360° Virtual Tour</h2>
-                  <div className="rounded-lg overflow-hidden border border-neutral-200 shadow-sm aspect-video">
-                    <iframe
-                      src={(property as any).virtual_tour_url}
-                      width="100%"
-                      height="100%"
-                      style={{ border: 0, display: "block" }}
-                      allowFullScreen
-                      loading="lazy"
-                      title="360° Virtual Tour"
-                    />
-                  </div>
+                  <VirtualTourButton
+                    url={(property as any).virtual_tour_url}
+                    thumbnailUrl={primaryImage?.image_url}
+                  />
                 </div>
               )}
+
+              {/* ── Mobile inquiry form (inline, not fixed) ── */}
+              <div id="schedule-form" className="lg:hidden">
+                <h2 className="font-serif text-2xl font-bold text-brand-dark mb-1">Schedule a Viewing</h2>
+                <p className="text-neutral-500 text-sm mb-5">Response within 24 hours.</p>
+                <div className="bg-brand-dark text-white rounded-xl p-5">
+                  <PropertyInquiryForm
+                    propertySlug={property.slug}
+                    propertyTitle={property.title}
+                    listingType={property.listing_type}
+                  />
+                </div>
+              </div>
 
             </div>
 
@@ -422,7 +448,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
                 {/* Agent card */}
                 {agent && (
                   <div className="bg-white border border-neutral-200 rounded-xl shadow-sm p-5">
-                    <p className="text-[10px] font-semibold tracking-widest uppercase text-neutral-400 mb-4">Listed By</p>
+                    <p className="text-xs font-semibold tracking-widest uppercase text-neutral-400 mb-4">Listed By</p>
                     <div className="flex items-center gap-3 mb-4">
                       <div className="relative w-12 h-12 rounded-full overflow-hidden shrink-0 bg-neutral-100">
                         {agent.avatar_url ? (
@@ -483,45 +509,65 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
           )}
         </div>
 
-        {/* ── MOBILE STICKY BAR ── */}
+        {/* ── MOBILE STICKY BAR (action buttons only — no form) ── */}
         <div
           className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white border-t border-neutral-200 shadow-xl"
           style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
         >
           <div className="flex items-center gap-3 px-4 py-3">
             <div className="flex-1 min-w-0">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-neutral-400">{listingLabel}</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-neutral-400">{listingLabel}</p>
               <p className="font-serif text-xl font-bold text-brand-dark leading-tight">{priceDisplay}</p>
             </div>
             <a
               href="#schedule-form"
-              className="shrink-0 h-11 px-4 bg-brand-dark text-white text-sm font-medium rounded-md flex items-center gap-1.5 hover:bg-brand transition-colors"
+              className="shrink-0 h-11 px-5 bg-brand-dark text-white text-sm font-semibold rounded-lg flex items-center gap-1.5 hover:bg-brand transition-colors"
             >
               <Calendar size={14} /> Tour
             </a>
             {(property.listing_type === "for-rent" || property.listing_type === "for-lease") && (
               <Link
                 href={`/apply?property=${property.slug}`}
-                className="shrink-0 h-11 px-4 bg-brand text-white text-sm font-medium rounded-md flex items-center hover:bg-brand-hover transition-colors"
+                className="shrink-0 h-11 px-5 bg-brand text-white text-sm font-semibold rounded-lg flex items-center hover:opacity-90 transition-opacity"
               >
                 Apply
               </Link>
             )}
           </div>
-
-          {/* Mobile inquiry form — below sticky bar via scrolling */}
-          <div className="px-4 pb-4 pt-2 border-t border-neutral-100 bg-neutral-50">
-            <div id="schedule-form-mobile">
-              <PropertyInquiryForm
-                propertySlug={property.slug}
-                propertyTitle={property.title}
-                listingType={property.listing_type}
-              />
-            </div>
-          </div>
         </div>
+
+        {/* Spacer so mobile sticky bar doesn't cover last section */}
+        <div className="lg:hidden h-20" />
 
       </div>
     </>
   );
+}
+
+// ── Amenity icon helper ───────────────────────────────────────────────────────
+function AmenityIcon({ name }: { name: string }) {
+  const n = name.toLowerCase();
+  let Icon: LucideIcon = CheckCircle2;
+
+  if (/granite|quartz|counter|island|kitchen/.test(n))      Icon = Utensils;
+  else if (/dishwasher/.test(n))                             Icon = Utensils;
+  else if (/stainless|appliance|refrigerator/.test(n))      Icon = Refrigerator;
+  else if (/microwave/.test(n))                              Icon = Microwave;
+  else if (/stove|gas|range|oven|fireplace/.test(n))        Icon = Flame;
+  else if (/washer|dryer|laundry|washing/.test(n))          Icon = WashingMachine;
+  else if (/air.condition|central.air|ac\b|hvac/.test(n))   Icon = Wind;
+  else if (/heat|furnace/.test(n))                           Icon = Thermometer;
+  else if (/shower/.test(n))                                 Icon = ShowerHead;
+  else if (/electric|zap|utility|power/.test(n))            Icon = Zap;
+  else if (/wifi|internet|cable/.test(n))                    Icon = Wifi;
+  else if (/pool|swim/.test(n))                              Icon = Waves;
+  else if (/garage|parking|car/.test(n))                     Icon = Car;
+  else if (/yard|fence|patio|outdoor|garden/.test(n))       Icon = Fence;
+  else if (/tree|park|trail|walk/.test(n))                   Icon = TreePine;
+  else if (/gym|fitness|dumbbell|workout/.test(n))           Icon = Dumbbell;
+  else if (/gated|security|guard/.test(n))                   Icon = Shield;
+  else if (/pet|dog|cat|animal/.test(n))                     Icon = PawPrint;
+  else if (/hoa|community|club/.test(n))                     Icon = Home;
+
+  return <Icon size={14} className="text-brand shrink-0" />;
 }

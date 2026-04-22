@@ -1,4 +1,5 @@
 import csv
+import json
 import os
 from collections import defaultdict
 from decimal import Decimal, InvalidOperation
@@ -227,7 +228,14 @@ class Command(BaseCommand):
                 is_new = _bool(row.get("active_is_new_construction", "false"))
                 is_btr = _bool(row.get("is_btr_community", "false"))
                 is_featured = _bool(row.get("is_featured_listing", "false"))
-                community = row.get("community", "").strip()
+                community_raw = row.get("community", "").strip()
+                try:
+                    parsed = json.loads(community_raw)
+                    community = parsed.get("name", "").strip() if isinstance(parsed, dict) else community_raw
+                except (ValueError, TypeError):
+                    community = community_raw
+                if len(community) <= 3:
+                    community = ""
                 market_name = row.get("market_name", "").strip()
                 city = row.get("city", "").strip()
                 state = row.get("state", "").strip()
@@ -237,7 +245,14 @@ class Command(BaseCommand):
                 prop_type = "apartment" if is_btr else "house"
                 type_label = TYPE_LABEL.get(prop_type, "Home")
                 bed_label = "Studio" if beds == 0 else f"{beds}-Bed"
-                title = f"{bed_label} {type_label} in {city}, {state}"
+                address_1 = row.get("address_1", "").strip()
+                # Use community name if present for a richer title, else street address
+                if community:
+                    title = f"{bed_label} {type_label} in {community}, {city}"
+                elif address_1:
+                    title = f"{bed_label} {type_label} at {address_1}, {city}"
+                else:
+                    title = f"{bed_label} {type_label} in {city}, {state}"
 
                 # Garage: check amenities
                 prop_amenities = amenities_by_id.get(pid, [])
@@ -258,7 +273,7 @@ class Command(BaseCommand):
                     sqft=sqft,
                     year_built=year_built,
                     garage=1 if has_garage else 0,
-                    address=row.get("address_1", "").strip(),
+                    address=address_1,
                     city=city,
                     state=state,
                     zip_code=row.get("zip_code", "").strip(),

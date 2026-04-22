@@ -1,5 +1,6 @@
 from rest_framework import generics, permissions, status
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 
@@ -7,6 +8,13 @@ from .models import Property
 from .serializers import PropertyListSerializer, PropertyDetailSerializer
 from .filters import PropertyFilter
 from apps.accounts.permissions import IsAgentOrAbove
+
+
+class FlexiblePageSize(PageNumberPagination):
+    """Allow clients to request up to 5 000 results via ?page_size=N."""
+    page_size = 24
+    page_size_query_param = "page_size"
+    max_page_size = 5000
 
 
 class PropertyListCreateView(generics.ListCreateAPIView):
@@ -19,6 +27,7 @@ class PropertyListCreateView(generics.ListCreateAPIView):
     search_fields = ["title", "address", "city", "neighborhood"]
     ordering_fields = ["price", "created_at", "bedrooms", "sqft"]
     ordering = ["-created_at"]
+    pagination_class = FlexiblePageSize
 
     def get_serializer_class(self):
         return PropertyDetailSerializer if self.request.method == "POST" else PropertyListSerializer

@@ -105,6 +105,10 @@ export interface FetchPropertiesParams {
   type?: string;
   page_size?: string;
   page?: string;
+  lat_min?: string;
+  lat_max?: string;
+  lng_min?: string;
+  lng_max?: string;
 }
 
 export async function fetchProperties(
@@ -124,6 +128,10 @@ export async function fetchProperties(
   if (params?.type)        url.searchParams.set("type", params.type);
   if (params?.page_size)   url.searchParams.set("page_size", params.page_size);
   if (params?.page)        url.searchParams.set("page", params.page);
+  if (params?.lat_min)     url.searchParams.set("lat_min", params.lat_min);
+  if (params?.lat_max)     url.searchParams.set("lat_max", params.lat_max);
+  if (params?.lng_min)     url.searchParams.set("lng_min", params.lng_min);
+  if (params?.lng_max)     url.searchParams.set("lng_max", params.lng_max);
 
   const res = await fetch(url.toString(), { next: { revalidate: 300 } });
   if (!res.ok) throw new Error(`fetchProperties: ${res.status}`);

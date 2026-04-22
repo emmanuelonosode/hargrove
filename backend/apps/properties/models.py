@@ -96,10 +96,17 @@ class Property(models.Model):
         verbose_name_plural = "Properties"
         ordering = ["-created_at"]
         indexes = [
+            # Composite indexes for common filter combinations
             models.Index(fields=["status", "is_published"]),
             models.Index(fields=["city", "state"]),
             models.Index(fields=["listing_type"]),
             models.Index(fields=["is_featured"]),
+            # Single-column indexes for map bounding-box and price queries
+            models.Index(fields=["latitude"]),
+            models.Index(fields=["longitude"]),
+            models.Index(fields=["price"]),
+            models.Index(fields=["is_published"]),
+            models.Index(fields=["bedrooms"]),
         ]
 
     def __str__(self):

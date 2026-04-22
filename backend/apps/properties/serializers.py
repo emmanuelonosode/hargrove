@@ -39,14 +39,16 @@ class PropertyListSerializer(serializers.ModelSerializer):
         ]
 
     def get_primary_image_url(self, obj):
-        img = obj.primary_image
+        # Use prefetched images to avoid N+1; find primary without extra query
+        images = obj.images.all()
+        img = next((i for i in images if i.is_primary), None) or next(iter(images), None)
         if not img or not img.image:
             return None
         val = str(img.image)
         return val if val.startswith("http") else img.image.url
 
     def get_agent_name(self, obj):
-        return obj.agent.full_name
+        return obj.agent.full_name if obj.agent_id else ""
 
 
 class PropertyDetailSerializer(serializers.ModelSerializer):

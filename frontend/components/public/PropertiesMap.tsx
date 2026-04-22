@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import "leaflet/dist/leaflet.css";
+import { useEffect, useRef, type MutableRefObject } from "react";
 
 export interface MapMarker {
   slug: string;
@@ -16,152 +17,268 @@ export interface MapMarker {
   baths: number;
 }
 
+export interface MapBounds {
+  north: number;
+  south: number;
+  east: number;
+  west: number;
+}
+
 interface Props {
   markers: MapMarker[];
   center?: [number, number];
+  activeSlug?: string | null;
+  onMarkerClick?: (slug: string) => void;
+  onBoundsChange?: (bounds: MapBounds) => void;
 }
 
-export function PropertiesMap({ markers, center }: Props) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<any>(null);
+const NAVY = "#0B1F3A";
+const BLUE = "#1A56DB";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
+function validCoord(m: { lat: number; lng: number }) {
+  return Number.isFinite(m.lat) && Number.isFinite(m.lng) && m.lat !== 0 && m.lng !== 0;
+}
+
+function makeBubble(L: any, price: number, label: string, active: boolean) {
+  const bg = active ? BLUE : NAVY;
+  return L.divIcon({
+    className: "",
+    html: `<div style="
+      background:${bg};color:#fff;font-size:11px;font-weight:700;
+      padding:6px 12px;border-radius:20px;white-space:nowrap;
+      box-shadow:${active ? "0 4px 16px rgba(26,86,219,0.6)" : "0 2px 10px rgba(0,0,0,0.4)"};
+      border:2.5px solid #fff;cursor:pointer;
+      transform:${active ? "scale(1.15)" : "scale(1)"};
+      transform-origin:bottom center;transition:all .15s;user-select:none;
+    ">$${price.toLocaleString()}${label ?? ""}</div>`,
+    iconSize: [88, 34],
+    iconAnchor: [44, 17],
+    popupAnchor: [0, -22],
+  });
+}
+
+function buildPopup(m: MapMarker) {
+  return `
+    <a href="/properties/${m.slug}"
+       style="text-decoration:none;color:inherit;display:block;font-family:system-ui,sans-serif;">
+      ${m.image_url
+        ? `<img src="${m.image_url}" style="width:248px;height:148px;object-fit:cover;
+                border-radius:8px 8px 0 0;display:block;margin:-14px -14px 10px;max-width:none;"/>`
+        : ""}
+      <div style="padding:0 3px 3px">
+        <div style="font-size:18px;font-weight:800;color:${BLUE};line-height:1.1">
+          $${m.price.toLocaleString()}
+          <span style="font-size:12px;font-weight:400;color:#888">${m.price_label ?? ""}</span>
+        </div>
+        <div style="font-weight:600;font-size:12px;color:${NAVY};margin:3px 0">${m.title}</div>
+        <div style="font-size:11px;color:#888;margin-bottom:8px">
+          ${m.beds} bd · ${m.baths} ba &nbsp;·&nbsp; ${m.city}, ${m.state}
+        </div>
+        <div style="background:${BLUE};color:#fff;text-align:center;
+                    padding:9px;border-radius:6px;font-size:12px;font-weight:700;">
+          View Property →
+        </div>
+      </div>
+    </a>`;
+}
+
+function addBubbleMarkers(
+  L: any, map: any,
+  markers: MapMarker[],
+  activeSlug: string | null,
+  markersMapRef: MutableRefObject<Map<string, any>>,
+  onMarkerClickRef: MutableRefObject<((s: string) => void) | undefined>,
+) {
+  markers.filter(validCoord).forEach((m) => {
+    const isActive = m.slug === activeSlug;
+    const mk = L.marker([m.lat, m.lng], {
+      icon: makeBubble(L, m.price, m.price_label, isActive),
+      zIndexOffset: isActive ? 2000 : 500,
+    });
+    mk.bindPopup(buildPopup(m), { maxWidth: 276, closeButton: false, className: "property-popup" });
+    mk.on("mouseover", () => mk.openPopup());
+    mk.on("click", () => { mk.openPopup(); onMarkerClickRef.current?.(m.slug); });
+    mk.addTo(map);
+    markersMapRef.current.set(m.slug, mk);
+  });
+}
+
+export function PropertiesMap({ markers, center, activeSlug, onMarkerClick, onBoundsChange }: Props) {
+  const containerRef  = useRef<HTMLDivElement>(null);
+  const mapRef        = useRef<any>(null);
+  const mountedRef    = useRef(false);
+  const markersMapRef = useRef<Map<string, any>>(new Map());
+  const dotLayerRef   = useRef<any>(null);
+
+  const onMarkerClickRef  = useRef(onMarkerClick);
+  const onBoundsChangeRef = useRef(onBoundsChange);
+  useEffect(() => { onMarkerClickRef.current  = onMarkerClick;  }, [onMarkerClick]);
+  useEffect(() => { onBoundsChangeRef.current = onBoundsChange; }, [onBoundsChange]);
+
+  // ── Fetch ALL properties and render as visible dot markers ───────────────
+  async function loadAllDots(L: any, map: any) {
+    try {
+      // Fetch up to 5 000 properties in one shot (FlexiblePageSize paginator allows this)
+      const res = await fetch(`${API_BASE}/api/v1/properties/?is_published=true&page_size=5000`);
+      if (!res.ok || !mountedRef.current) return;
+      const data = await res.json();
+      const results: any[] = data.results ?? [];
+
+      if (!mountedRef.current || !mapRef.current) return;
+
+      const layer = (L as any).layerGroup();
+
+      results.forEach((p: any) => {
+        const lat = Number(p.latitude);
+        const lng = Number(p.longitude);
+        if (!Number.isFinite(lat) || !Number.isFinite(lng) || lat === 0 || lng === 0) return;
+
+        // Bright, large circle marker — clearly visible at zoom 5
+        const dot = (L as any).circleMarker([lat, lng], {
+          radius: 8,
+          fillColor: BLUE,
+          fillOpacity: 0.85,
+          color: "#ffffff",
+          weight: 2,
+          interactive: true,
+        });
+
+        // Hover popup for the dot (mini card)
+        dot.on("mouseover", () => {
+          dot.bindPopup(
+            `<a href="/properties/${p.slug}"
+                style="text-decoration:none;color:inherit;display:block;font-family:system-ui;min-width:160px">
+              ${p.primary_image_url
+                ? `<img src="${p.primary_image_url}"
+                      style="width:188px;height:100px;object-fit:cover;
+                             border-radius:7px 7px 0 0;display:block;
+                             margin:-10px -10px 8px;max-width:none;"/>`
+                : ""}
+              <div style="font-size:15px;font-weight:800;color:${BLUE}">
+                $${Number(p.price).toLocaleString()}${p.price_label ?? ""}
+              </div>
+              <div style="font-size:11px;color:#555;margin:2px 0">
+                ${p.bedrooms} bd · ${p.bathrooms} ba
+              </div>
+              <div style="font-size:10px;color:#888">${p.city}, ${p.state}</div>
+              <div style="margin-top:7px;background:${BLUE};color:#fff;text-align:center;
+                          padding:6px 10px;border-radius:5px;font-size:11px;font-weight:700;">
+                View Property →
+              </div>
+            </a>`,
+            { maxWidth: 210, closeButton: false, className: "property-popup" }
+          ).openPopup();
+        });
+
+        dot.on("click", () => { window.location.href = `/properties/${p.slug}`; });
+        dot.addTo(layer);
+      });
+
+      if (mountedRef.current && mapRef.current) {
+        layer.addTo(map);
+        dotLayerRef.current = layer;
+      }
+    } catch { /* network error — skip dots silently */ }
+  }
+
+  // ── Initialize map ────────────────────────────────────────────────────────
   useEffect(() => {
-    if (!containerRef.current || mapRef.current) return;
-
-    const validMarkers = markers.filter((m) => m.lat && m.lng);
-    if (validMarkers.length === 0) return;
-
-    // Default center: centroid of markers, or US center
-    const defaultCenter: [number, number] = center ?? (() => {
-      const avgLat = validMarkers.reduce((s, m) => s + m.lat, 0) / validMarkers.length;
-      const avgLng = validMarkers.reduce((s, m) => s + m.lng, 0) / validMarkers.length;
-      return [avgLat, avgLng];
-    })();
+    mountedRef.current = true;
+    if (!containerRef.current) return;
+    const el = containerRef.current;
 
     import("leaflet").then((L) => {
-      if (mapRef.current || !containerRef.current) return;
+      if (!mountedRef.current || !el || mapRef.current) return;
 
-      // Load leaflet CSS dynamically
-      if (!document.getElementById("leaflet-css")) {
-        const link = document.createElement("link");
-        link.id = "leaflet-css";
-        link.rel = "stylesheet";
-        link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
-        document.head.appendChild(link);
+      if ((el as any)._leaflet_id) {
+        try { (el as any)._leaflet?.remove(); } catch (_) {}
+        delete (el as any)._leaflet_id;
       }
 
-      // Fix default marker icon path broken by webpack
       delete (L.Icon.Default.prototype as any)._getIconUrl;
       L.Icon.Default.mergeOptions({
-        iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-        iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-        shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+        iconUrl: "/leaflet/marker-icon.png",
+        iconRetinaUrl: "/leaflet/marker-icon-2x.png",
+        shadowUrl: "/leaflet/marker-shadow.png",
       });
 
-      const map = L.map(containerRef.current!, {
-        center: defaultCenter,
-        zoom: validMarkers.length === 1 ? 14 : 9,
-        scrollWheelZoom: true,
-      });
+      let map: any;
+      try {
+        map = L.map(el, {
+          center: center ?? [37.09, -95.71],
+          zoom: 5,
+          scrollWheelZoom: true,
+          zoomControl: false,
+          preferCanvas: true,   // canvas renders thousands of circleMarkers fast
+        });
+      } catch { return; }
 
+      L.control.zoom({ position: "bottomright" }).addTo(map);
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
         maxZoom: 19,
       }).addTo(map);
 
-      // Custom price marker icon
-      const priceIcon = (price: number, price_label: string) =>
-        L.divIcon({
-          className: "",
-          html: `<div style="
-            background:#0B1F3A;color:#fff;font-size:11px;font-weight:700;
-            padding:4px 8px;border-radius:20px;white-space:nowrap;
-            box-shadow:0 2px 6px rgba(0,0,0,0.35);border:2px solid #fff;
-            cursor:pointer;
-          ">$${price.toLocaleString()}${price_label ?? ""}</div>`,
-          iconAnchor: [30, 15],
+      const emitBounds = () => {
+        if (!mountedRef.current) return;
+        map.invalidateSize();
+        const b = map.getBounds();
+        if (b.getNorth() === b.getSouth() || b.getEast() === b.getWest()) return;
+        onBoundsChangeRef.current?.({
+          north: b.getNorth(), south: b.getSouth(),
+          east: b.getEast(),   west: b.getWest(),
         });
-
-      validMarkers.forEach((m) => {
-        const popup = `
-          <a href="/properties/${m.slug}" style="text-decoration:none;color:inherit">
-            ${m.image_url ? `<img src="${m.image_url}" style="width:200px;height:120px;object-fit:cover;border-radius:6px;display:block;margin-bottom:8px" />` : ""}
-            <div style="font-weight:600;font-size:13px;color:#0B1F3A">${m.title}</div>
-            <div style="font-size:12px;color:#555;margin:2px 0">${m.city}, ${m.state}</div>
-            <div style="font-size:14px;font-weight:700;color:#1A56DB">$${m.price.toLocaleString()}${m.price_label ?? ""}</div>
-            <div style="font-size:11px;color:#888">${m.beds} bd · ${m.baths} ba</div>
-          </a>
-        `;
-        L.marker([m.lat, m.lng], { icon: priceIcon(m.price, m.price_label) })
-          .addTo(map)
-          .bindPopup(popup, { maxWidth: 220 });
-      });
-
-      // Fit bounds if multiple markers
-      if (validMarkers.length > 1) {
-        const bounds = L.latLngBounds(validMarkers.map((m) => [m.lat, m.lng]));
-        map.fitBounds(bounds, { padding: [40, 40] });
-      }
+      };
+      map.on("moveend", emitBounds);
 
       mapRef.current = map;
+
+      // Load ALL property dots in background
+      loadAllDots(L, map);
+
+      // Trigger initial search-as-I-move after layout paints
+      setTimeout(() => { map.invalidateSize(); emitBounds(); }, 700);
     });
 
     return () => {
+      mountedRef.current = false;
       if (mapRef.current) {
-        mapRef.current.remove();
+        try { mapRef.current.remove(); } catch (_) {}
         mapRef.current = null;
+        markersMapRef.current.clear();
+        dotLayerRef.current = null;
       }
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Update markers when page changes
+  // ── Rebuild viewport price-bubble markers ─────────────────────────────────
   useEffect(() => {
     if (!mapRef.current) return;
     import("leaflet").then((L) => {
       const map = mapRef.current;
       if (!map) return;
-      // Remove old markers (keep tile layer)
-      map.eachLayer((layer: any) => {
-        if (layer instanceof L.Marker) map.removeLayer(layer);
-      });
-      const validMarkers = markers.filter((m) => m.lat && m.lng);
-      const priceIcon = (price: number, price_label: string) =>
-        L.divIcon({
-          className: "",
-          html: `<div style="
-            background:#0B1F3A;color:#fff;font-size:11px;font-weight:700;
-            padding:4px 8px;border-radius:20px;white-space:nowrap;
-            box-shadow:0 2px 6px rgba(0,0,0,0.35);border:2px solid #fff;
-          ">$${price.toLocaleString()}${price_label ?? ""}</div>`,
-          iconAnchor: [30, 15],
-        });
-      validMarkers.forEach((m) => {
-        const popup = `
-          <a href="/properties/${m.slug}" style="text-decoration:none;color:inherit">
-            ${m.image_url ? `<img src="${m.image_url}" style="width:200px;height:120px;object-fit:cover;border-radius:6px;display:block;margin-bottom:8px" />` : ""}
-            <div style="font-weight:600;font-size:13px;color:#0B1F3A">${m.title}</div>
-            <div style="font-size:12px;color:#555;margin:2px 0">${m.city}, ${m.state}</div>
-            <div style="font-size:14px;font-weight:700;color:#1A56DB">$${m.price.toLocaleString()}${m.price_label ?? ""}</div>
-            <div style="font-size:11px;color:#888">${m.beds} bd · ${m.baths} ba</div>
-          </a>
-        `;
-        L.marker([m.lat, m.lng], { icon: priceIcon(m.price, m.price_label) })
-          .addTo(map)
-          .bindPopup(popup, { maxWidth: 220 });
-      });
-      if (validMarkers.length > 1) {
-        const bounds = L.latLngBounds(validMarkers.map((m) => [m.lat, m.lng]));
-        map.fitBounds(bounds, { padding: [40, 40] });
-      }
+      markersMapRef.current.forEach((mk) => map.removeLayer(mk));
+      markersMapRef.current.clear();
+      addBubbleMarkers(L, map, markers.filter(validCoord), activeSlug ?? null,
+        markersMapRef, onMarkerClickRef);
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [markers]);
 
-  return (
-    <div
-      ref={containerRef}
-      className="w-full h-full min-h-[500px]"
-      style={{ zIndex: 0 }}
-    />
-  );
+  // ── Update active-state icon without full rebuild ─────────────────────────
+  useEffect(() => {
+    if (!mapRef.current) return;
+    import("leaflet").then((L) => {
+      markersMapRef.current.forEach((mk, slug) => {
+        const m = markers.find((x) => x.slug === slug);
+        if (!m) return;
+        mk.setIcon(makeBubble(L, m.price, m.price_label, slug === activeSlug));
+        mk.setZIndexOffset(slug === activeSlug ? 2000 : 500);
+      });
+    });
+  }, [activeSlug, markers]);
+
+  return <div ref={containerRef} className="w-full h-full" style={{ zIndex: 0 }} />;
 }

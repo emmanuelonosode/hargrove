@@ -150,7 +150,29 @@
       "Bash(ls venv *)",
       "Bash(ls ../venv)",
       "Bash(git reset *)",
-      "Bash(git restore *)"
+      "Bash(git restore *)",
+      "Bash(DJANGO_SETTINGS_MODULE=config.settings.local DATABASE_URL=\"sqlite:///db.sqlite3\" py -3 manage.py migrate)",
+      "Bash(DJANGO_SETTINGS_MODULE=config.settings.local DATABASE_URL=\"sqlite:///db.sqlite3\" py -3 manage.py flush --no-input)",
+      "Bash(DJANGO_SETTINGS_MODULE=config.settings.local DATABASE_URL=\"sqlite:///db.sqlite3\" py -3 manage.py shell)",
+      "Bash(DJANGO_SETTINGS_MODULE=config.settings.local DATABASE_URL=\"sqlite:///db.sqlite3\" py -3 manage.py seed)",
+      "Bash(DJANGO_SETTINGS_MODULE=config.settings.local DATABASE_URL=\"sqlite:///db.sqlite3\" py -3 manage.py runserver 8000)",
+      "Bash(awk '{print $5}')",
+      "Bash(taskkill *)",
+      "Bash(DJANGO_SETTINGS_MODULE=config.settings.local DATABASE_URL=\"sqlite:///db.sqlite3\" py -3 manage.py seed_invitationhomes --data-dir \"C:/Users/emmanuel onosode/Desktop/Obsidian Vault/my Brain/invitationhomes_nationwide_bundle_20260421_094134\" --max-photos 8 --clear)",
+      "WebFetch(domain:www.invitationhomes.com)",
+      "Bash(refrigerator)",
+      "Bash(microwave)",
+      "Bash(shower\" 2>/dev/null | head -20)",
+      "Bash(ls .venv/Scripts/python*)",
+      "Bash(ls .venv/bin/python*)",
+      "Bash(DJANGO_SETTINGS_MODULE=config.settings.local DATABASE_URL=sqlite:///db.sqlite3 py -3 manage.py clean_listings --dry-run)",
+      "Bash(DJANGO_SETTINGS_MODULE=config.settings.local DATABASE_URL=sqlite:///db.sqlite3 py -3 manage.py clean_listings)",
+      "Bash(DJANGO_SETTINGS_MODULE=config.settings.local DATABASE_URL=sqlite:///db.sqlite3 py -3 manage.py check --deploy)",
+      "Bash(DJANGO_SETTINGS_MODULE=config.settings.local DATABASE_URL=sqlite:///db.sqlite3 py -3 manage.py makemigrations properties --name add_map_filter_indexes)",
+      "Bash(DJANGO_SETTINGS_MODULE=config.settings.local DATABASE_URL=sqlite:///db.sqlite3 py -3 manage.py migrate)",
+      "Bash(xargs -r taskkill //F //PID)",
+      "Bash(python3 \"../.claude/skills/ui-ux-pro-max/scripts/search.py\" \"real estate tenant portal dashboard apple minimal clean elegant\" --design-system -p \"Hasker Portal\")",
+      "Bash(python3 *)"
     ]
   }
 }
