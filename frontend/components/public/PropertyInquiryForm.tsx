@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Calendar } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const API_BASE = "";
 
 interface PropertyInquiryFormProps {
   propertySlug: string;

@@ -39,7 +39,7 @@ const securityHeaders = [
       // Images: same origin, Cloudinary, Unsplash, CARTO tiles
       "img-src 'self' data: blob: https://res.cloudinary.com https://images.unsplash.com https://images.invitationhomes.com https://maps.gstatic.com https://maps.googleapis.com https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://unpkg.com",
       // API connections: same origin + backend API + CARTO
-      "connect-src 'self' https://admin.haskerrealtygroup.com http://localhost:8000 http://localhost:3000 https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com",
+      "connect-src 'self' https://admin.haskerrealtygroup.com https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com",
       // Media
       "media-src 'self'",
       // Iframes: Google Maps embed + virtual tour providers

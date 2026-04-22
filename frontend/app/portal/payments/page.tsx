@@ -9,7 +9,7 @@ import {
 import { apiFetch } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const API_BASE = "";
 
 interface InvoiceLineItem {
   description: string;

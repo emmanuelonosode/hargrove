@@ -21,7 +21,7 @@ const BUDGET_MAP: Record<string, { min: number | null; max: number | null }> = {
   "$2,500+/mo":           { min: 2500, max: null },
 };
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const API_BASE = "";
 
 export default function ContactForm() {
   const [firstName, setFirstName] = useState("");

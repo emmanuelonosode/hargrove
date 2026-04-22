@@ -10,7 +10,7 @@ import {
 import { apiFetch } from "@/lib/auth";
 import { timeAgo, cn } from "@/lib/utils";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const API_BASE = "";
 
 const CATEGORIES = [
   { value: "PLUMBING",   label: "Plumbing",         icon: Wrench },

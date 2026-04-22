@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { apiFetch } from "@/lib/auth";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const API_BASE = "";
 
 interface ClientDocument {
   id: number;

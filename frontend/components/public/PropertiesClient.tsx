@@ -123,7 +123,7 @@ export function PropertiesClient({
 
     setMapLoading(true);
     try {
-      const apiBase = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+      const apiBase = "";
       const p = new URLSearchParams({
         is_published: "true",
         lat_min: bounds.south.toFixed(6),

@@ -10,7 +10,7 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const API_BASE = "";
 const STORAGE_KEY = "hasker_app_draft";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
