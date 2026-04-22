@@ -8,6 +8,7 @@ import { fetchFeaturedProperties, fetchProperties, toPropertyCardShape } from "@
 import { fetchAgents } from "@/lib/agents";
 import { fetchPosts } from "@/lib/blog";
 import { formatPrice } from "@/lib/utils";
+import { CITIES } from "@/lib/cities";
 
 export const metadata = {
   title: "Affordable Homes to Rent & Buy | Hasker & Co. Realty Group",
@@ -466,8 +467,46 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* ─── CITIES GRID ───────────────────────────────────────── */}
+      <section className="bg-white border-t border-neutral-100">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 py-16 lg:py-24">
+          <div className="text-center mb-12">
+            <p className="text-brand text-xs font-semibold tracking-[0.3em] uppercase mb-3">
+              Explore Markets
+            </p>
+            <h2 className="font-sans text-4xl font-bold text-brand-dark">
+              Rentals by City
+            </h2>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {Object.values(CITIES)
+              .slice(0, 8)
+              .map((c) => (
+                <Link
+                  key={c.slug}
+                  href={`/rentals/${c.slug}`}
+                  className="group relative aspect-[4/3] rounded-sm overflow-hidden bg-neutral-100"
+                >
+                  <Image
+                    src={c.heroImage}
+                    alt={`Affordable rentals in ${c.name}`}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    sizes="(max-width: 768px) 50vw, 25vw"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-4">
+                    <p className="text-white font-serif font-bold text-lg leading-tight">{c.name}</p>
+                    <p className="text-blue-200 text-xs mt-0.5">From {c.avgRent}/mo</p>
+                  </div>
+                </Link>
+              ))}
+          </div>
+        </div>
+      </section>
+
       {/* ─── HOW IT WORKS ──────────────────────────────────────── */}
-      <section className="py-16 lg:py-24 bg-white">
+      <section className="py-16 lg:py-24 bg-brand-light">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="text-center mb-14">
             <p className="text-brand text-xs font-semibold tracking-[0.3em] uppercase mb-3">
