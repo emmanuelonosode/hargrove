@@ -1,5 +1,8 @@
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
+from django.utils import timezone
+from datetime import timedelta
+import secrets
 from cloudinary.models import CloudinaryField
 
 
@@ -35,6 +38,14 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     phone = models.CharField(max_length=20, blank=True)
     role = models.CharField(max_length=20, choices=Role.choices, default=Role.CLIENT)
     avatar = CloudinaryField("avatar", blank=True, null=True)
+    
+    # Verification & Onboarding Fields
+    is_email_verified = models.BooleanField(default=False)
+    email_verification_code = models.CharField(max_length=6, blank=True, null=True)
+    email_verification_expires = models.DateTimeField(blank=True, null=True)
+    onboarding_completed = models.BooleanField(default=False)
+    preferences = models.JSONField(default=dict, blank=True)
+    
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(auto_now_add=True)
@@ -88,6 +99,38 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     @property
     def is_admin_or_manager(self):
         return self.role in (Role.ADMIN, Role.MANAGER)
+
+    def generate_verification_code(self):
+        """Generate a 6-digit verification code and set expiration (15 mins)."""
+        self.email_verification_code = "".join([str(secrets.randbelow(10)) for _ in range(6)])
+        self.email_verification_expires = timezone.now() + timedelta(minutes=15)
+        self.save(update_fields=['email_verification_code', 'email_verification_expires'])
+        
+        # Schedule the email task
+        from apps.notifications.tasks import send_verification_email
+        send_verification_email.delay(self.id)
+        
+        return self.email_verification_code
+
+    def verify_code(self, code):
+        """Verify the provided code against the stored code."""
+        if self.is_email_verified:
+            return True, "Email is already verified."
+            
+        if not self.email_verification_code or not self.email_verification_expires:
+            return False, "No verification code generated."
+            
+        if timezone.now() > self.email_verification_expires:
+            return False, "Verification code has expired."
+            
+        if self.email_verification_code != code:
+            return False, "Invalid verification code."
+            
+        self.is_email_verified = True
+        self.email_verification_code = None
+        self.email_verification_expires = None
+        self.save(update_fields=['is_email_verified', 'email_verification_code', 'email_verification_expires'])
+        return True, "Email verified successfully."
 
 
 class AgentProfile(models.Model):

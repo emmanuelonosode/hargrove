@@ -172,7 +172,11 @@
       "Bash(DJANGO_SETTINGS_MODULE=config.settings.local DATABASE_URL=sqlite:///db.sqlite3 py -3 manage.py migrate)",
       "Bash(xargs -r taskkill //F //PID)",
       "Bash(python3 \"../.claude/skills/ui-ux-pro-max/scripts/search.py\" \"real estate tenant portal dashboard apple minimal clean elegant\" --design-system -p \"Hasker Portal\")",
-      "Bash(python3 *)"
+      "Bash(python3 *)",
+      "Bash(ls .venv/)",
+      "Bash(ls ../venv/)",
+      "Bash(which python3 *)",
+      "Bash(which python *)"
     ]
   }
 }

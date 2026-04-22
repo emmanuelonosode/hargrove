@@ -26,10 +26,9 @@ class PaymentSerializer(serializers.ModelSerializer):
         model = Payment
         fields = [
             "id", "transaction", "amount", "payment_method",
-            "stripe_charge_id", "stripe_receipt_url",
             "status", "paid_at", "receipt_sent", "receipt_pdf", "notes",
         ]
-        read_only_fields = ["id", "stripe_charge_id", "stripe_receipt_url", "receipt_pdf"]
+        read_only_fields = ["id", "receipt_pdf"]
 
 
 class InvoiceSerializer(serializers.ModelSerializer):
@@ -39,9 +38,9 @@ class InvoiceSerializer(serializers.ModelSerializer):
             "id", "transaction", "invoice_number",
             "issued_date", "due_date", "line_items",
             "subtotal", "tax_rate", "tax_amount", "total",
-            "pdf", "stripe_invoice_id", "status", "created_at",
+            "pdf", "status", "created_at",
         ]
-        read_only_fields = ["id", "invoice_number", "pdf", "stripe_invoice_id", "created_at"]
+        read_only_fields = ["id", "invoice_number", "pdf", "created_at"]
 
     def create(self, validated_data):
         validated_data["invoice_number"] = Invoice.generate_invoice_number()
@@ -80,8 +79,8 @@ class TransactionDetailSerializer(serializers.ModelSerializer):
             "agent", "agent_name",
             "transaction_type", "agreed_price",
             "commission_rate", "commission_amount",
-            "status", "stripe_payment_intent_id",
+            "status",
             "notes", "payments", "invoices",
             "created_at", "updated_at", "completed_at",
         ]
-        read_only_fields = ["id", "commission_amount", "stripe_payment_intent_id", "created_at", "updated_at"]
+        read_only_fields = ["id", "commission_amount", "created_at", "updated_at"]

@@ -116,14 +116,12 @@ export function PropertiesMap({ markers, center, activeSlug, onMarkerClick, onBo
   useEffect(() => { onMarkerClickRef.current  = onMarkerClick;  }, [onMarkerClick]);
   useEffect(() => { onBoundsChangeRef.current = onBoundsChange; }, [onBoundsChange]);
 
-  // ── Fetch ALL properties and render as visible dot markers ───────────────
+  // ── Fetch lightweight map pins and render as dot markers ─────────────────
   async function loadAllDots(L: any, map: any) {
     try {
-      // Fetch up to 5 000 properties in one shot (FlexiblePageSize paginator allows this)
-      const res = await fetch(`${API_BASE}/api/v1/properties/?is_published=true&page_size=5000`);
+      const res = await fetch(`${API_BASE}/api/v1/properties/map-pins/`);
       if (!res.ok || !mountedRef.current) return;
-      const data = await res.json();
-      const results: any[] = data.results ?? [];
+      const results: any[] = await res.json();
 
       if (!mountedRef.current || !mapRef.current) return;
 
@@ -134,7 +132,6 @@ export function PropertiesMap({ markers, center, activeSlug, onMarkerClick, onBo
         const lng = Number(p.longitude);
         if (!Number.isFinite(lat) || !Number.isFinite(lng) || lat === 0 || lng === 0) return;
 
-        // Bright, large circle marker — clearly visible at zoom 5
         const dot = (L as any).circleMarker([lat, lng], {
           radius: 8,
           fillColor: BLUE,
@@ -144,17 +141,10 @@ export function PropertiesMap({ markers, center, activeSlug, onMarkerClick, onBo
           interactive: true,
         });
 
-        // Hover popup for the dot (mini card)
         dot.on("mouseover", () => {
           dot.bindPopup(
             `<a href="/properties/${p.slug}"
                 style="text-decoration:none;color:inherit;display:block;font-family:system-ui;min-width:160px">
-              ${p.primary_image_url
-                ? `<img src="${p.primary_image_url}"
-                      style="width:188px;height:100px;object-fit:cover;
-                             border-radius:7px 7px 0 0;display:block;
-                             margin:-10px -10px 8px;max-width:none;"/>`
-                : ""}
               <div style="font-size:15px;font-weight:800;color:${BLUE}">
                 $${Number(p.price).toLocaleString()}${p.price_label ?? ""}
               </div>
@@ -215,8 +205,8 @@ export function PropertiesMap({ markers, center, activeSlug, onMarkerClick, onBo
       } catch { return; }
 
       L.control.zoom({ position: "bottomright" }).addTo(map);
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/">CARTO</a>',
         maxZoom: 19,
       }).addTo(map);
 

@@ -154,9 +154,12 @@ export default function DashboardPage() {
             </h1>
             <p className="text-[13px] text-[#6E6E73] mt-0.5">{todayFormatted()}</p>
           </div>
-          <div className="shrink-0 w-9 h-9 rounded-full bg-brand flex items-center justify-center text-white text-[13px] font-semibold select-none shadow-sm">
+          <Link
+            href="/portal/profile"
+            className="shrink-0 w-9 h-9 rounded-full bg-brand flex items-center justify-center text-white text-[13px] font-semibold select-none shadow-sm hover:opacity-80 transition-opacity"
+          >
             {user?.first_name?.[0]}{user?.last_name?.[0]}
-          </div>
+          </Link>
         </div>
 
         {/* ── KPI Widgets ───────────────────────────────────────────────── */}
@@ -279,7 +282,7 @@ export default function DashboardPage() {
             {[
               { icon: CreditCard, label: "Payments",     desc: "Invoices & billing",  href: "/portal/payments" },
               { icon: FileText,   label: "Documents",    desc: "Agreements & files",  href: "/portal/documents" },
-              { icon: Wrench,     label: "Maintenance",  desc: "Submit a request",    href: "/contact" },
+              { icon: Wrench,     label: "Maintenance",  desc: "Submit a request",    href: "/portal/maintenance" },
               { icon: Search,     label: "Browse Homes", desc: "Find properties",     href: "/properties" },
             ].map(({ icon: Icon, label, desc, href }) => (
               <Card key={label} href={href} className="p-4 group">

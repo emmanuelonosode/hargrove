@@ -36,10 +36,10 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       // Fonts
       "font-src 'self' https://fonts.gstatic.com",
-      // Images: same origin, Cloudinary, Unsplash
-      "img-src 'self' data: blob: https://res.cloudinary.com https://images.unsplash.com https://images.invitationhomes.com https://maps.gstatic.com https://maps.googleapis.com https://*.tile.openstreetmap.org https://unpkg.com",
-      // API connections: same origin + backend API
-      "connect-src 'self' https://admin.haskerrealtygroup.com http://localhost:8000 http://localhost:3000 https://*.tile.openstreetmap.org",
+      // Images: same origin, Cloudinary, Unsplash, CARTO tiles
+      "img-src 'self' data: blob: https://res.cloudinary.com https://images.unsplash.com https://images.invitationhomes.com https://maps.gstatic.com https://maps.googleapis.com https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://unpkg.com",
+      // API connections: same origin + backend API + CARTO
+      "connect-src 'self' https://admin.haskerrealtygroup.com http://localhost:8000 http://localhost:3000 https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com",
       // Media
       "media-src 'self'",
       // Iframes: Google Maps embed + virtual tour providers

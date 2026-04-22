@@ -29,8 +29,10 @@ urlpatterns = [
     # Blog (public)
     path("api/v1/blog/", include("apps.blog.urls")),
 
-    # Stripe webhook
-    path("api/v1/webhooks/", include("apps.transactions.webhook_urls")),
+    # Tenant-facing
+    path("api/v1/documents/", include("apps.documents.urls")),
+    path("api/v1/maintenance/", include("apps.maintenance.urls")),
+
 ]
 
 if settings.DEBUG:

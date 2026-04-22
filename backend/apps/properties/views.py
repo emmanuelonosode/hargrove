@@ -11,10 +11,9 @@ from apps.accounts.permissions import IsAgentOrAbove
 
 
 class FlexiblePageSize(PageNumberPagination):
-    """Allow clients to request up to 5 000 results via ?page_size=N."""
     page_size = 24
     page_size_query_param = "page_size"
-    max_page_size = 5000
+    max_page_size = 200
 
 
 class PropertyListCreateView(generics.ListCreateAPIView):
@@ -85,6 +84,28 @@ class AgentListingsView(generics.ListAPIView):
             .prefetch_related("images")
             .order_by("-created_at")
         )
+
+
+class MapPinsView(generics.GenericAPIView):
+    """
+    GET /api/v1/properties/map-pins/
+    Returns only the fields needed to render map dots — no images, no amenities.
+    Uses .values() to skip serializer overhead entirely.
+    """
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, *args, **kwargs):
+        qs = (
+            Property.objects
+            .filter(is_published=True)
+            .exclude(latitude=None)
+            .exclude(longitude=None)
+            .values(
+                "slug", "price", "price_label", "latitude", "longitude",
+                "bedrooms", "bathrooms", "city", "state", "listing_type",
+            )
+        )
+        return Response(list(qs))
 
 
 @api_view(["POST"])

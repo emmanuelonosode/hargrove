@@ -75,6 +75,40 @@ def send_lead_notification(self, lead_id: int):
         raise self.retry(exc=exc)
 
 
+@shared_task(bind=True, max_retries=3, default_retry_delay=60)
+def send_verification_email(self, user_id: int):
+    """Email the 6-digit OTP code to a newly registered user."""
+    try:
+        from apps.accounts.models import CustomUser
+
+        user = CustomUser.objects.get(pk=user_id)
+        if not user.email_verification_code:
+            return "No OTP code set — skipped."
+
+        from_header, connection = _get_email_sender()
+        subject = f"{user.email_verification_code} is your Hasker & Co. verification code"
+        
+        # Render HTML template 
+        body = render_to_string("notifications/email_verification.html", {
+            "user": user,
+            "frontend_url": settings.FRONTEND_URL,
+        })
+
+        msg = EmailMessage(
+            subject=subject,
+            body=body,
+            from_email=from_header,
+            to=[user.email],
+            connection=connection,
+        )
+        msg.content_subtype = "html"
+        msg.send()
+        return f"Verification email sent to {user.email}"
+
+    except Exception as exc:
+        raise self.retry(exc=exc)
+
+
 # ---------------------------------------------------------------------------
 # PDF generation
 # ---------------------------------------------------------------------------

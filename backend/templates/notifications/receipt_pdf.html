@@ -39,9 +39,6 @@
     <tr><td>Property</td><td>{{ payment.transaction.property.title }}</td></tr>
     <tr><td>Payment Method</td><td>{{ payment.get_payment_method_display }}</td></tr>
     <tr><td>Date</td><td>{{ payment.paid_at|date:"F j, Y" }}</td></tr>
-    {% if payment.stripe_charge_id %}
-    <tr><td>Reference</td><td>{{ payment.stripe_charge_id }}</td></tr>
-    {% endif %}
     <tr><td>Status</td><td>{{ payment.get_status_display }}</td></tr>
   </table>
 

@@ -4,15 +4,20 @@ import { useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, CreditCard, FileText, LogOut, Home } from "lucide-react";
+import { LayoutDashboard, CreditCard, FileText, Wrench, User, LogOut, Home, Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 
 const navItems = [
-  { label: "Dashboard", href: "/portal/dashboard", icon: LayoutDashboard },
-  { label: "Payments", href: "/portal/payments", icon: CreditCard },
-  { label: "Documents", href: "/portal/documents", icon: FileText },
+  { label: "Dashboard",   href: "/portal/dashboard",   icon: LayoutDashboard },
+  { label: "Payments",    href: "/portal/payments",    icon: CreditCard },
+  { label: "Maintenance", href: "/portal/maintenance", icon: Wrench },
+  { label: "Documents",   href: "/portal/documents",   icon: FileText },
+  { label: "Profile",     href: "/portal/profile",     icon: User },
 ];
+
+// Mobile bottom bar only shows 4 items (Profile lives in sidebar user chip)
+const mobileNavItems = navItems.slice(0, 4);
 
 export default function PortalLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -58,23 +63,27 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
           </p>
         </div>
 
-        {/* User chip */}
-        <div className="mx-3 mb-4 px-3 py-3 rounded-xl bg-white/[0.06] flex items-center gap-3">
+        {/* User chip — links to profile */}
+        <Link
+          href="/portal/profile"
+          className="mx-3 mb-4 px-3 py-3 rounded-xl bg-white/[0.06] flex items-center gap-3 hover:bg-white/[0.10] transition-colors group"
+        >
           <div className="w-8 h-8 rounded-full bg-brand flex items-center justify-center text-[11px] font-semibold text-white shrink-0 select-none">
-            {user.first_name[0]}{user.last_name[0]}
+            {user.first_name?.[0]}{user.last_name?.[0]}
           </div>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <p className="text-[13px] font-semibold text-white truncate leading-none mb-0.5">
               {user.full_name}
             </p>
             <p className="text-[11px] text-white/40 truncate leading-none">{user.email}</p>
           </div>
-        </div>
+          <User size={13} className="text-white/20 group-hover:text-white/50 shrink-0 transition-colors" strokeWidth={1.8} />
+        </Link>
 
         {/* Nav */}
         <nav className="flex-1 px-3 space-y-0.5">
           {navItems.map(({ label, href, icon: Icon }) => {
-            const active = pathname === href;
+            const active = pathname === href || (href !== "/portal/dashboard" && pathname.startsWith(href));
             return (
               <Link
                 key={href}
@@ -127,7 +136,14 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
             className="h-6 w-auto brightness-0 invert"
           />
         </Link>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          <Link
+            href="/portal/profile"
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-colors"
+            aria-label="Notifications"
+          >
+            <Bell size={15} />
+          </Link>
           <span className="text-xs text-white/50 font-medium">{user.first_name}</span>
           <button
             onClick={handleLogout}
@@ -141,8 +157,8 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
 
       {/* ── Mobile bottom nav ────────────────────────────────────────────── */}
       <nav className="lg:hidden fixed bottom-0 inset-x-0 z-50 bg-white/90 backdrop-blur-xl border-t border-black/[0.06] flex">
-        {navItems.map(({ label, href, icon: Icon }) => {
-          const active = pathname === href;
+        {mobileNavItems.map(({ label, href, icon: Icon }) => {
+          const active = pathname === href || (href !== "/portal/dashboard" && pathname.startsWith(href));
           return (
             <Link
               key={href}

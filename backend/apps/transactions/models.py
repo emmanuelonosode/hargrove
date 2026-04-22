@@ -16,7 +16,6 @@ class TransactionStatus(models.TextChoices):
 
 
 class PaymentMethod(models.TextChoices):
-    STRIPE = "STRIPE", "Stripe"
     BANK_TRANSFER = "BANK_TRANSFER", "Bank Transfer"
     CASH = "CASH", "Cash"
     CHECK = "CHECK", "Check"
@@ -57,7 +56,6 @@ class Transaction(models.Model):
     commission_rate = models.DecimalField(max_digits=5, decimal_places=2, default=3.00)
     commission_amount = models.DecimalField(max_digits=12, decimal_places=2)
     status = models.CharField(max_length=20, choices=TransactionStatus.choices, default=TransactionStatus.PENDING)
-    stripe_payment_intent_id = models.CharField(max_length=200, blank=True)
     notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -80,8 +78,6 @@ class Payment(models.Model):
     transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE, related_name="payments")
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     payment_method = models.CharField(max_length=20, choices=PaymentMethod.choices)
-    stripe_charge_id = models.CharField(max_length=200, blank=True)
-    stripe_receipt_url = models.URLField(blank=True)
     status = models.CharField(max_length=20, choices=PaymentStatus.choices, default=PaymentStatus.PENDING)
     paid_at = models.DateTimeField(null=True, blank=True)
     receipt_sent = models.BooleanField(default=False)
@@ -109,7 +105,6 @@ class Invoice(models.Model):
     tax_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     total = models.DecimalField(max_digits=12, decimal_places=2)
     pdf = models.CharField(max_length=500, blank=True, help_text="Cloudinary URL of generated PDF invoice")
-    stripe_invoice_id = models.CharField(max_length=200, blank=True)
     status = models.CharField(max_length=10, choices=InvoiceStatus.choices, default=InvoiceStatus.DRAFT)
     created_at = models.DateTimeField(auto_now_add=True)
 

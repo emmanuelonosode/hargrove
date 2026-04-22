@@ -8,6 +8,9 @@ export interface AuthUser {
   last_name: string;
   full_name: string;
   role: string;
+  phone?: string;
+  is_email_verified?: boolean;
+  onboarding_completed?: boolean;
 }
 
 export interface AuthTokens {
@@ -76,7 +79,7 @@ export async function register(data: {
   first_name: string;
   last_name: string;
   phone?: string;
-}): Promise<AuthTokens> {
+}): Promise<{ message: string; email: string }> {
   const res = await fetch(`${API_BASE}/api/v1/auth/register/`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -87,6 +90,32 @@ export async function register(data: {
     const firstError =
       Object.values(body).flat()[0] ?? "Registration failed. Please try again.";
     throw new Error(String(firstError));
+  }
+  return res.json();
+}
+
+export async function verifyEmail(email: string, code: string): Promise<AuthTokens> {
+  const res = await fetch(`${API_BASE}/api/v1/auth/verify-email/`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, code }),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error ?? "Verification failed.");
+  }
+  return res.json(); // returns message, access, refresh, user
+}
+
+export async function resendOTP(email: string): Promise<{ message: string; email: string }> {
+  const res = await fetch(`${API_BASE}/api/v1/auth/resend-otp/`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error ?? "Failed to resend code.");
   }
   return res.json();
 }

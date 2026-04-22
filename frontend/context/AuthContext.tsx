@@ -9,6 +9,8 @@ import {
   getStoredUser,
   login as authLogin,
   register as authRegister,
+  verifyEmail as authVerifyEmail,
+  resendOTP as authResendOTP,
 } from "@/lib/auth";
 
 interface AuthContextValue {
@@ -21,8 +23,11 @@ interface AuthContextValue {
     first_name: string;
     last_name: string;
     phone?: string;
-  }) => Promise<void>;
+  }) => Promise<{ message: string; email: string }>;
+  verifyEmail: (email: string, code: string) => Promise<void>;
+  resendOTP: (email: string) => Promise<{ message: string; email: string }>;
   logout: () => void;
+  updateUser: (partial: Partial<AuthUser>) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -44,20 +49,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const register = useCallback(
     async (data: { email: string; password: string; first_name: string; last_name: string; phone?: string }) => {
-      const tokens: AuthTokens = await authRegister(data);
-      saveTokens(tokens);
-      setUser(tokens.user);
+      return await authRegister(data);
     },
     []
   );
+
+  const verifyEmail = useCallback(async (email: string, code: string) => {
+    const tokens = await authVerifyEmail(email, code);
+    saveTokens(tokens);
+    setUser(tokens.user);
+  }, []);
+
+  const resendOTP = useCallback(async (email: string) => {
+    return await authResendOTP(email);
+  }, []);
 
   const logout = useCallback(() => {
     clearTokens();
     setUser(null);
   }, []);
 
+  const updateUser = useCallback((partial: Partial<AuthUser>) => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      const updated = { ...prev, ...partial };
+      localStorage.setItem("auth_user", JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, login, register, verifyEmail, resendOTP, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

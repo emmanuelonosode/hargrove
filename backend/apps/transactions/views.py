@@ -14,7 +14,11 @@ from .serializers import (
 
 class TransactionListCreateView(generics.ListCreateAPIView):
     """GET/POST /api/v1/transactions/"""
-    permission_classes = [IsAgentOrAbove]
+
+    def get_permissions(self):
+        if self.request.method == "GET":
+            return [permissions.IsAuthenticated()]
+        return [IsAgentOrAbove()]
 
     def get_serializer_class(self):
         if self.request.method == "POST":
@@ -34,7 +38,11 @@ class TransactionListCreateView(generics.ListCreateAPIView):
 class TransactionDetailView(generics.RetrieveUpdateAPIView):
     """GET/PATCH /api/v1/transactions/{id}/"""
     serializer_class = TransactionDetailSerializer
-    permission_classes = [IsAgentOrAbove]
+
+    def get_permissions(self):
+        if self.request.method == "GET":
+            return [permissions.IsAuthenticated()]
+        return [IsAgentOrAbove()]
 
     def get_queryset(self):
         qs = Transaction.objects.select_related(
@@ -136,31 +144,3 @@ def client_invoices(request):
     return Response(serializer.data)
 
 
-@api_view(["POST"])
-@permission_classes([permissions.IsAuthenticated])
-def create_payment_intent(request, pk):
-    """POST /api/v1/transactions/{pk}/pay/ — create Stripe PaymentIntent for rent payment."""
-    try:
-        if request.user.role == "CLIENT":
-            transaction = Transaction.objects.get(pk=pk, client__user=request.user)
-        else:
-            transaction = Transaction.objects.get(pk=pk)
-    except Transaction.DoesNotExist:
-        return Response({"detail": "Transaction not found."}, status=status.HTTP_404_NOT_FOUND)
-
-    if not settings.STRIPE_SECRET_KEY:
-        return Response({"detail": "Payment processing is not configured."}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
-
-    try:
-        import stripe
-        stripe.api_key = settings.STRIPE_SECRET_KEY
-        intent = stripe.PaymentIntent.create(
-            amount=int(transaction.agreed_price * 100),
-            currency="usd",
-            metadata={"transaction_id": transaction.pk, "user_id": request.user.pk},
-        )
-        transaction.stripe_payment_intent_id = intent.id
-        transaction.save(update_fields=["stripe_payment_intent_id"])
-        return Response({"client_secret": intent.client_secret, "amount": float(transaction.agreed_price)})
-    except Exception as e:
-        return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)

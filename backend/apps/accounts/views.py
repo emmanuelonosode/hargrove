@@ -2,7 +2,7 @@ from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import CustomUser, Role
-from .serializers import MeSerializer, PublicAgentSerializer, RegisterSerializer
+from .serializers import MeSerializer, PublicAgentSerializer, RegisterSerializer, VerifyEmailSerializer, ResendOTPSerializer, ChangePasswordSerializer
 from .permissions import IsAdmin
 
 
@@ -30,7 +30,7 @@ class AgentDetailView(generics.RetrieveAPIView):
 
 
 class RegisterView(generics.CreateAPIView):
-    """POST /api/v1/auth/register/ — create a CLIENT account and return JWT tokens."""
+    """POST /api/v1/auth/register/ — create a CLIENT account and return JWT tokens (No, now sends OTP)."""
     serializer_class = RegisterSerializer
     permission_classes = [permissions.AllowAny]
 
@@ -38,19 +38,98 @@ class RegisterView(generics.CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
-        refresh = RefreshToken.for_user(user)
+        user.generate_verification_code()
+        
         return Response(
             {
-                "access": str(refresh.access_token),
-                "refresh": str(refresh),
-                "user": {
-                    "id": user.id,
-                    "email": user.email,
-                    "first_name": user.first_name,
-                    "last_name": user.last_name,
-                    "full_name": user.full_name,
-                    "role": user.role,
-                },
+                "message": "Account created successfully. Please check your email for the verification code.",
+                "email": user.email,
             },
             status=status.HTTP_201_CREATED,
+        )
+
+
+class VerifyEmailView(generics.GenericAPIView):
+    """POST /api/v1/auth/verify-email/"""
+    serializer_class = VerifyEmailSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        email = serializer.validated_data["email"]
+        code = serializer.validated_data["code"]
+        
+        try:
+            user = CustomUser.objects.get(email=email)
+        except CustomUser.DoesNotExist:
+            return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
+            
+        success, message = user.verify_code(code)
+        
+        if success:
+            refresh = RefreshToken.for_user(user)
+            return Response(
+                {
+                    "message": message,
+                    "access": str(refresh.access_token),
+                    "refresh": str(refresh),
+                    "user": {
+                        "id": user.id,
+                        "email": user.email,
+                        "first_name": user.first_name,
+                        "last_name": user.last_name,
+                        "full_name": user.full_name,
+                        "role": user.role,
+                        "is_email_verified": user.is_email_verified,
+                        "onboarding_completed": user.onboarding_completed,
+                    },
+                },
+                status=status.HTTP_200_OK,
+            )
+        else:
+            return Response({"error": message}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ChangePasswordView(generics.GenericAPIView):
+    """POST /api/v1/auth/change-password/"""
+    serializer_class   = ChangePasswordSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        s = self.get_serializer(data=request.data, context={"request": request})
+        s.is_valid(raise_exception=True)
+        request.user.set_password(s.validated_data["new_password"])
+        request.user.save(update_fields=["password"])
+        return Response({"detail": "Password updated successfully."})
+
+
+class ResendOTPView(generics.GenericAPIView):
+    """POST /api/v1/auth/resend-otp/"""
+    serializer_class = ResendOTPSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        email = serializer.validated_data["email"]
+        
+        try:
+            user = CustomUser.objects.get(email=email)
+        except CustomUser.DoesNotExist:
+            return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
+            
+        if user.is_email_verified:
+            return Response({"error": "Email is already verified."}, status=status.HTTP_400_BAD_REQUEST)
+            
+        user.generate_verification_code()
+        
+        return Response(
+            {
+                "message": "Verification code resent successfully.",
+                "email": user.email,
+            },
+            status=status.HTTP_200_OK,
         )

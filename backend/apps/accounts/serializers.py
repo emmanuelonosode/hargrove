@@ -64,6 +64,7 @@ class MeSerializer(serializers.ModelSerializer):
         fields = [
             "id", "email", "first_name", "last_name", "phone",
             "role", "avatar_url", "agent_profile",
+            "onboarding_completed", "preferences"
         ]
         read_only_fields = ["id", "email", "role"]
 
@@ -84,3 +85,22 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.set_password(password)
         user.save()
         return user
+
+
+class VerifyEmailSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    code = serializers.CharField(max_length=6)
+
+
+class ResendOTPSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+    current_password = serializers.CharField(write_only=True)
+    new_password     = serializers.CharField(write_only=True, min_length=8)
+
+    def validate_current_password(self, value):
+        if not self.context["request"].user.check_password(value):
+            raise serializers.ValidationError("Current password is incorrect.")
+        return value

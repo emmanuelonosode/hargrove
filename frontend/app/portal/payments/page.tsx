@@ -135,6 +135,25 @@ export default function PaymentsPage() {
         ) : (
           <div className="space-y-5">
             {pending.length > 0 && (
+              <div className="bg-[#FFF8EC] border border-[#FF9F0A]/20 rounded-2xl p-4 flex gap-3 items-start">
+                <AlertCircle size={16} className="text-[#FF9F0A] mt-0.5 shrink-0" strokeWidth={1.8} />
+                <div>
+                  <p className="text-[13px] font-semibold text-[#1D1D1F]">
+                    {pending.length} outstanding invoice{pending.length > 1 ? "s" : ""}
+                  </p>
+                  <p className="text-[12px] text-[#6E6E73] mt-0.5">
+                    Pay via bank transfer using your invoice number as the reference.
+                  </p>
+                  <a
+                    href="mailto:info@haskerrealtygroup.com?subject=Payment Inquiry"
+                    className="inline-flex items-center gap-1 text-[12px] font-semibold text-brand mt-1.5 hover:underline"
+                  >
+                    <Mail size={11} /> Questions? Email us
+                  </a>
+                </div>
+              </div>
+            )}
+            {pending.length > 0 && (
               <section>
                 <p className="text-[11px] font-semibold tracking-[0.08em] uppercase text-[#6E6E73] px-1 mb-2">
                   Outstanding ({pending.length})
