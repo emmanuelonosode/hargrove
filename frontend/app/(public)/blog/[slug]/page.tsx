@@ -60,9 +60,39 @@ export default async function BlogPostPage({ params }: Props) {
 
   const breadcrumb = { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Home", item: "https://haskerrealtygroup.com" }, { "@type": "ListItem", position: 2, name: "Renter's Guide", item: "https://haskerrealtygroup.com/blog" }, { "@type": "ListItem", position: 3, name: post.title, item: `https://haskerrealtygroup.com/blog/${slug}` }] };
 
+  const articleSchema = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: post.title,
+    description: post.excerpt,
+    url: `https://haskerrealtygroup.com/blog/${slug}`,
+    ...(post.featured_image_url && { image: post.featured_image_url }),
+    datePublished: post.published_at ?? undefined,
+    dateModified: post.updated_at ?? post.published_at ?? undefined,
+    author: {
+      "@type": "Person",
+      name: post.author_name,
+      ...(post.author_role && { jobTitle: post.author_role }),
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "Hasker & Co. Realty Group",
+      url: "https://haskerrealtygroup.com",
+      logo: { "@type": "ImageObject", url: "https://haskerrealtygroup.com/logo.svg" },
+    },
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": `https://haskerrealtygroup.com/blog/${slug}`,
+    },
+    wordCount: post.content ? post.content.split(/\s+/).length : undefined,
+    articleSection: post.category_display,
+    keywords: post.tags.length > 0 ? post.tags.join(", ") : undefined,
+  };
+
   return (
     <div className="pt-20">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
       {/* Hero */}
       <div className="relative h-[50vh] min-h-[360px] bg-brand-dark overflow-hidden">
         {post.featured_image_url && (

@@ -147,8 +147,11 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
     name: property.title,
     description: property.description ?? "",
     url: `https://haskerrealtygroup.com/properties/${property.slug}`,
-    image: primaryImage?.image_url ?? FALLBACK_IMAGE,
+    image: images.length > 0
+      ? images.map((i) => i.image_url)
+      : [FALLBACK_IMAGE],
     numberOfRooms: property.bedrooms,
+    numberOfBathroomsTotal: property.bathrooms,
     floorSize: { "@type": "QuantitativeValue", value: property.sqft, unitCode: "FTK" },
     address: {
       "@type": "PostalAddress",
@@ -158,12 +161,38 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
       postalCode: property.zip_code,
       addressCountry: "US",
     },
+    ...(Number(currentMarker.lat) !== 0 && {
+      geo: {
+        "@type": "GeoCoordinates",
+        latitude: currentMarker.lat,
+        longitude: currentMarker.lng,
+      },
+    }),
     offers: {
       "@type": "Offer",
       price: property.price,
       priceCurrency: "USD",
       availability: property.status === "available" ? "https://schema.org/InStock" : "https://schema.org/SoldOut",
     },
+    datePosted: (property as any).created_at ?? undefined,
+    petsAllowed: isPetFriendly,
+    amenityFeature: allAmenityNames.slice(0, 20).map((name) => ({
+      "@type": "LocationFeatureSpecification",
+      name,
+      value: true,
+    })),
+    ...(agent && {
+      broker: {
+        "@type": "RealEstateAgent",
+        name: agent.full_name ?? `${agent.first_name} ${agent.last_name}`,
+        ...(agent.email && { email: agent.email }),
+        memberOf: {
+          "@type": "Organization",
+          name: "Hasker & Co. Realty Group",
+          url: "https://haskerrealtygroup.com",
+        },
+      },
+    }),
   };
 
   return (
