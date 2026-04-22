@@ -414,14 +414,19 @@ export function RentalApplicationForm({ propertySlug }: Props) {
   async function handleAuth() {
     setAuthError(null);
     if (authMode === "register") {
-      if (!authForm.first_name.trim() || !authForm.last_name.trim()) {
+      const fName = authForm.first_name.trim() || form.first_name.trim();
+      const lName = authForm.last_name.trim() || form.last_name.trim();
+      const emailVal = authForm.email.trim() || form.email.trim();
+
+      if (!fName || !lName) {
         setAuthError("Enter your full name."); return;
       }
-      if (!authForm.email.trim()) { setAuthError("Enter your email."); return; }
+      if (!emailVal) { setAuthError("Enter your email."); return; }
       if (authForm.password.length < 8) { setAuthError("Password must be at least 8 characters."); return; }
       if (authForm.password !== authForm.confirm) { setAuthError("Passwords don't match."); return; }
     } else {
-      if (!authForm.email.trim() || !authForm.password) { setAuthError("Enter email and password."); return; }
+      const emailVal = authForm.email.trim() || form.email.trim();
+      if (!emailVal || !authForm.password) { setAuthError("Enter email and password."); return; }
     }
 
     setAuthLoading(true);
