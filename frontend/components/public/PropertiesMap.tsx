@@ -34,7 +34,9 @@ interface Props {
 
 const NAVY = "#0B1F3A";
 const BLUE = "#1A56DB";
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+// Always use relative path — Next.js rewrites proxy /api/v1/* to the backend.
+// Never call the backend directly from the browser (breaks in production).
+const API_BASE = "";
 
 function validCoord(m: { lat: number; lng: number }) {
   return Number.isFinite(m.lat) && Number.isFinite(m.lng) && m.lat !== 0 && m.lng !== 0;
