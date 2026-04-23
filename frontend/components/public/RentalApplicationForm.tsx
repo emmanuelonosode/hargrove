@@ -11,7 +11,9 @@ import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
-const API_BASE = "";
+const API_BASE = typeof window !== "undefined" 
+  ? "" 
+  : (process.env.NEXT_PUBLIC_API_URL ?? "https://admin.haskerrealtygroup.com");
 const STORAGE_KEY = "hasker_app_draft";
 const SAVED_PROFILE_KEY = "hasker_saved_profile";
 
@@ -768,18 +770,25 @@ export function RentalApplicationForm({ propertySlug }: Props) {
       // 1. Upload Proof to Cloudinary
       const formData = new FormData();
       formData.append("file", proofFile);
-      formData.append("upload_preset", "hasker_unsigned"); // Ensure this preset exists in Cloudinary
+      formData.append("upload_preset", "hasker_unsigned"); 
       
+      console.log("Uploading to Cloudinary...");
       const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/da8i2waxr/image/upload`, {
         method: "POST",
         body: formData,
+      }).catch(err => {
+        console.error("Cloudinary fetch error:", err);
+        throw new Error("Network error during receipt upload. Check your connection.");
       });
 
       if (uploadRes.ok) {
         const uploadData = await uploadRes.json();
         finalProofUrl = uploadData.secure_url;
+        console.log("Cloudinary upload success:", finalProofUrl);
       } else {
-        throw new Error("Failed to upload receipt. Please try again.");
+        const errData = await uploadRes.json().catch(() => ({}));
+        console.error("Cloudinary error response:", errData);
+        throw new Error("Failed to upload receipt. Ensure the image is valid.");
       }
 
       // 2. Submit Application
@@ -790,10 +799,17 @@ export function RentalApplicationForm({ propertySlug }: Props) {
         proof_image: finalProofUrl,
       };
 
+      console.log("Submitting to backend:", payload);
       const res = await fetch(`${API_BASE}/api/v1/leads/apply/`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          ...(user ? { Authorization: `Bearer ${localStorage.getItem("access_token")}` } : {})
+        },
         body: JSON.stringify(payload),
+      }).catch(err => {
+        console.error("Backend fetch error:", err);
+        throw new Error("Could not connect to the server. Please check your internet or try again later.");
       });
 
       if (!res.ok) {
