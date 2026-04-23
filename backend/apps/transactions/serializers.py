@@ -1,86 +1,53 @@
 from rest_framework import serializers
-from .models import Transaction, Payment, Invoice
-
-
-class ClientInvoiceSerializer(serializers.ModelSerializer):
-    property_title = serializers.CharField(source="transaction.property.title", read_only=True)
-    property_address = serializers.SerializerMethodField()
-    transaction_type = serializers.CharField(source="transaction.transaction_type", read_only=True)
-
-    class Meta:
-        model = Invoice
-        fields = [
-            "id", "invoice_number", "issued_date", "due_date",
-            "line_items", "subtotal", "tax_rate", "tax_amount", "total",
-            "pdf", "status", "created_at",
-            "property_title", "property_address", "transaction_type",
-        ]
-
-    def get_property_address(self, obj):
-        p = obj.transaction.property
-        return f"{p.address}, {p.city}, {p.state} {p.zip_code}"
-
+from .models import Payment, Transaction, Invoice
 
 class PaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Payment
         fields = [
-            "id", "transaction", "amount", "payment_method",
-            "status", "paid_at", "receipt_sent", "receipt_pdf", "notes",
+            "id", "transaction", "rental_application", "amount", 
+            "payment_method", "status", "reference_id", "proof_image",
+            "verified_by", "verified_at", "rejection_reason", "paid_at",
+            "receipt_sent", "receipt_pdf", "notes", "created_at"
         ]
-        read_only_fields = ["id", "receipt_pdf"]
+        read_only_fields = ["id", "status", "verified_by", "verified_at", "rejection_reason", "paid_at", "created_at"]
 
+class TransactionListSerializer(serializers.ModelSerializer):
+    client_name = serializers.CharField(source="client.lead.full_name", read_only=True)
+    property_title = serializers.CharField(source="property.title", read_only=True)
+    agent_name = serializers.CharField(source="agent.full_name", read_only=True)
+
+    class Meta:
+        model = Transaction
+        fields = [
+            "id", "client", "client_name", "property", "property_title",
+            "agent", "agent_name", "transaction_type", "agreed_price",
+            "status", "created_at"
+        ]
+
+class TransactionDetailSerializer(serializers.ModelSerializer):
+    client_name = serializers.CharField(source="client.lead.full_name", read_only=True)
+    property_title = serializers.CharField(source="property.title", read_only=True)
+    agent_name = serializers.CharField(source="agent.full_name", read_only=True)
+    payments = PaymentSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Transaction
+        fields = "__all__"
+        read_only_fields = ["created_at", "updated_at", "completed_at"]
 
 class InvoiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Invoice
-        fields = [
-            "id", "transaction", "invoice_number",
-            "issued_date", "due_date", "line_items",
-            "subtotal", "tax_rate", "tax_amount", "total",
-            "pdf", "status", "created_at",
-        ]
-        read_only_fields = ["id", "invoice_number", "pdf", "created_at"]
+        fields = "__all__"
+        read_only_fields = ["invoice_number", "created_at"]
 
-    def create(self, validated_data):
-        validated_data["invoice_number"] = Invoice.generate_invoice_number()
-        return super().create(validated_data)
-
-
-class TransactionListSerializer(serializers.ModelSerializer):
-    client_name = serializers.CharField(source="client.full_name", read_only=True)
-    property_title = serializers.CharField(source="property.title", read_only=True)
-    agent_name = serializers.CharField(source="agent.full_name", read_only=True)
+class ClientInvoiceSerializer(serializers.ModelSerializer):
+    property_title = serializers.CharField(source="transaction.property.title", read_only=True)
 
     class Meta:
-        model = Transaction
+        model = Invoice
         fields = [
-            "id", "client", "client_name",
-            "property", "property_title",
-            "agent", "agent_name",
-            "transaction_type", "agreed_price",
-            "commission_rate", "commission_amount",
-            "status", "created_at", "completed_at",
+            "id", "invoice_number", "issued_date", "due_date",
+            "total", "status", "pdf", "property_title"
         ]
-
-
-class TransactionDetailSerializer(serializers.ModelSerializer):
-    client_name = serializers.CharField(source="client.full_name", read_only=True)
-    property_title = serializers.CharField(source="property.title", read_only=True)
-    agent_name = serializers.CharField(source="agent.full_name", read_only=True)
-    payments = PaymentSerializer(many=True, read_only=True)
-    invoices = InvoiceSerializer(many=True, read_only=True)
-
-    class Meta:
-        model = Transaction
-        fields = [
-            "id", "client", "client_name",
-            "property", "property_title",
-            "agent", "agent_name",
-            "transaction_type", "agreed_price",
-            "commission_rate", "commission_amount",
-            "status",
-            "notes", "payments", "invoices",
-            "created_at", "updated_at", "completed_at",
-        ]
-        read_only_fields = ["id", "commission_amount", "created_at", "updated_at"]

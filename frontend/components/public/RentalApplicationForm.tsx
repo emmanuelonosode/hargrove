@@ -1382,16 +1382,3 @@ export function RentalApplicationForm({ propertySlug }: Props) {
     </div>
   );
 }
-nue"}
-          loading={submitting}
-        />
-      )}
-
-      {/* Privacy note */}
-      <p className="text-center text-[11px] text-[#6E6E73]">
-        Your information is handled confidentially.{" "}
-        <Link href="/privacy" className="hover:underline">Privacy Policy</Link>
-      </p>
-    </div>
-  );
-}

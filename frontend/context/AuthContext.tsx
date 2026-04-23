@@ -37,11 +37,19 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const { apiFetch } = require("@/lib/auth"); // Using local import or passing it
 
   useEffect(() => {
     setUser(getStoredUser());
     setIsLoading(false);
+  }, []);
+
+  const fetchLatestProfile = useCallback(async () => {
+    const res = await apiFetch("/api/v1/leads/apply/latest-profile/");
+    if (!res.ok) {
+       if (res.status === 404) return null;
+       throw new Error("Failed to fetch profile");
+    }
+    return res.json();
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
@@ -85,15 +93,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     <AuthContext.Provider value={{ user, isLoading, login, register, verifyEmail, resendOTP, logout, updateUser, fetchLatestProfile }}>
       {children}
     </AuthContext.Provider>
-  );
-}
-
-export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used inside AuthProvider");
-  return ctx;
-}
-ext.Provider>
   );
 }
 
