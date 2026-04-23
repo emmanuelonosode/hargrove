@@ -950,14 +950,10 @@ export function RentalApplicationForm({ propertySlug }: Props) {
                   <h4 className="text-[18px] font-bold mb-1">{propertyData?.title || "Rental Property"}</h4>
                   <p className="text-[12px] text-white/60 mb-4">{propertyData?.address || "Selected Property"}</p>
                   
-                  <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/10">
+                  <div className="grid grid-cols-1 gap-4 pt-4 border-t border-white/10">
                     <div>
-                      <p className="text-[10px] uppercase text-white/50 mb-0.5">Rent Amount</p>
+                      <p className="text-[10px] uppercase text-white/50 mb-0.5">Monthly Rent</p>
                       <p className="text-[16px] font-bold">${propertyData?.price || "—"}/mo</p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] uppercase text-white/50 mb-0.5">Application Fee</p>
-                      <p className="text-[16px] font-bold">$50.00</p>
                     </div>
                   </div>
                 </div>
@@ -1125,7 +1121,7 @@ export function RentalApplicationForm({ propertySlug }: Props) {
           total={TOTAL_STEPS}
           onBack={goBack}
           onNext={goNext}
-          nextLabel={step === PAYMENT_STEP ? "Pay & Submit" : step === REVIEW_STEP ? "Proceed to Payment" : "Continue"}
+          nextLabel={step === PAYMENT_STEP ? "Pay & Submit" : step === REVIEW_STEP ? "Next" : "Continue"}
           loading={submitting}
         />
       )}
