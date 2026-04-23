@@ -153,13 +153,20 @@ class Client(models.Model):
 
 
 class ApplicationStatus(models.TextChoices):
-    NEW      = "NEW",      "New"
-    REVIEWED = "REVIEWED", "Reviewed"
-    APPROVED = "APPROVED", "Approved"
-    REJECTED = "REJECTED", "Rejected"
+    DRAFT           = "DRAFT",           "Draft"
+    PENDING_PAYMENT = "PENDING_PAYMENT", "Pending Payment"
+    SUBMITTED       = "SUBMITTED",       "Submitted"
+    REVIEWED        = "REVIEWED",        "Reviewed"
+    APPROVED        = "APPROVED",        "Approved"
+    REJECTED        = "REJECTED",        "Rejected"
 
 
 class RentalApplication(models.Model):
+    # ... (other fields remain)
+    application_fee = models.DecimalField(max_digits=10, decimal_places=2, default=50.00)
+    is_fee_paid     = models.BooleanField(default=False)
+    payment_intent_id = models.CharField(max_length=200, blank=True, null=True)
+
     # ── Personal Info ─────────────────────────────────────────────────────────
     first_name  = models.CharField(max_length=100)
     middle_name = models.CharField(max_length=100, blank=True)
@@ -204,7 +211,7 @@ class RentalApplication(models.Model):
     )
 
     # ── Status & Meta ─────────────────────────────────────────────────────────
-    status       = models.CharField(max_length=10, choices=ApplicationStatus.choices, default=ApplicationStatus.NEW)
+    status       = models.CharField(max_length=20, choices=ApplicationStatus.choices, default=ApplicationStatus.DRAFT)
     submitted_at = models.DateTimeField(auto_now_add=True)
     ip_address   = models.GenericIPAddressField(null=True, blank=True)
 

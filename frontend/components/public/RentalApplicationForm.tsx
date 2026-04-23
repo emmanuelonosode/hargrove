@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   User, MapPin, Calendar, Users, Lock, Eye, EyeOff,
-  ChevronRight, ChevronLeft, Check, AlertCircle, Building2,
+  ChevronRight, ChevronLeft, Check, AlertCircle, Building2, Shield
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
@@ -57,7 +57,8 @@ const empty = (): FormData => ({
 
 // ── Step config ───────────────────────────────────────────────────────────────
 
-const STEP_LABELS = ["Personal", "Address", "Rental", "Household", "Account", "Review"];
+const STEP_LABELS_GUEST = ["Personal", "Address", "Rental", "Household", "Account", "Review", "Payment"];
+const STEP_LABELS_USER  = ["Personal", "Address", "Rental", "Household", "Review", "Payment"];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -310,6 +311,17 @@ export function RentalApplicationForm({ propertySlug }: Props) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
+  const [propertyData, setPropertyData] = useState<any>(null);
+
+  // Fetch property details for summary
+  useEffect(() => {
+    if (propertySlug) {
+      fetch(`${API_BASE}/api/v1/properties/${propertySlug}/`)
+        .then(res => res.json())
+        .then(data => setPropertyData(data))
+        .catch(err => console.error("Failed to fetch property details", err));
+    }
+  }, [propertySlug]);
 
   // Auth gate state
   const [authMode, setAuthMode] = useState<"register" | "login" | "verify">("register");
@@ -329,11 +341,11 @@ export function RentalApplicationForm({ propertySlug }: Props) {
     return () => clearTimeout(t);
   }, [resendCooldown]);
 
-  // Total steps: Personal, Address, Rental, Household, [Account if no user], Review
-  const TOTAL_STEPS = user ? 5 : 6;
-  // Effective step indices
-  const REVIEW_STEP = user ? 4 : 5;
+  // Step configuration
   const ACCOUNT_STEP = 4; // only shown when !user
+  const REVIEW_STEP = user ? 4 : 5;
+  const PAYMENT_STEP = user ? 5 : 6;
+  const TOTAL_STEPS = user ? 6 : 7;
 
   // Save draft whenever form changes
   useEffect(() => { saveDraft(form); }, [form]);
@@ -353,9 +365,9 @@ export function RentalApplicationForm({ propertySlug }: Props) {
   // Auto-advance past account step after auth
   useEffect(() => {
     if (user && step === ACCOUNT_STEP) {
-      setStep(ACCOUNT_STEP + 1);
+      setStep(REVIEW_STEP);
     }
-  }, [user, step, ACCOUNT_STEP]);
+  }, [user, step, ACCOUNT_STEP, REVIEW_STEP]);
 
   function set<K extends keyof FormData>(field: K, value: FormData[K]) {
     setForm((f) => ({ ...f, [field]: value }));
@@ -398,14 +410,25 @@ export function RentalApplicationForm({ propertySlug }: Props) {
     return Object.keys(e).length === 0;
   }
 
-  function goBack() { setStep((s) => Math.max(0, s - 1)); setServerError(null); }
+  function goBack() { 
+    if (user && step === REVIEW_STEP) {
+      setStep(3);
+    } else if (!user && step === REVIEW_STEP) {
+      setStep(ACCOUNT_STEP);
+    } else {
+      setStep((s) => Math.max(0, s - 1)); 
+    }
+    setServerError(null); 
+  }
 
   function goNext() {
     if (!validateStep(step)) return;
-    if (step === REVIEW_STEP) { handleSubmit(); return; }
+    if (step === PAYMENT_STEP) { handleSubmit(); return; }
+    
     // Skip account step if user is logged in
     if (!user && step === 3) { setStep(ACCOUNT_STEP); return; }
     if (user && step === 3) { setStep(REVIEW_STEP); return; }
+    
     setStep((s) => s + 1);
   }
 
@@ -522,10 +545,13 @@ export function RentalApplicationForm({ propertySlug }: Props) {
   // ── Final submit ───────────────────────────────────────────────────────────
 
   async function handleSubmit() {
-    if (!validateStep(REVIEW_STEP)) return;
+    if (!validateStep(PAYMENT_STEP)) return;
     setSubmitting(true);
     setServerError(null);
     try {
+      // Simulate payment processing delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
       const payload = {
         first_name: form.first_name, middle_name: form.middle_name, last_name: form.last_name,
         email: form.email, cell_phone: form.cell_phone, home_phone: form.home_phone,
@@ -536,6 +562,8 @@ export function RentalApplicationForm({ propertySlug }: Props) {
         has_pets: form.has_pets, pet_description: form.has_pets ? form.pet_description : "",
         smokes: form.smokes, drinks: form.drinks,
         ...(form.rental_property ? { rental_property: form.rental_property } : {}),
+        is_fee_paid: true,
+        status: "SUBMITTED",
       };
 
       const res = await fetch(`${API_BASE}/api/v1/leads/apply/`, {
@@ -562,21 +590,14 @@ export function RentalApplicationForm({ propertySlug }: Props) {
 
   // ── Step content ───────────────────────────────────────────────────────────
 
-  const visibleStep = user
-    ? step // steps 0-3 direct, 4 = review
-    : step; // steps 0-3, 4 = account, 5 = review
-
-  const stepLabels = user
-    ? ["Personal", "Address", "Rental", "Household", "Review"]
-    : ["Personal", "Address", "Rental", "Household", "Account", "Review"];
+  const stepLabels = user ? STEP_LABELS_USER : STEP_LABELS_GUEST;
 
   return (
     <div className="space-y-5">
       {/* Step indicator */}
       <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] px-5 py-5">
-        <StepIndicator current={visibleStep} total={TOTAL_STEPS} labels={stepLabels} />
+        <StepIndicator current={step} total={TOTAL_STEPS} labels={stepLabels} />
       </div>
-
       {/* ── Step 0: Personal Info ──────────────────────────────────────── */}
       {step === 0 && (
         <Section icon={User} title="Tell us about yourself" sub="Basic personal information for your application">
@@ -919,8 +940,30 @@ export function RentalApplicationForm({ propertySlug }: Props) {
       {/* ── Review Step ───────────────────────────────────────────────── */}
       {step === REVIEW_STEP && (
         <>
-          <Section icon={Building2} title="Review your application" sub="Confirm everything looks right before submitting">
+          <Section icon={Building2} title="Review your application" sub="Confirm everything looks right before moving to payment">
             <div className="space-y-5">
+              
+              {/* Property Summary (New) */}
+              <div className="rounded-xl bg-brand-dark text-white p-5 overflow-hidden relative">
+                <div className="relative z-10">
+                  <p className="text-[10px] tracking-widest uppercase text-white/50 mb-1">Applying for</p>
+                  <h4 className="text-[18px] font-bold mb-1">{propertyData?.title || "Rental Property"}</h4>
+                  <p className="text-[12px] text-white/60 mb-4">{propertyData?.address || "Selected Property"}</p>
+                  
+                  <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/10">
+                    <div>
+                      <p className="text-[10px] uppercase text-white/50 mb-0.5">Rent Amount</p>
+                      <p className="text-[16px] font-bold">${propertyData?.price || "—"}/mo</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] uppercase text-white/50 mb-0.5">Application Fee</p>
+                      <p className="text-[16px] font-bold">$50.00</p>
+                    </div>
+                  </div>
+                </div>
+                {/* Decorative house icon in background */}
+                <Building2 className="absolute -right-4 -bottom-4 w-32 h-32 text-white/5 rotate-12" />
+              </div>
 
               {/* Summary rows */}
               {[
@@ -1025,6 +1068,56 @@ export function RentalApplicationForm({ propertySlug }: Props) {
         </>
       )}
 
+      {/* ── Payment Step ──────────────────────────────────────────────── */}
+      {step === PAYMENT_STEP && (
+        <Section icon={Lock} title="Pay Application Fee" sub="Securely pay the $50 application fee to submit your application">
+          <div className="space-y-6">
+            <div className="bg-[#F5F5F7] rounded-2xl p-6 border border-black/[0.03]">
+              <h4 className="text-[13px] font-semibold text-[#1D1D1F] mb-4">Summary of Charges</h4>
+              <div className="space-y-3">
+                <div className="flex justify-between text-[14px]">
+                  <span className="text-[#6E6E73]">Application Processing Fee</span>
+                  <span className="font-medium text-[#1D1D1F]">$50.00</span>
+                </div>
+                <div className="pt-3 border-t border-black/[0.06] flex justify-between text-[16px] font-bold">
+                  <span className="text-[#1D1D1F]">Total Amount Due</span>
+                  <span className="text-brand">$50.00</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <Label>Payment Method</Label>
+              <div className="grid grid-cols-1 gap-3">
+                <div className="flex items-center justify-between p-4 rounded-xl border-2 border-brand bg-brand/[0.03]">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-6 bg-brand rounded flex items-center justify-center text-[10px] text-white font-bold">VISA</div>
+                    <span className="text-[14px] font-medium text-[#1D1D1F]">Debit or Credit Card</span>
+                  </div>
+                  <div className="w-5 h-5 rounded-full bg-brand flex items-center justify-center">
+                    <div className="w-2 h-2 rounded-full bg-white" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3 p-4 bg-green-50 rounded-xl border border-green-100">
+              <Shield className="text-green-600 shrink-0" size={18} />
+              <p className="text-[12px] text-green-700 leading-relaxed">
+                Your payment information is encrypted and processed securely. We never store your full card details.
+              </p>
+            </div>
+
+            {serverError && (
+              <div className="bg-red-50 border border-red-200/60 text-red-600 text-[12px] rounded-xl px-4 py-3 flex items-start gap-2">
+                <AlertCircle size={14} className="shrink-0 mt-0.5" />
+                {serverError}
+              </div>
+            )}
+          </div>
+        </Section>
+      )}
+
       {/* ── Navigation ────────────────────────────────────────────────── */}
       {step !== ACCOUNT_STEP && (
         <NavButtons
@@ -1032,7 +1125,7 @@ export function RentalApplicationForm({ propertySlug }: Props) {
           total={TOTAL_STEPS}
           onBack={goBack}
           onNext={goNext}
-          nextLabel={step === REVIEW_STEP ? "Submit Application" : "Continue"}
+          nextLabel={step === PAYMENT_STEP ? "Pay & Submit" : step === REVIEW_STEP ? "Proceed to Payment" : "Continue"}
           loading={submitting}
         />
       )}

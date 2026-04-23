@@ -123,8 +123,9 @@ class RentalApplicationCreateSerializer(serializers.ModelSerializer):
             "smokes", "drinks",
             "rental_property",
             "certification_text",
+            "application_fee", "is_fee_paid", "status",
         ]
-        read_only_fields = ["id"]
+        read_only_fields = ["id", "application_fee", "is_fee_paid", "status"]
 
     def validate(self, data):
         if data.get("has_kids") and not data.get("number_of_kids"):

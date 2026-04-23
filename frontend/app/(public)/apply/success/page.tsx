@@ -60,12 +60,12 @@ function SuccessContent() {
   const ref = searchParams.get("ref") ?? "—";
   const name = searchParams.get("name") ?? "Applicant";
   const refId = `APP-${String(ref).padStart(5, "0")}`;
-  const memo = `${refId} ${name} Application Fee`;
 
   const steps = [
-    { icon: Building2,   title: "Transfer the application fee", desc: "Use ACH / bank transfer to the account details below. Include the memo exactly as shown.", active: true },
-    { icon: Mail,        title: "We confirm receipt",          desc: "Our team will email you within 1 business day confirming payment receipt.", active: false },
-    { icon: Clock,       title: "Application reviewed",        desc: "Full review completed within 24–48 hours. We'll contact you with a decision.", active: false },
+    { icon: CheckCircle, title: "Application Fee Received", desc: "Your $50 application fee has been securely processed.", active: true, completed: true },
+    { icon: Clock,       title: "Application Under Review",  desc: "Our team will review your details and credit history within 24-48 hours.", active: true, completed: false },
+    { icon: Mail,        title: "Lease & Deposit",           desc: "If approved, we'll email you the lease agreement and instructions for the security deposit.", active: false, completed: false },
+    { icon: Home,        title: "Move-In Coordination",      desc: "Once the lease is signed and deposit paid, we'll schedule your move-in date.", active: false, completed: false },
   ];
 
   return (
@@ -73,99 +73,68 @@ function SuccessContent() {
       <div className="max-w-xl mx-auto px-4 sm:px-6 py-10 space-y-4">
 
         {/* Confirmation card */}
-        <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-6 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-[#F5F5F7] flex items-center justify-center mx-auto mb-4">
-            <CheckCircle size={28} className="text-[#34C759]" strokeWidth={1.8} />
+        <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-8 text-center border-t-4 border-[#34C759]">
+          <div className="w-16 h-16 rounded-2xl bg-green-50 flex items-center justify-center mx-auto mb-6">
+            <CheckCircle size={32} className="text-[#34C759]" strokeWidth={2} />
           </div>
-          <h1 className="text-[22px] font-semibold tracking-tight text-[#1D1D1F] mb-1">
-            Application Received
+          <h1 className="text-[26px] font-semibold tracking-tight text-[#1D1D1F] mb-2">
+            Application Submitted!
           </h1>
-          <p className="text-[14px] text-[#6E6E73]">
-            Thank you, <span className="font-semibold text-[#1D1D1F]">{name}</span>. Your application has been submitted.
+          <p className="text-[15px] text-[#6E6E73] leading-relaxed">
+            Great news, <span className="font-semibold text-[#1D1D1F]">{name}</span>! Your application and fee have been successfully received.
           </p>
-          <div className="mt-4 inline-flex items-center gap-2 bg-[#F5F5F7] px-4 py-2.5 rounded-xl">
-            <p className="text-[11px] text-[#6E6E73] font-medium">Reference</p>
-            <p className="text-[14px] font-bold text-[#1D1D1F] font-mono">{refId}</p>
-          </div>
-          <p className="mt-3 text-[12px] text-[#6E6E73]">
-            A copy of your application PDF will be emailed to you shortly.
-          </p>
-        </div>
-
-        {/* Application fee card */}
-        <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] overflow-hidden">
-          <div className="px-5 py-4 border-b border-black/[0.04]">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-[#F5F5F7] flex items-center justify-center shrink-0">
-                <AlertCircle size={16} className="text-[#6E6E73]" strokeWidth={1.8} />
-              </div>
-              <div>
-                <p className="text-[14px] font-semibold text-[#1D1D1F] tracking-tight">
-                  Pay Application Fee — {PAYMENT_DETAILS.amount}
-                </p>
-                <p className="text-[12px] text-[#6E6E73]">Required to process your application</p>
-              </div>
+          <div className="mt-6 inline-flex items-center gap-3 bg-[#F5F5F7] px-5 py-3 rounded-2xl border border-black/[0.03]">
+            <div>
+              <p className="text-[10px] text-[#6E6E73] font-bold uppercase tracking-widest text-left">Application ID</p>
+              <p className="text-[16px] font-bold text-[#1D1D1F] font-mono">{refId}</p>
             </div>
-          </div>
-
-          <div className="p-5 space-y-3">
-            <p className="text-[13px] text-[#6E6E73] leading-relaxed">
-              Transfer <strong className="text-[#1D1D1F]">{PAYMENT_DETAILS.amount}</strong> via ACH bank transfer to the account below.
-              Include the memo <strong className="text-[#1D1D1F]">exactly as shown</strong> — this is how we match your payment to your application.
-            </p>
-
-            <div className="space-y-2">
-              <CopyField label="Bank Name" value={PAYMENT_DETAILS.bankName} />
-              <CopyField label="Account Name" value={PAYMENT_DETAILS.accountName} />
-              <CopyField label="Account Number" value={PAYMENT_DETAILS.accountNumber} />
-              <CopyField label="Routing Number (ABA)" value={PAYMENT_DETAILS.routingNumber} />
-              <CopyField label="Amount" value={PAYMENT_DETAILS.amount} />
-              <div className="bg-brand/5 border border-brand/20 rounded-xl p-3">
-                <p className="text-[10px] font-semibold tracking-[0.07em] uppercase text-brand mb-1">
-                  Memo / Reference (required)
-                </p>
-                <p className="text-[13px] font-bold text-[#1D1D1F] font-mono break-all">{memo}</p>
-                <button
-                  onClick={() => navigator.clipboard.writeText(memo)}
-                  className="mt-2 flex items-center gap-1.5 text-[11px] font-semibold text-brand hover:underline"
-                >
-                  <Copy size={11} /> Copy memo
-                </button>
-              </div>
-            </div>
-
-            <div className="bg-[#F5F5F7] rounded-xl px-4 py-3">
-              <p className="text-[11px] text-[#6E6E73] leading-relaxed">
-                <strong className="text-[#1D1D1F]">Note:</strong> Your application fee is non-refundable and must be received before we begin the review process.
-                Payment must be submitted within <strong className="text-[#1D1D1F]">5 business days</strong> of submitting your application.
-              </p>
+            <div className="w-px h-8 bg-black/[0.08]" />
+            <div className="text-left">
+              <p className="text-[10px] text-[#6E6E73] font-bold uppercase tracking-widest">Status</p>
+              <p className="text-[14px] font-bold text-brand">Under Review</p>
             </div>
           </div>
         </div>
 
         {/* What happens next */}
-        <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-5">
-          <p className="text-[11px] font-semibold tracking-[0.07em] uppercase text-[#6E6E73] mb-4">
-            What happens next
-          </p>
-          <div className="space-y-0">
-            {steps.map(({ icon: Icon, title, desc, active }, i) => (
-              <div key={title} className="flex gap-4">
+        <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-6">
+          <h3 className="text-[16px] font-bold text-[#1D1D1F] mb-6 flex items-center gap-2">
+            Your Next Steps
+          </h3>
+          <div className="space-y-0 relative">
+            {steps.map(({ icon: Icon, title, desc, active, completed }, i) => (
+              <div key={title} className="flex gap-5">
                 {/* Timeline */}
                 <div className="flex flex-col items-center">
-                  <div className="w-8 h-8 rounded-xl bg-[#F5F5F7] flex items-center justify-center shrink-0">
-                    <Icon size={15} className={active ? "text-[#1D1D1F]" : "text-[#C7C7CC]"} strokeWidth={1.8} />
+                  <div className={cn(
+                    "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 z-10 border transition-all duration-500",
+                    completed ? "bg-[#34C759] border-[#34C759] text-white shadow-[0_0_15px_rgba(52,199,89,0.3)]" : 
+                    active ? "bg-white border-brand text-brand shadow-[0_0_15px_rgba(26,86,219,0.15)]" : 
+                    "bg-[#F5F5F7] border-transparent text-[#C7C7CC]"
+                  )}>
+                    {completed ? <CheckCircle size={18} strokeWidth={2.5} /> : <Icon size={18} strokeWidth={2} />}
                   </div>
                   {i < steps.length - 1 && (
-                    <div className="w-px flex-1 bg-[#E5E5EA] my-1" style={{ minHeight: 20 }} />
+                    <div className={cn(
+                      "w-0.5 flex-1 my-1 rounded-full",
+                      completed ? "bg-[#34C759]" : "bg-[#E5E5EA]"
+                    )} style={{ minHeight: 30 }} />
                   )}
                 </div>
                 {/* Content */}
-                <div className="pb-5 min-w-0">
-                  <p className={`text-[13px] font-semibold mb-0.5 ${active ? "text-[#1D1D1F]" : "text-[#6E6E73]"}`}>
+                <div className="pb-8 min-w-0">
+                  <p className={cn(
+                    "text-[15px] font-bold mb-1 transition-colors duration-500",
+                    active || completed ? "text-[#1D1D1F]" : "text-[#C7C7CC]"
+                  )}>
                     {title}
                   </p>
-                  <p className="text-[12px] text-[#6E6E73] leading-relaxed">{desc}</p>
+                  <p className={cn(
+                    "text-[13px] leading-relaxed transition-colors duration-500",
+                    active || completed ? "text-[#6E6E73]" : "text-[#C7C7CC]"
+                  )}>
+                    {desc}
+                  </p>
                 </div>
               </div>
             ))}
