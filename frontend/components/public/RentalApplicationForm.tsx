@@ -1115,7 +1115,7 @@ export function RentalApplicationForm({ propertySlug }: Props) {
       )}
 
       {/* ── Navigation ────────────────────────────────────────────────── */}
-      {step !== ACCOUNT_STEP && (
+      {(step !== ACCOUNT_STEP || user) && (
         <NavButtons
           step={step}
           total={TOTAL_STEPS}
