@@ -113,9 +113,91 @@ function clearDraft() {
   try { sessionStorage.removeItem(STORAGE_KEY); } catch {}
 }
 
-// ── Main Component ────────────────────────────────────────────────────────────
+function Label({ children, isAutofilled }: { children: React.ReactNode; isAutofilled?: boolean }) {
+  return (
+    <div className="flex items-center justify-between mb-1.5">
+      <label className="block text-[11px] font-semibold tracking-[0.07em] uppercase text-[#6E6E73]">
+        {children}
+      </label>
+      {isAutofilled && (
+        <span className="text-[9px] font-bold text-brand uppercase tracking-tighter bg-brand/10 px-1.5 py-0.5 rounded">
+          Saved
+        </span>
+      )}
+    </div>
+  );
+}
 
-function Toggle({
+function Input({
+  error,
+  className,
+  isAutofilled,
+  onClearAutofill,
+  ...props
+}: React.InputHTMLAttributes<HTMLInputElement> & { 
+  error?: string; 
+  isAutofilled?: boolean;
+  onClearAutofill?: () => void;
+}) {
+  return (
+    <div>
+      <input
+        {...props}
+        onFocus={(e) => {
+          props.onFocus?.(e);
+          onClearAutofill?.();
+        }}
+        className={cn(
+          "w-full rounded-xl px-4 py-3 text-[14px] text-[#1D1D1F] bg-[#F5F5F7] outline-none transition-all",
+          "focus:bg-white focus:ring-2 focus:ring-brand/30 focus:shadow-[0_0_0_1px_#1A56DB]",
+          isAutofilled && "bg-brand/[0.03] border-brand/20",
+          error && "ring-2 ring-red-400/50 bg-red-50/50",
+          className
+        )}
+      />
+      {error && (
+        <p className="mt-1 text-[11px] text-red-500 flex items-center gap-1">
+          <AlertCircle size={11} /> {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function Select({
+  error,
+  children,
+  isAutofilled,
+  onClearAutofill,
+  ...props
+}: React.SelectHTMLAttributes<HTMLSelectElement> & { 
+  error?: string; 
+  isAutofilled?: boolean;
+  onClearAutofill?: () => void;
+}) {
+  return (
+    <div>
+      <select
+        {...props}
+        onFocus={(e) => {
+          props.onFocus?.(e);
+          onClearAutofill?.();
+        }}
+        className={cn(
+          "w-full rounded-xl px-4 py-3 text-[14px] text-[#1D1D1F] bg-[#F5F5F7] outline-none transition-all appearance-none",
+          "focus:bg-white focus:ring-2 focus:ring-brand/30 focus:shadow-[0_0_0_1px_#1A56DB]",
+          isAutofilled && "bg-brand/[0.03] border-brand/20",
+          error && "ring-2 ring-red-400/50"
+        )}
+      >
+        {children}
+      </select>
+      {error && <p className="mt-1 text-[11px] text-red-500">{error}</p>}
+    </div>
+  );
+}
+
+// ── Toggle primitive ─────────────────────────────────────────────────────────
   checked,
   onChange,
   label,
@@ -771,31 +853,55 @@ export function RentalApplicationForm({ propertySlug }: Props) {
           <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <Label>First Name *</Label>
-                <Input value={form.first_name} onChange={text("first_name")} placeholder="Jane" error={errors.first_name} />
+                <Label isAutofilled={autofilledFields.has("first_name")}>First Name *</Label>
+                <Input 
+                  isAutofilled={autofilledFields.has("first_name")}
+                  onClearAutofill={() => setAutofilledFields(prev => { const n = new Set(prev); n.delete("first_name"); return n; })}
+                  value={form.first_name} onChange={text("first_name")} placeholder="Jane" error={errors.first_name} 
+                />
               </div>
               <div>
-                <Label>Middle Name</Label>
-                <Input value={form.middle_name} onChange={text("middle_name")} placeholder="Optional" />
+                <Label isAutofilled={autofilledFields.has("middle_name")}>Middle Name</Label>
+                <Input 
+                  isAutofilled={autofilledFields.has("middle_name")}
+                  onClearAutofill={() => setAutofilledFields(prev => { const n = new Set(prev); n.delete("middle_name"); return n; })}
+                  value={form.middle_name} onChange={text("middle_name")} placeholder="Optional" 
+                />
               </div>
               <div>
-                <Label>Last Name *</Label>
-                <Input value={form.last_name} onChange={text("last_name")} placeholder="Smith" error={errors.last_name} />
+                <Label isAutofilled={autofilledFields.has("last_name")}>Last Name *</Label>
+                <Input 
+                  isAutofilled={autofilledFields.has("last_name")}
+                  onClearAutofill={() => setAutofilledFields(prev => { const n = new Set(prev); n.delete("last_name"); return n; })}
+                  value={form.last_name} onChange={text("last_name")} placeholder="Smith" error={errors.last_name} 
+                />
               </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <Label>Email Address *</Label>
-                <Input type="email" value={form.email} onChange={text("email")} placeholder="you@example.com" error={errors.email} />
+                <Label isAutofilled={autofilledFields.has("email")}>Email Address *</Label>
+                <Input 
+                  isAutofilled={autofilledFields.has("email")}
+                  onClearAutofill={() => setAutofilledFields(prev => { const n = new Set(prev); n.delete("email"); return n; })}
+                  type="email" value={form.email} onChange={text("email")} placeholder="you@example.com" error={errors.email} 
+                />
               </div>
               <div>
-                <Label>Cell Phone *</Label>
-                <Input type="tel" value={form.cell_phone} onChange={text("cell_phone")} placeholder="+1 555-000-0000" error={errors.cell_phone} />
+                <Label isAutofilled={autofilledFields.has("cell_phone")}>Cell Phone *</Label>
+                <Input 
+                  isAutofilled={autofilledFields.has("cell_phone")}
+                  onClearAutofill={() => setAutofilledFields(prev => { const n = new Set(prev); n.delete("cell_phone"); return n; })}
+                  type="tel" value={form.cell_phone} onChange={text("cell_phone")} placeholder="+1 555-000-0000" error={errors.cell_phone} 
+                />
               </div>
             </div>
             <div>
-              <Label>Home Phone (optional)</Label>
-              <Input type="tel" value={form.home_phone} onChange={text("home_phone")} placeholder="+1 555-000-0000" />
+              <Label isAutofilled={autofilledFields.has("home_phone")}>Home Phone (optional)</Label>
+              <Input 
+                isAutofilled={autofilledFields.has("home_phone")}
+                onClearAutofill={() => setAutofilledFields(prev => { const n = new Set(prev); n.delete("home_phone"); return n; })}
+                type="tel" value={form.home_phone} onChange={text("home_phone")} placeholder="+1 555-000-0000" 
+              />
             </div>
           </div>
         </Section>
@@ -806,21 +912,37 @@ export function RentalApplicationForm({ propertySlug }: Props) {
         <Section icon={MapPin} title="Your current address" sub="Where do you currently live?">
           <div className="space-y-4">
             <div>
-              <Label>Street Address *</Label>
-              <Input value={form.present_address} onChange={text("present_address")} placeholder="123 Main Street, Apt 4B" error={errors.present_address} />
+              <Label isAutofilled={autofilledFields.has("present_address")}>Street Address *</Label>
+              <Input 
+                isAutofilled={autofilledFields.has("present_address")}
+                onClearAutofill={() => setAutofilledFields(prev => { const n = new Set(prev); n.delete("present_address"); return n; })}
+                value={form.present_address} onChange={text("present_address")} placeholder="123 Main Street, Apt 4B" error={errors.present_address} 
+              />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <Label>City *</Label>
-                <Input value={form.city} onChange={text("city")} placeholder="Atlanta" error={errors.city} />
+                <Label isAutofilled={autofilledFields.has("city")}>City *</Label>
+                <Input 
+                  isAutofilled={autofilledFields.has("city")}
+                  onClearAutofill={() => setAutofilledFields(prev => { const n = new Set(prev); n.delete("city"); return n; })}
+                  value={form.city} onChange={text("city")} placeholder="Atlanta" error={errors.city} 
+                />
               </div>
               <div>
-                <Label>State *</Label>
-                <Input value={form.state} onChange={text("state")} placeholder="GA" maxLength={2} error={errors.state} className="uppercase" />
+                <Label isAutofilled={autofilledFields.has("state")}>State *</Label>
+                <Input 
+                  isAutofilled={autofilledFields.has("state")}
+                  onClearAutofill={() => setAutofilledFields(prev => { const n = new Set(prev); n.delete("state"); return n; })}
+                  value={form.state} onChange={text("state")} placeholder="GA" maxLength={2} error={errors.state} className="uppercase" 
+                />
               </div>
               <div>
-                <Label>ZIP Code *</Label>
-                <Input value={form.zip_code} onChange={text("zip_code")} placeholder="30301" error={errors.zip_code} />
+                <Label isAutofilled={autofilledFields.has("zip_code")}>ZIP Code *</Label>
+                <Input 
+                  isAutofilled={autofilledFields.has("zip_code")}
+                  onClearAutofill={() => setAutofilledFields(prev => { const n = new Set(prev); n.delete("zip_code"); return n; })}
+                  value={form.zip_code} onChange={text("zip_code")} placeholder="30301" error={errors.zip_code} 
+                />
               </div>
             </div>
           </div>
@@ -833,12 +955,20 @@ export function RentalApplicationForm({ propertySlug }: Props) {
           <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <Label field="move_in_date">Intended Move-In Date *</Label>
-                <Input field="move_in_date" type="date" value={form.move_in_date} onChange={text("move_in_date")} error={errors.move_in_date} min={new Date().toISOString().split("T")[0]} />
+                <Label isAutofilled={autofilledFields.has("move_in_date")}>Intended Move-In Date *</Label>
+                <Input 
+                  isAutofilled={autofilledFields.has("move_in_date")}
+                  onClearAutofill={() => setAutofilledFields(prev => { const n = new Set(prev); n.delete("move_in_date"); return n; })}
+                  type="date" value={form.move_in_date} onChange={text("move_in_date")} error={errors.move_in_date} min={new Date().toISOString().split("T")[0]} 
+                />
               </div>
               <div>
-                <Label field="intended_stay_duration">Intended Stay Duration *</Label>
-                <Select field="intended_stay_duration" value={form.intended_stay_duration} onChange={text("intended_stay_duration")} error={errors.intended_stay_duration}>
+                <Label isAutofilled={autofilledFields.has("intended_stay_duration")}>Intended Stay Duration *</Label>
+                <Select 
+                  isAutofilled={autofilledFields.has("intended_stay_duration")}
+                  onClearAutofill={() => setAutofilledFields(prev => { const n = new Set(prev); n.delete("intended_stay_duration"); return n; })}
+                  value={form.intended_stay_duration} onChange={text("intended_stay_duration")} error={errors.intended_stay_duration}
+                >
                   <option value="">Select duration</option>
                   <option value="3 months">3 months</option>
                   <option value="6 months">6 months</option>
@@ -850,9 +980,10 @@ export function RentalApplicationForm({ propertySlug }: Props) {
               </div>
             </div>
             <div>
-              <Label field="months_rent_upfront">Months Rent Upfront</Label>
+              <Label isAutofilled={autofilledFields.has("months_rent_upfront")}>Months Rent Upfront</Label>
               <Select
-                field="months_rent_upfront"
+                isAutofilled={autofilledFields.has("months_rent_upfront")}
+                onClearAutofill={() => setAutofilledFields(prev => { const n = new Set(prev); n.delete("months_rent_upfront"); return n; })}
                 value={form.months_rent_upfront}
                 onChange={(e) => set("months_rent_upfront", Number(e.target.value))}
               >
@@ -878,8 +1009,10 @@ export function RentalApplicationForm({ propertySlug }: Props) {
             />
             {form.has_kids && (
               <div className="px-4 pb-3">
-                <Label>Number of Children *</Label>
+                <Label isAutofilled={autofilledFields.has("number_of_kids")}>Number of Children *</Label>
                 <Input
+                  isAutofilled={autofilledFields.has("number_of_kids")}
+                  onClearAutofill={() => setAutofilledFields(prev => { const n = new Set(prev); n.delete("number_of_kids"); return n; })}
                   type="number"
                   min={1}
                   value={form.number_of_kids || ""}
@@ -900,13 +1033,22 @@ export function RentalApplicationForm({ propertySlug }: Props) {
             />
             {form.has_pets && (
               <div className="px-4 pb-3">
-                <Label>Describe your pet(s) *</Label>
+                <Label isAutofilled={autofilledFields.has("pet_description")}>Describe your pet(s) *</Label>
                 <textarea
                   rows={2}
                   value={form.pet_description}
                   onChange={text("pet_description")}
+                  onFocus={() => setAutofilledFields(prev => {
+                    const next = new Set(prev);
+                    next.delete("pet_description");
+                    return next;
+                  })}
                   placeholder="e.g. 1 golden retriever, 25 lbs"
-                  className="w-full rounded-xl px-4 py-3 text-[14px] text-[#1D1D1F] bg-[#F5F5F7] outline-none focus:bg-white focus:ring-2 focus:ring-brand/30 focus:shadow-[0_0_0_1px_#1A56DB] resize-none"
+                  className={cn(
+                    "w-full rounded-xl px-4 py-3 text-[14px] text-[#1D1D1F] bg-[#F5F5F7] outline-none transition-all resize-none",
+                    "focus:bg-white focus:ring-2 focus:ring-brand/30 focus:shadow-[0_0_0_1px_#1A56DB]",
+                    autofilledFields.has("pet_description") && "bg-brand/[0.03] border-brand/20"
+                  )}
                 />
                 {errors.pet_description && <p className="mt-1 text-[11px] text-red-500">{errors.pet_description}</p>}
               </div>
@@ -1311,8 +1453,10 @@ export function RentalApplicationForm({ propertySlug }: Props) {
             {/* Proof Upload */}
             <div className="space-y-4">
               <div>
-                <Label>Transaction Ref / Your Username *</Label>
+                <Label isAutofilled={autofilledFields.has("payment_ref")}>Transaction Ref / Your Username *</Label>
                 <Input 
+                  isAutofilled={autofilledFields.has("payment_ref")}
+                  onClearAutofill={() => setAutofilledFields(prev => { const n = new Set(prev); n.delete("payment_ref"); return n; })}
                   value={paymentRef} 
                   onChange={(e) => setPaymentRef(e.target.value)} 
                   placeholder={selectedMethod === "CASHAPP" ? "Your $CashTag" : "Confirmation # or Email"} 
