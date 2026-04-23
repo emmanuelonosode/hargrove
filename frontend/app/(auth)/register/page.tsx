@@ -99,9 +99,8 @@ function MultiStepRegister() {
     }
   }
 
-  async function handleOnboarding(e: React.FormEvent) {
-    e.preventDefault();
-    setError("");
+  // Refactored API call for onboarding
+  const completeOnboarding = useCallback(async (selectedIntent: string) => {
     setLoading(true);
     try {
       const res = await apiFetch("/api/v1/auth/me/", {
@@ -109,18 +108,38 @@ function MultiStepRegister() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           onboarding_completed: true,
-          preferences: { primary_intent: intent },
+          preferences: { primary_intent: selectedIntent },
         }),
       });
-      
       if (!res.ok) throw new Error("Failed to save preferences.");
       router.push(next);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "An error occurred.");
-    } finally {
-      setLoading(false);
+      setLoading(false); // only stop loading on error, let redirect handle the rest
     }
+  }, [next, router]);
+
+  async function handleOnboarding(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    await completeOnboarding(intent);
   }
+
+  // Auto-complete onboarding if there's a custom 'next' URL
+  useEffect(() => {
+    if (step === "onboarding" && next !== "/portal/dashboard") {
+      // Determine default intent based on next url
+      const defaultIntent = next.includes("apply") || next.includes("rent") 
+        ? "renting" 
+        : "exploring";
+      
+      // Auto-redirect after a short delay for a seamless experience
+      const timer = setTimeout(() => {
+        completeOnboarding(defaultIntent);
+      }, 2500);
+      return () => clearTimeout(timer);
+    }
+  }, [step, next, completeOnboarding]);
 
   // Effect for cooldown timer
   useEffect(() => {
@@ -312,69 +331,102 @@ function MultiStepRegister() {
               transition={{ duration: 0.3 }}
               className="flex flex-col h-full justify-center"
             >
-              <div className="mb-8 text-center mt-4">
-                <div className="w-14 h-14 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-5">
-                  <CheckCircle2 size={32} />
-                </div>
-                <h1 className="text-[26px] font-semibold tracking-tight text-[#1D1D1F] mb-2">
-                  Welcome aboard!
-                </h1>
-                <p className="text-[15px] text-[#6E6E73] px-2 leading-relaxed">
-                  Your email is verified. To give you the best experience, what are you primarily looking to do?
-                </p>
-              </div>
-
-              <form onSubmit={handleOnboarding} className="space-y-3 px-2">
-                {[
-                  { id: 'buying', label: 'Buying a property', desc: 'Find your dream home' },
-                  { id: 'selling', label: 'Selling a property', desc: 'List and market your asset' },
-                  { id: 'renting', label: 'Renting', desc: 'Find a place to lease' },
-                  { id: 'exploring', label: 'Just Exploring', desc: 'Browsing the market' }
-                ].map(option => (
-                  <label 
-                    key={option.id}
-                    className={`flex items-center p-4 rounded-xl border cursor-pointer transition-all ${
-                      intent === option.id 
-                        ? 'border-brand bg-brand/5 shadow-[0_0_0_1px_rgba(26,86,219,1)]' 
-                        : 'border-[#D2D2D7] hover:border-[#86868B] bg-white'
-                    }`}
-                  >
-                    <input 
-                      type="radio" 
-                      name="intent" 
-                      value={option.id}
-                      checked={intent === option.id}
-                      onChange={(e) => setIntent(e.target.value)}
-                      className="sr-only" 
-                    />
-                    <div className="flex-1">
-                      <div className={`text-[15px] font-semibold ${intent === option.id ? 'text-brand' : 'text-[#1D1D1F]'}`}>
-                        {option.label}
-                      </div>
-                      <div className="text-[13px] text-[#6E6E73] mt-0.5">{option.desc}</div>
-                    </div>
-                    {intent === option.id && (
-                      <div className="w-5 h-5 rounded-full bg-brand flex items-center justify-center">
-                        <div className="w-2 h-2 rounded-full bg-white" />
-                      </div>
-                    )}
-                  </label>
-                ))}
-
-                <div className="pt-6">
+              {next !== "/portal/dashboard" ? (
+                // Seamless continuation screen
+                <div className="flex flex-col h-full justify-center items-center text-center px-4">
+                  <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <CheckCircle2 size={36} />
+                  </div>
+                  <h1 className="text-[26px] font-semibold tracking-tight text-[#1D1D1F] mb-3">
+                    Account Created!
+                  </h1>
+                  <p className="text-[15px] text-[#6E6E73] leading-relaxed mb-8 max-w-sm">
+                    Welcome to Hasker &amp; Co. Realty Group. Your email is verified and you&apos;re ready to go.
+                  </p>
+                  
                   <button 
-                    type="submit" 
-                    disabled={!intent || loading} 
-                    className="w-full bg-brand text-white rounded-xl py-4 text-[15px] font-semibold hover:bg-brand-hover transition-colors disabled:opacity-50 flex items-center justify-center gap-2 shadow-sm"
+                    onClick={() => completeOnboarding(next.includes("apply") || next.includes("rent") ? "renting" : "exploring")}
+                    disabled={loading} 
+                    className="w-full max-w-[280px] bg-brand text-white rounded-xl py-4 text-[15px] font-semibold hover:bg-brand-hover transition-colors disabled:opacity-50 flex items-center justify-center gap-2 shadow-sm mx-auto"
                   >
                     {loading ? (
                       <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     ) : (
-                      <>Go to Dashboard <ArrowRight size={18} /></>
+                      <>Continue to {next.includes("apply") ? "Application" : "Property"} <ArrowRight size={18} /></>
                     )}
                   </button>
+                  <p className="text-[13px] text-[#6E6E73] mt-4">
+                    Redirecting automatically in a few seconds...
+                  </p>
                 </div>
-              </form>
+              ) : (
+                // Original intent selection screen
+                <>
+                  <div className="mb-8 text-center mt-4">
+                    <div className="w-14 h-14 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-5">
+                      <CheckCircle2 size={32} />
+                    </div>
+                    <h1 className="text-[26px] font-semibold tracking-tight text-[#1D1D1F] mb-2">
+                      Welcome aboard!
+                    </h1>
+                    <p className="text-[15px] text-[#6E6E73] px-2 leading-relaxed">
+                      Your email is verified. To give you the best experience, what are you primarily looking to do?
+                    </p>
+                  </div>
+
+                  <form onSubmit={handleOnboarding} className="space-y-3 px-2">
+                    {[
+                      { id: 'buying', label: 'Buying a property', desc: 'Find your dream home' },
+                      { id: 'selling', label: 'Selling a property', desc: 'List and market your asset' },
+                      { id: 'renting', label: 'Renting', desc: 'Find a place to lease' },
+                      { id: 'exploring', label: 'Just Exploring', desc: 'Browsing the market' }
+                    ].map(option => (
+                      <label 
+                        key={option.id}
+                        className={`flex items-center p-4 rounded-xl border cursor-pointer transition-all ${
+                          intent === option.id 
+                            ? 'border-brand bg-brand/5 shadow-[0_0_0_1px_rgba(26,86,219,1)]' 
+                            : 'border-[#D2D2D7] hover:border-[#86868B] bg-white'
+                        }`}
+                      >
+                        <input 
+                          type="radio" 
+                          name="intent" 
+                          value={option.id}
+                          checked={intent === option.id}
+                          onChange={(e) => setIntent(e.target.value)}
+                          className="sr-only" 
+                        />
+                        <div className="flex-1">
+                          <div className={`text-[15px] font-semibold ${intent === option.id ? 'text-brand' : 'text-[#1D1D1F]'}`}>
+                            {option.label}
+                          </div>
+                          <div className="text-[13px] text-[#6E6E73] mt-0.5">{option.desc}</div>
+                        </div>
+                        {intent === option.id && (
+                          <div className="w-5 h-5 rounded-full bg-brand flex items-center justify-center">
+                            <div className="w-2 h-2 rounded-full bg-white" />
+                          </div>
+                        )}
+                      </label>
+                    ))}
+
+                    <div className="pt-6">
+                      <button 
+                        type="submit" 
+                        disabled={!intent || loading} 
+                        className="w-full bg-brand text-white rounded-xl py-4 text-[15px] font-semibold hover:bg-brand-hover transition-colors disabled:opacity-50 flex items-center justify-center gap-2 shadow-sm"
+                      >
+                        {loading ? (
+                          <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <>Go to Dashboard <ArrowRight size={18} /></>
+                        )}
+                      </button>
+                    </div>
+                  </form>
+                </>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
