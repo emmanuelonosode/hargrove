@@ -1,5 +1,8 @@
-// Use relative path — Next.js rewrites proxy /api/v1/* to the backend (avoids CORS/CSP)
-const API_BASE = typeof window !== "undefined" ? "" : (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000");
+// In the browser, we use relative paths so Next.js rewrites can proxy /api/v1/*
+// In SSR (server-side), we must use the absolute URL.
+const API_BASE = typeof window !== "undefined" 
+  ? "" 
+  : (process.env.NEXT_PUBLIC_API_URL ?? "https://admin.haskerrealtygroup.com");
 
 export interface AuthUser {
   id: number;
