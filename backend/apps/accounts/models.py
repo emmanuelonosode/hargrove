@@ -6,6 +6,10 @@ import secrets
 from cloudinary.models import CloudinaryField
 
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 class Role(models.TextChoices):
     ADMIN = "ADMIN", "Admin"
     MANAGER = "MANAGER", "Manager"
@@ -151,7 +155,8 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
             )
             msg.content_subtype = "html"
             msg.send()
-        except Exception:
+        except Exception as e:
+            logger.error(f"Failed to send verification email to {self.email}: {str(e)}")
             # Email failure must never block user registration
             pass
 
