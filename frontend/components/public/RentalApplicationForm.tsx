@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   User, MapPin, Calendar, Users, Lock, Eye, EyeOff,
-  ChevronRight, ChevronLeft, Check, AlertCircle, Building2, Shield, RotateCcw
+  ChevronRight, ChevronLeft, Check, AlertCircle, Building2, Shield, RotateCcw, Camera
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
