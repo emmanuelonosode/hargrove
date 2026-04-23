@@ -1,7 +1,8 @@
 from .base import *  # noqa
 from decouple import config, Csv
 
-DEBUG = False
+
+UG = False
 
 # Hardcoded production domains to prevent DisallowedHost errors
 ALLOWED_HOSTS = [
