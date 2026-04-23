@@ -200,6 +200,8 @@ function Select({
 }
 
 // ── Toggle primitive ─────────────────────────────────────────────────────────
+
+function Toggle({
   checked,
   onChange,
   label,
@@ -1464,3 +1466,4 @@ export function RentalApplicationForm({ propertySlug }: Props) {
     </div>
   );
 }
+
