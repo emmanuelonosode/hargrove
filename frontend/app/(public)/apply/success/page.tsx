@@ -8,6 +8,7 @@ import {
   AlertCircle, ArrowRight, Home,
 } from "lucide-react";
 import { useState } from "react";
+import { cn } from "@/lib/utils";
 
 // ── Payment account details — update with real bank info ─────────────────────
 const PAYMENT_DETAILS = {
