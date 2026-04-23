@@ -686,48 +686,26 @@ export function RentalApplicationForm({ propertySlug }: Props) {
     setErrors({});
 
     try {
-      let finalProofUrl = "";
-
-      // 1. Upload Proof to Cloudinary
+      // 1. Prepare FormData (Allows file + data in one request)
       const formData = new FormData();
-      formData.append("file", proofFile);
-      formData.append("upload_preset", "hasker_unsigned"); 
-      
-      console.log("Uploading to Cloudinary...");
-      const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/da8i2waxr/image/upload`, {
-        method: "POST",
-        body: formData,
-      }).catch(err => {
-        console.error("Cloudinary fetch error:", err);
-        throw new Error("Network error during receipt upload. Check your connection.");
+      Object.entries(form).forEach(([key, value]) => {
+        if (value !== null && value !== undefined) {
+          // Convert booleans to strings explicitly if needed, but String() works fine.
+          formData.append(key, String(value));
+        }
       });
+      formData.append("payment_method", selectedMethod);
+      formData.append("reference_id", paymentRef);
+      formData.append("proof_file", proofFile);
 
-      if (uploadRes.ok) {
-        const uploadData = await uploadRes.json();
-        finalProofUrl = uploadData.secure_url;
-        console.log("Cloudinary upload success:", finalProofUrl);
-      } else {
-        const errData = await uploadRes.json().catch(() => ({}));
-        console.error("Cloudinary error response:", errData);
-        throw new Error("Failed to upload receipt. Ensure the image is valid.");
-      }
-
-      // 2. Submit Application
-      const payload = {
-        ...form,
-        payment_method: selectedMethod,
-        reference_id: paymentRef,
-        proof_image: finalProofUrl,
-      };
-
-      console.log("Submitting to backend:", payload);
+      console.log("Submitting to backend with file...");
       const res = await fetch(`${API_BASE}/api/v1/leads/apply/`, {
         method: "POST",
         headers: { 
-          "Content-Type": "application/json",
+          // Do NOT set Content-Type here; the browser automatically sets it to multipart/form-data with the correct boundary
           ...(user ? { Authorization: `Bearer ${localStorage.getItem("access_token")}` } : {})
         },
-        body: JSON.stringify(payload),
+        body: formData,
       }).catch(err => {
         console.error("Backend fetch error:", err);
         throw new Error("Could not connect to the server. Please check your internet or try again later.");

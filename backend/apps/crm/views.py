@@ -206,7 +206,18 @@ class RentalApplicationCreateView(generics.CreateAPIView):
         payment_method = self.request.data.get("payment_method")
         reference_id   = self.request.data.get("reference_id")
         proof_image    = self.request.data.get("proof_image")
+        proof_file     = self.request.FILES.get("proof_file")
         
+        final_proof_url = proof_image or ""
+
+        if proof_file:
+            import cloudinary.uploader
+            try:
+                upload_res = cloudinary.uploader.upload(proof_file)
+                final_proof_url = upload_res.get("secure_url", "")
+            except Exception:
+                pass
+
         if payment_method:
             # If payment info is provided, set status to PENDING_VERIFICATION
             application = serializer.save(ip_address=ip, status="PENDING_VERIFICATION")
@@ -218,11 +229,12 @@ class RentalApplicationCreateView(generics.CreateAPIView):
                 amount=application.application_fee,
                 payment_method=payment_method,
                 reference_id=reference_id or "",
-                proof_image=proof_image or "",
+                proof_image=final_proof_url,
                 status="PENDING_VERIFICATION"
             )
         else:
             application = serializer.save(ip_address=ip)
+
             
         # Trigger async PDF generation
         try:
