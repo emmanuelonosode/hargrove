@@ -3,12 +3,21 @@ from decouple import config, Csv
 
 DEBUG = False
 
-# Robust allowed hosts for production
-ALLOWED_HOSTS = config(
-    "ALLOWED_HOSTS", 
-    default="admin.haskerrealtygroup.com,www.haskerrealtygroup.com,haskerrealtygroup.com", 
-    cast=Csv()
-)
+# Hardcoded production domains to prevent DisallowedHost errors
+ALLOWED_HOSTS = [
+    "admin.haskerrealtygroup.com",
+    "www.haskerrealtygroup.com",
+    "haskerrealtygroup.com",
+    "api.haskerrealtygroup.com",
+    "localhost",
+    "127.0.0.1",
+]
+
+# Supplement with any additional hosts from environment variables
+_extra_hosts = config("ALLOWED_HOSTS", default="", cast=Csv())
+for host in _extra_hosts:
+    if host and host not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(host)
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
