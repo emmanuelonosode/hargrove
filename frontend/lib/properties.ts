@@ -1,4 +1,4 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "https://admin.haskerrealtygroup.com";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 // ─── API Response Types ────────────────────────────────────────────────────
 
