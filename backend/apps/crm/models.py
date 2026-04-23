@@ -153,12 +153,14 @@ class Client(models.Model):
 
 
 class ApplicationStatus(models.TextChoices):
-    DRAFT           = "DRAFT",           "Draft"
-    PENDING_PAYMENT = "PENDING_PAYMENT", "Pending Payment"
-    SUBMITTED       = "SUBMITTED",       "Submitted"
-    REVIEWED        = "REVIEWED",        "Reviewed"
-    APPROVED        = "APPROVED",        "Approved"
-    REJECTED        = "REJECTED",        "Rejected"
+    DRAFT                = "DRAFT",                "Draft"
+    PENDING_PAYMENT      = "PENDING_PAYMENT",      "Pending Payment"
+    PENDING_VERIFICATION = "PENDING_VERIFICATION", "Pending Verification"
+    SUBMITTED            = "SUBMITTED",            "Submitted"
+    REVIEWED             = "REVIEWED",             "Reviewed"
+    APPROVED             = "APPROVED",             "Approved"
+    REJECTED             = "REJECTED",             "Rejected"
+    PAYMENT_FAILED       = "PAYMENT_FAILED",       "Payment Failed"
 
 
 class RentalApplication(models.Model):

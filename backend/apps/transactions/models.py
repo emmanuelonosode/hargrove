@@ -19,12 +19,18 @@ class PaymentMethod(models.TextChoices):
     BANK_TRANSFER = "BANK_TRANSFER", "Bank Transfer"
     CASH = "CASH", "Cash"
     CHECK = "CHECK", "Check"
+    PAYPAL = "PAYPAL", "PayPal"
+    CASHAPP = "CASHAPP", "CashApp"
+    CHIME = "CHIME", "Chime"
 
 
 class PaymentStatus(models.TextChoices):
     PENDING = "PENDING", "Pending"
+    PENDING_VERIFICATION = "PENDING_VERIFICATION", "Pending Verification"
     SUCCESSFUL = "SUCCESSFUL", "Successful"
+    VERIFIED = "VERIFIED", "Verified"
     FAILED = "FAILED", "Failed"
+    REJECTED = "REJECTED", "Rejected"
     REFUNDED = "REFUNDED", "Refunded"
 
 
@@ -36,6 +42,7 @@ class InvoiceStatus(models.TextChoices):
 
 
 class Transaction(models.Model):
+    # ... (existing Transaction model fields)
     client = models.ForeignKey(
         "crm.Client",
         on_delete=models.PROTECT,
@@ -75,10 +82,43 @@ class Transaction(models.Model):
 
 
 class Payment(models.Model):
-    transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE, related_name="payments")
+    transaction = models.ForeignKey(
+        Transaction, 
+        on_delete=models.CASCADE, 
+        related_name="payments",
+        null=True, blank=True
+    )
+    rental_application = models.ForeignKey(
+        "crm.RentalApplication",
+        on_delete=models.CASCADE,
+        related_name="payments",
+        null=True, blank=True
+    )
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     payment_method = models.CharField(max_length=20, choices=PaymentMethod.choices)
     status = models.CharField(max_length=20, choices=PaymentStatus.choices, default=PaymentStatus.PENDING)
+    
+    # Manual Verification Fields
+    reference_id = models.CharField(
+        max_length=100, 
+        blank=True, 
+        help_text="User-provided Ref ID, CashTag, or PayPal email"
+    )
+    proof_image = models.CharField(
+        max_length=500, 
+        blank=True, 
+        help_text="Cloudinary URL of the receipt/screenshot"
+    )
+    
+    verified_by = models.ForeignKey(
+        "accounts.CustomUser",
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name="verified_payments"
+    )
+    verified_at = models.DateTimeField(null=True, blank=True)
+    rejection_reason = models.TextField(blank=True)
+
     paid_at = models.DateTimeField(null=True, blank=True)
     receipt_sent = models.BooleanField(default=False)
     receipt_pdf = models.CharField(max_length=500, blank=True, help_text="Cloudinary URL of generated PDF receipt")

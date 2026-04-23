@@ -11,7 +11,27 @@ from .serializers import (
     LeadCreateSerializer, LeadListSerializer, LeadDetailSerializer,
     LeadActivitySerializer, LeadAssignSerializer, ClientSerializer,
     RentalApplicationCreateSerializer, RentalApplicationAdminSerializer,
+    RentalApplicationLatestProfileSerializer,
 )
+
+
+# ... (keep other views)
+
+class RentalApplicationLatestProfileView(generics.RetrieveAPIView):
+    """GET /api/v1/leads/latest-profile/ — fetch most recent application for autofill."""
+    serializer_class = RentalApplicationLatestProfileSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        user = self.request.user
+        application = RentalApplication.objects.filter(
+            email=user.email
+        ).order_by("-submitted_at").first()
+        
+        if not application:
+            from django.http import Http404
+            raise Http404("No previous application found.")
+        return application
 
 
 class LeadListCreateView(generics.ListCreateAPIView):
@@ -181,7 +201,29 @@ class RentalApplicationCreateView(generics.CreateAPIView):
         # Capture client IP
         x_forwarded = self.request.META.get("HTTP_X_FORWARDED_FOR")
         ip = x_forwarded.split(",")[0].strip() if x_forwarded else self.request.META.get("REMOTE_ADDR")
-        application = serializer.save(ip_address=ip)
+        
+        # Check for payment proof data
+        payment_method = self.request.data.get("payment_method")
+        reference_id   = self.request.data.get("reference_id")
+        proof_image    = self.request.data.get("proof_image")
+        
+        if payment_method:
+            # If payment info is provided, set status to PENDING_VERIFICATION
+            application = serializer.save(ip_address=ip, status="PENDING_VERIFICATION")
+            
+            # Create a Payment record tied to this application
+            from apps.transactions.models import Payment
+            Payment.objects.create(
+                rental_application=application,
+                amount=application.application_fee,
+                payment_method=payment_method,
+                reference_id=reference_id or "",
+                proof_image=proof_image or "",
+                status="PENDING_VERIFICATION"
+            )
+        else:
+            application = serializer.save(ip_address=ip)
+            
         # Trigger async PDF generation
         try:
             from apps.notifications.tasks import generate_rental_application_pdf

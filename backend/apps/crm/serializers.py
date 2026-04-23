@@ -124,8 +124,14 @@ class RentalApplicationCreateSerializer(serializers.ModelSerializer):
             "rental_property",
             "certification_text",
             "application_fee", "is_fee_paid", "status",
+            # Virtual fields for payment proof submission
+            "payment_method", "reference_id", "proof_image",
         ]
         read_only_fields = ["id", "application_fee", "is_fee_paid", "status"]
+
+    payment_method = serializers.CharField(write_only=True, required=False)
+    reference_id   = serializers.CharField(write_only=True, required=False)
+    proof_image    = serializers.CharField(write_only=True, required=False)
 
     def validate(self, data):
         if data.get("has_kids") and not data.get("number_of_kids"):
@@ -139,6 +145,19 @@ class RentalApplicationCreateSerializer(serializers.ModelSerializer):
         return data
 
 
+class RentalApplicationLatestProfileSerializer(serializers.ModelSerializer):
+    """Used to pre-fill the form for returning applicants."""
+    class Meta:
+        model = RentalApplication
+        fields = [
+            "first_name", "middle_name", "last_name",
+            "email", "cell_phone", "home_phone",
+            "has_kids", "number_of_kids",
+            "present_address", "city", "state", "zip_code",
+            "intended_stay_duration", "months_rent_upfront",
+            "has_pets", "pet_description",
+            "smokes", "drinks",
+        ]
 class RentalApplicationAdminSerializer(serializers.ModelSerializer):
     """Full serializer for staff views."""
     full_name      = serializers.CharField(read_only=True)

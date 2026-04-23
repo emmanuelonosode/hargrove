@@ -13,5 +13,6 @@ urlpatterns = [
 
     # Rental Applications (public submit + staff detail)
     path("apply/", views.RentalApplicationCreateView.as_view(), name="rental-application-create"),
+    path("apply/latest-profile/", views.RentalApplicationLatestProfileView.as_view(), name="rental-application-latest-profile"),
     path("apply/<int:pk>/", views.RentalApplicationDetailView.as_view(), name="rental-application-detail"),
 ]

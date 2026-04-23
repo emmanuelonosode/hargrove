@@ -63,10 +63,10 @@ function SuccessContent() {
   const refId = `APP-${String(ref).padStart(5, "0")}`;
 
   const steps = [
-    { icon: CheckCircle, title: "Application Fee Received", desc: "Your $50 application fee has been securely processed.", active: true, completed: true },
-    { icon: Clock,       title: "Application Under Review",  desc: "Our team will review your details and credit history within 24-48 hours.", active: true, completed: false },
-    { icon: Mail,        title: "Lease & Deposit",           desc: "If approved, we'll email you the lease agreement and instructions for the security deposit.", active: false, completed: false },
-    { icon: Home,        title: "Move-In Coordination",      desc: "Once the lease is signed and deposit paid, we'll schedule your move-in date.", active: false, completed: false },
+    { icon: CheckCircle, title: "Payment Proof Submitted", desc: "Your transfer proof is now being manually verified by our team.", active: true, completed: true },
+    { icon: Clock,       title: "Payment Verification",   desc: "Usually takes 1-2 hours. You'll get an email once confirmed.", active: true, completed: false },
+    { icon: Mail,        title: "Application Review",     desc: "Once verified, we'll review your details and credit history.", active: false, completed: false },
+    { icon: Home,        title: "Lease & Move-In",        desc: "Final steps after your application is approved.", active: false, completed: false },
   ];
 
   return (
@@ -74,15 +74,15 @@ function SuccessContent() {
       <div className="max-w-xl mx-auto px-4 sm:px-6 py-10 space-y-4">
 
         {/* Confirmation card */}
-        <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-8 text-center border-t-4 border-[#34C759]">
-          <div className="w-16 h-16 rounded-2xl bg-green-50 flex items-center justify-center mx-auto mb-6">
-            <CheckCircle size={32} className="text-[#34C759]" strokeWidth={2} />
+        <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-8 text-center border-t-4 border-brand">
+          <div className="w-16 h-16 rounded-2xl bg-brand/5 flex items-center justify-center mx-auto mb-6">
+            <Clock size={32} className="text-brand" strokeWidth={2} />
           </div>
           <h1 className="text-[26px] font-semibold tracking-tight text-[#1D1D1F] mb-2">
-            Application Submitted!
+            Proof Received!
           </h1>
           <p className="text-[15px] text-[#6E6E73] leading-relaxed">
-            Great news, <span className="font-semibold text-[#1D1D1F]">{name}</span>! Your application and fee have been successfully received.
+            Thank you, <span className="font-semibold text-[#1D1D1F]">{name}</span>. Your application and payment proof have been successfully received.
           </p>
           <div className="mt-6 inline-flex items-center gap-3 bg-[#F5F5F7] px-5 py-3 rounded-2xl border border-black/[0.03]">
             <div>
@@ -92,7 +92,7 @@ function SuccessContent() {
             <div className="w-px h-8 bg-black/[0.08]" />
             <div className="text-left">
               <p className="text-[10px] text-[#6E6E73] font-bold uppercase tracking-widest">Status</p>
-              <p className="text-[14px] font-bold text-brand">Under Review</p>
+              <p className="text-[14px] font-bold text-brand">Verifying Payment</p>
             </div>
           </div>
         </div>

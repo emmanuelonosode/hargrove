@@ -11,6 +11,7 @@ import {
   register as authRegister,
   verifyEmail as authVerifyEmail,
   resendOTP as authResendOTP,
+  apiFetch,
 } from "@/lib/auth";
 
 interface AuthContextValue {
@@ -28,6 +29,7 @@ interface AuthContextValue {
   resendOTP: (email: string) => Promise<{ message: string; email: string }>;
   logout: () => void;
   updateUser: (partial: Partial<AuthUser>) => void;
+  fetchLatestProfile: () => Promise<any>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -35,6 +37,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { apiFetch } = require("@/lib/auth"); // Using local import or passing it
 
   useEffect(() => {
     setUser(getStoredUser());
@@ -79,9 +82,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, register, verifyEmail, resendOTP, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, isLoading, login, register, verifyEmail, resendOTP, logout, updateUser, fetchLatestProfile }}>
       {children}
     </AuthContext.Provider>
+  );
+}
+
+export function useAuth() {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used inside AuthProvider");
+  return ctx;
+}
+ext.Provider>
   );
 }
 

@@ -90,26 +90,112 @@ class TransactionAdmin(ModelAdmin):
 
 @admin.register(Payment)
 class PaymentAdmin(ModelAdmin):
-    list_display = ["id", "transaction", "amount", "payment_method", "status", "paid_at", "receipt_sent"]
-    list_filter = ["status", "payment_method", "receipt_sent"]
-    search_fields = ["transaction__client__lead__full_name"]
-    ordering = ["-paid_at"]
-    readonly_fields = ["receipt_pdf", "paid_at"]
+    list_display = [
+        "id", "payment_method", "amount", "status_badge", 
+        "reference_id", "rental_application_link", "proof_preview", "created_at"
+    ]
+    list_filter = ["status", "payment_method", "created_at"]
+    search_fields = ["reference_id", "rental_application__first_name", "rental_application__last_name"]
+    readonly_fields = ["proof_preview_large", "verified_by", "verified_at", "created_at"]
+    actions = ["verify_payment", "reject_payment"]
 
     fieldsets = (
-        ("Payment Details", {
-            "fields": ("transaction", "amount", "payment_method", "status"),
+        ("Payment Context", {
+            "fields": ("transaction", "rental_application", "amount", "payment_method", "status"),
         }),
-        ("Timing", {
-            "fields": ("paid_at",),
+        ("Manual Verification", {
+            "fields": ("reference_id", "proof_preview_large"),
         }),
-        ("Receipt", {
-            "fields": ("receipt_sent", "receipt_pdf"),
+        ("Audit Trail", {
+            "fields": ("verified_by", "verified_at", "rejection_reason"),
         }),
-        ("Notes", {
-            "fields": ("notes",),
+        ("Receipt & Notes", {
+            "fields": ("receipt_sent", "receipt_pdf", "notes"),
         }),
     )
+
+    def rental_application_link(self, obj):
+        if obj.rental_application:
+            return format_html(
+                '<a href="/admin/crm/rentalapplication/{}/change/" style="color:#1A56DB;font-weight:600">App #{}</a>',
+                obj.rental_application.pk, obj.rental_application.pk
+            )
+        return "—"
+    rental_application_link.short_description = "Application"
+
+    def status_badge(self, obj):
+        from .models import PaymentStatus
+        colors = {
+            PaymentStatus.PENDING: "#6b7280",
+            PaymentStatus.PENDING_VERIFICATION: "#2563eb",
+            PaymentStatus.VERIFIED: "#16a34a",
+            PaymentStatus.REJECTED: "#dc2626",
+            PaymentStatus.SUCCESSFUL: "#16a34a",
+        }
+        color = colors.get(obj.status, "#6b7280")
+        return format_html(
+            '<span style="background:{};color:#fff;padding:2px 8px;border-radius:9999px;font-size:11px">{}</span>',
+            color, obj.get_status_display()
+        )
+    status_badge.short_description = "Status"
+
+    def proof_preview(self, obj):
+        if obj.proof_image:
+            return format_html(
+                '<a href="{}" target="_blank"><img src="{}" style="width:40px;height:40px;object-fit:cover;border-radius:4px" /></a>',
+                obj.proof_image, obj.proof_image
+            )
+        return "—"
+    proof_preview.short_description = "Proof"
+
+    def proof_preview_large(self, obj):
+        if obj.proof_image:
+            return format_html(
+                '<a href="{}" target="_blank"><img src="{}" style="max-width:400px;border-radius:8px;border:1px solid #ddd" /></a>',
+                obj.proof_image, obj.proof_image
+            )
+        return "Upload proof image to see preview."
+    proof_preview_large.short_description = "Proof Image"
+
+    @admin.action(description="Verify Selected Payments")
+    def verify_payment(self, request, queryset):
+        from django.utils import timezone
+        from .models import PaymentStatus
+        from apps.crm.models import ApplicationStatus
+        
+        count = 0
+        for payment in queryset.filter(status=PaymentStatus.PENDING_VERIFICATION):
+            payment.status = PaymentStatus.VERIFIED
+            payment.verified_by = request.user
+            payment.verified_at = timezone.now()
+            payment.save()
+            
+            # Update linked rental application
+            if payment.rental_application:
+                app = payment.rental_application
+                app.is_fee_paid = True
+                app.status = ApplicationStatus.SUBMITTED
+                app.save()
+            
+            count += 1
+        self.message_user(request, f"{count} payments verified successfully.")
+
+    @admin.action(description="Reject Selected Payments")
+    def reject_payment(self, request, queryset):
+        from .models import PaymentStatus
+        from apps.crm.models import ApplicationStatus
+        
+        count = 0
+        for payment in queryset:
+            payment.status = PaymentStatus.REJECTED
+            payment.save()
+            
+            if payment.rental_application:
+                app = payment.rental_application
+                app.status = ApplicationStatus.PAYMENT_FAILED
+                app.save()
+            count += 1
+        self.message_user(request, f"{count} payments rejected.")
 
 
 @admin.register(Invoice)
