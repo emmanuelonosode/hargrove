@@ -147,7 +147,8 @@ export async function fetchFeaturedProperties(): Promise<PropertyListItemAPI[]> 
     const data: PropertyListItemAPI[] | PaginatedProperties = await res.json();
     if (Array.isArray(data)) return data;
     return (data as PaginatedProperties).results ?? [];
-  } catch {
+  } catch (err) {
+    console.error("fetchFeaturedProperties failed:", err);
     return [];
   }
 }
@@ -174,7 +175,8 @@ export async function fetchAllPropertySlugs(): Promise<string[]> {
     if (!res.ok) return [];
     const data: PaginatedProperties = await res.json();
     return data.results.map((p) => p.slug);
-  } catch {
+  } catch (err) {
+    console.error("fetchAllPropertySlugs failed:", err);
     return [];
   }
 }

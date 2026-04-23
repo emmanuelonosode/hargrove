@@ -424,11 +424,16 @@ export function RentalApplicationForm({ propertySlug }: Props) {
     const confirmVal = domConfirm || authForm.confirm || "";
 
     if (authMode === "register") {
-      const fName = authForm.first_name.trim() || form.first_name.trim();
-      const lName = authForm.last_name.trim() || form.last_name.trim();
+      const domFName = (document.getElementById("auth-first-name") as HTMLInputElement)?.value || "";
+      const domLName = (document.getElementById("auth-last-name") as HTMLInputElement)?.value || "";
+      
+      const fName = domFName.trim() || authForm.first_name.trim() || form.first_name.trim();
+      const lName = domLName.trim() || authForm.last_name.trim() || form.last_name.trim();
 
       if (!fName || !lName) {
-        setAuthError("Enter your full name."); return;
+        setAuthError("Enter your full name.");
+        console.error("Auth validation failed: Missing names", { fName, lName, domFName, domLName });
+        return;
       }
       if (!emailVal) { setAuthError("Enter your email."); return; }
       if (passVal.length < 8) { setAuthError("Password must be at least 8 characters."); return; }
@@ -480,9 +485,12 @@ export function RentalApplicationForm({ propertySlug }: Props) {
     if (resendCooldown > 0) return;
     setAuthError(null);
     try {
-      await resendOTP(authForm.email || form.email);
+      const emailVal = (document.getElementById("auth-email") as HTMLInputElement)?.value || authForm.email || form.email;
+      console.log("Resending OTP to:", emailVal);
+      await resendOTP(emailVal);
       setResendCooldown(60);
     } catch (err: unknown) {
+      console.error("Resend OTP failed:", err);
       setAuthError(err instanceof Error ? err.message : "Failed to resend code.");
     }
   }
@@ -806,6 +814,7 @@ export function RentalApplicationForm({ propertySlug }: Props) {
                       <div>
                         <Label>First Name</Label>
                         <Input
+                          id="auth-first-name"
                           value={authForm.first_name || form.first_name}
                           onChange={(e) => setAuthForm((f) => ({ ...f, first_name: e.target.value }))}
                           placeholder="Jane"
@@ -814,6 +823,7 @@ export function RentalApplicationForm({ propertySlug }: Props) {
                       <div>
                         <Label>Last Name</Label>
                         <Input
+                          id="auth-last-name"
                           value={authForm.last_name || form.last_name}
                           onChange={(e) => setAuthForm((f) => ({ ...f, last_name: e.target.value }))}
                           placeholder="Smith"
