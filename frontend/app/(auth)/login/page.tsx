@@ -208,10 +208,9 @@ function SplitScreenLogin() {
           <p className="mt-8 text-center text-[13px] text-[#6E6E73] font-medium">
             Don&apos;t have an account?{" "}
             <Link
-              href={`/register${next !== "/portal/dashboard" ? `?next=${encodeURIComponent(next)}` : ""}`}
+              href={`/register${next !== "/portal/profile" ? `?next=${encodeURIComponent(next)}` : ""}`}
               className="text-[#1A56DB] font-semibold hover:underline"
-            >
-              Sign up
+            >              Sign up
             </Link>
           </p>
         </div>
@@ -227,3 +226,4 @@ export default function LoginPage() {
     </Suspense>
   );
 }
+

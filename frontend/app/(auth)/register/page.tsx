@@ -14,7 +14,7 @@ function MultiStepRegister() {
   const { register, verifyEmail, resendOTP } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const next = searchParams.get("next") ?? "/portal/dashboard";
+  const next = searchParams.get("next") ?? "/portal/profile";
 
   const [step, setStep] = useState<Step>("signup");
   
@@ -127,7 +127,7 @@ function MultiStepRegister() {
 
   // Auto-complete onboarding if there's a custom 'next' URL
   useEffect(() => {
-    if (step === "onboarding" && next !== "/portal/dashboard") {
+    if (step === "onboarding" && next !== "/portal/profile") {
       // Determine default intent based on next url
       const defaultIntent = next.includes("apply") || next.includes("rent") 
         ? "renting" 
@@ -256,7 +256,7 @@ function MultiStepRegister() {
 
               <p className="mt-6 text-center text-[13px] text-[#6E6E73]">
                 Already have an account?{" "}
-                <Link href={`/login${next !== "/portal/dashboard" ? `?next=${encodeURIComponent(next)}` : ""}`} className="text-brand font-semibold hover:underline">
+                <Link href={`/login${next !== "/portal/profile" ? `?next=${encodeURIComponent(next)}` : ""}`} className="text-brand font-semibold hover:underline">
                   Sign in
                 </Link>
               </p>
@@ -331,7 +331,7 @@ function MultiStepRegister() {
               transition={{ duration: 0.3 }}
               className="flex flex-col h-full justify-center"
             >
-              {next !== "/portal/dashboard" ? (
+              {next !== "/portal/profile" ? (
                 // Seamless continuation screen
                 <div className="flex flex-col h-full justify-center items-center text-center px-4">
                   <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">

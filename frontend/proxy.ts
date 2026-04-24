@@ -12,7 +12,7 @@ export function proxy(request: NextRequest) {
   }
 
   if ((pathname === "/login" || pathname === "/register") && token) {
-    return NextResponse.redirect(new URL("/portal/dashboard", request.url));
+    return NextResponse.redirect(new URL("/portal/profile", request.url));
   }
 
   return NextResponse.next();
