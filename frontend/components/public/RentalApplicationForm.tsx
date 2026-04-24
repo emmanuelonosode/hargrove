@@ -1314,11 +1314,26 @@ export function RentalApplicationForm({ propertySlug }: Props) {
             {/* Payment Method Selector */}
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
               {[
-                { id: "VENMO", label: "Venmo", color: "bg-[#3D95CE]" },
-                { id: "CASHAPP", label: "CashApp", color: "bg-[#00D632]" },
-                { id: "PAYPAL", label: "PayPal", color: "bg-[#003087]" },
-                { id: "CHIME", label: "Chime", color: "bg-[#25D366]" },
-                { id: "BANK_TRANSFER", label: "Zelle / Bank", color: "bg-[#6E6E73]" },
+                { 
+                  id: "VENMO", label: "Venmo", 
+                  logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Venmo_logo.svg/512px-Venmo_logo.svg.png"
+                },
+                { 
+                  id: "CASHAPP", label: "CashApp", 
+                  logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Square_Cash_app_logo.svg/512px-Square_Cash_app_logo.svg.png"
+                },
+                { 
+                  id: "PAYPAL", label: "PayPal", 
+                  logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/PayPal.svg/512px-PayPal.svg.png"
+                },
+                { 
+                  id: "CHIME", label: "Chime", 
+                  logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Chime_logo.svg/512px-Chime_logo.svg.png"
+                },
+                { 
+                  id: "BANK_TRANSFER", label: "Zelle", 
+                  logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Zelle_logo.svg/512px-Zelle_logo.svg.png"
+                },
               ].map((m) => (
                 <button
                   key={m.id}
@@ -1326,14 +1341,14 @@ export function RentalApplicationForm({ propertySlug }: Props) {
                   className={cn(
                     "flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all",
                     selectedMethod === m.id 
-                      ? "border-brand bg-brand/5" 
+                      ? "border-brand bg-brand/5 shadow-sm" 
                       : "border-black/[0.05] hover:border-black/10 bg-white"
                   )}
                 >
-                  <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center text-white text-[10px] font-bold", m.color)}>
-                    {m.label[0]}
+                  <div className="w-9 h-9 rounded-xl bg-white flex items-center justify-center shrink-0 border border-black/[0.03] p-1.5">
+                    <img src={m.logoUrl} alt={m.label} className="w-full h-full object-contain" />
                   </div>
-                  <span className="text-[10px] font-semibold text-[#1D1D1F]">{m.label}</span>
+                  <span className="text-[10px] font-bold text-[#1D1D1F] uppercase tracking-tight">{m.label}</span>
                 </button>
               ))}
             </div>

@@ -11,7 +11,9 @@ import { apiFetch } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
-const API_BASE = "";
+const API_BASE = typeof window !== "undefined" 
+  ? "" 
+  : (process.env.NEXT_PUBLIC_API_URL ?? "https://admin.haskerrealtygroup.com");
 
 interface InvoiceLineItem {
   description: string;
@@ -112,6 +114,7 @@ function PaymentModal({
       });
 
       // 2. Submit to backend
+      console.log("Submitting proof for invoice:", invoice.id, "amount:", invoice.total);
       const res = await apiFetch(`/api/v1/transactions/my-payments/submit-proof/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -126,17 +129,29 @@ function PaymentModal({
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
+        console.error("Submission error data:", data);
         throw new Error(data.detail || data.proof_file || "Failed to submit proof. Try again.");
       }
       
       onSuccess();
       onClose();
     } catch (err: any) {
+      console.error("Proof submission catch:", err);
       setError(err.message);
     } finally {
       setLoading(false);
     }
   }
+
+  const methods = [
+    { id: "VENMO", label: "Venmo", logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Venmo_logo.svg/512px-Venmo_logo.svg.png", handle: "@HaskerRealty" },
+    { id: "CASHAPP", label: "CashApp", logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Square_Cash_app_logo.svg/512px-Square_Cash_app_logo.svg.png", handle: "$HaskerRealty" },
+    { id: "PAYPAL", label: "PayPal", logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/PayPal.svg/512px-PayPal.svg.png", handle: "payments@haskerrealtygroup.com" },
+    { id: "CHIME", label: "Chime", logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Chime_logo.svg/512px-Chime_logo.svg.png", handle: "@Hasker-Realty" },
+    { id: "BANK_TRANSFER", label: "Zelle", logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Zelle_logo.svg/512px-Zelle_logo.svg.png", handle: "info@haskerrealtygroup.com" },
+  ];
+
+  const current = methods.find(m => m.id === method) || methods[0];
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -169,8 +184,8 @@ function PaymentModal({
                   method === m.id ? "border-brand bg-brand/5 shadow-sm" : "border-transparent bg-[#F5F5F7] grayscale opacity-60"
                 )}
               >
-                <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center text-white text-[10px] font-bold", m.color)}>
-                  {m.label[0]}
+                <div className="w-8 h-8 flex items-center justify-center shrink-0 bg-white rounded-lg p-1 border border-black/[0.02]">
+                  <img src={m.logoUrl} alt={m.label} className="w-full h-full object-contain" />
                 </div>
               </button>
             ))}
