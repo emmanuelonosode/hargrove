@@ -113,14 +113,14 @@ export function Navbar() {
             {user ? (
               <div className="flex items-center gap-2">
                 <Link
-                  href="/portal/dashboard"
+                  href="/portal/profile"
                   className={cn(
                     "flex items-center gap-1.5 text-sm font-medium transition-colors hover:text-brand",
                     solidBg ? "text-brand-dark" : "text-white/90"
                   )}
                 >
                   <User size={14} />
-                  My Portal
+                  My Profile
                 </Link>
                 <button
                   onClick={logout}
@@ -219,12 +219,12 @@ export function Navbar() {
             {user ? (
               <>
                 <Link
-                  href="/portal/dashboard"
+                  href="/portal/profile"
                   onClick={() => setMobileOpen(false)}
                   className="flex items-center gap-2 text-brand font-medium text-sm py-1"
                 >
                   <User size={15} className="text-brand" />
-                  My Tenant Portal
+                  My Profile
                 </Link>
                 <button
                   onClick={() => { logout(); setMobileOpen(false); }}

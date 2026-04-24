@@ -200,7 +200,7 @@ class UserRentalApplicationListView(generics.ListAPIView):
     def get_queryset(self):
         return RentalApplication.objects.filter(
             email=self.request.user.email
-        ).select_related("property").order_by("-submitted_at")
+        ).select_related("rental_property").order_by("-submitted_at")
 
 class RentalApplicationCreateView(generics.CreateAPIView):
     """POST /api/v1/leads/apply/ — public form submission."""

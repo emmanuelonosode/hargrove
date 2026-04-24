@@ -173,7 +173,7 @@ function SuccessContent() {
             <p className="text-[12px] text-[#6E6E73] mt-0.5">Sign in to your tenant portal to view status updates.</p>
           </div>
           <Link
-            href="/portal/dashboard"
+            href="/portal/profile"
             className="shrink-0 flex items-center gap-1.5 text-[12px] font-semibold text-brand hover:underline"
           >
             Go to Portal
