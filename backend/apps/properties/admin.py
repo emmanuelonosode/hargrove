@@ -78,10 +78,10 @@ class PropertyAdmin(ModelAdmin):
             ),
             "description": "Enter the full street address. Cross street helps buyers orient the property.",
         }),
-        ("Virtual Tours & 360°", {
+        ("Virtual Tours & 360-degree", {
             "fields": ("virtual_tour_url", "tour_360_url"),
             "description": (
-                "virtual_tour_url: paste a Matterport/Zillow embed URL for the in-page 360° viewer. "
+                "virtual_tour_url: paste a Matterport/Zillow embed URL for the in-page 360-degree viewer. "
                 "tour_360_url: paste any external 3D tour link (opens in new tab)."
             ),
         }),

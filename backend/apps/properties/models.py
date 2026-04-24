@@ -72,7 +72,7 @@ class Property(models.Model):
     cross_street = models.CharField(max_length=200, blank=True, help_text="Nearest cross street")
 
     # Media
-    virtual_tour_url = models.URLField(blank=True, help_text="360° virtual tour embed URL")
+    virtual_tour_url = models.URLField(blank=True, help_text="360-degree virtual tour embed URL")
     tour_360_url = models.URLField(blank=True, help_text="Matterport / Zillow 3D Home URL")
 
     # Flags
