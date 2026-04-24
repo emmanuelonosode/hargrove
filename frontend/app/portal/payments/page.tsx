@@ -124,7 +124,10 @@ function PaymentModal({
         }),
       });
 
-      if (!res.ok) throw new Error("Failed to submit proof. Try again.");
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.detail || data.proof_file || "Failed to submit proof. Try again.");
+      }
       
       onSuccess();
       onClose();

@@ -2,15 +2,21 @@ from rest_framework import serializers
 from .models import Payment, Transaction, Invoice
 
 class PaymentSerializer(serializers.ModelSerializer):
+    proof_file = serializers.CharField(write_only=True, required=False)
+
     class Meta:
         model = Payment
         fields = [
-            "id", "transaction", "rental_application", "amount", 
-            "payment_method", "status", "reference_id", "proof_image",
+            "id", "transaction", "rental_application", "invoice", "amount", 
+            "payment_method", "status", "reference_id", "proof_image", "proof_file",
             "verified_by", "verified_at", "rejection_reason", "paid_at",
             "receipt_sent", "receipt_pdf", "notes", "created_at"
         ]
         read_only_fields = ["id", "status", "verified_by", "verified_at", "rejection_reason", "paid_at", "created_at"]
+
+    def create(self, validated_data):
+        validated_data.pop("proof_file", None)
+        return super().create(validated_data)
 
 class TransactionListSerializer(serializers.ModelSerializer):
     client_name = serializers.CharField(source="client.lead.full_name", read_only=True)
