@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Heart } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { apiFetch } from "@/lib/auth";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -13,7 +14,7 @@ interface FavoriteButtonProps {
 }
 
 export function FavoriteButton({ propertyId, className, size = 16 }: FavoriteButtonProps) {
-  const { user, apiFetch } = useAuth();
+  const { user } = useAuth();
   const [isFavorite, setIsFavorite] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -34,7 +35,7 @@ export function FavoriteButton({ propertyId, className, size = 16 }: FavoriteBut
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [user, propertyId, apiFetch]);
+  }, [user, propertyId]);
 
   const toggleFavorite = async () => {
     if (!user) {
