@@ -133,6 +133,14 @@ class RentalApplicationCreateSerializer(serializers.ModelSerializer):
     reference_id   = serializers.CharField(write_only=True, required=False)
     proof_image    = serializers.CharField(write_only=True, required=False)
 
+    def create(self, validated_data):
+        # Remove non-model fields used for payment proof
+        validated_data.pop("payment_method", None)
+        validated_data.pop("reference_id", None)
+        validated_data.pop("proof_image", None)
+        validated_data.pop("proof_file", None)
+        return super().create(validated_data)
+
     def validate(self, data):
         if data.get("has_kids") and not data.get("number_of_kids"):
             raise serializers.ValidationError(
