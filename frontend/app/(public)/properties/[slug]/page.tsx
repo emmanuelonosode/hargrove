@@ -19,6 +19,7 @@ import { VirtualTourButton } from "@/components/public/VirtualTourButton";
 import { PropertyImageGallery } from "@/components/public/PropertyImageGallery";
 import { PropertyCard } from "@/components/public/PropertyCard";
 import { PropertyDetailMapLoader } from "@/components/public/PropertyDetailMapLoader";
+import { FavoriteButton } from "@/components/public/FavoriteButton";
 import type { DetailMarker } from "@/components/public/PropertyDetailMap";
 import { formatPrice, formatNumber } from "@/lib/utils";
 
@@ -227,9 +228,9 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
 
           {/* Save / Share — desktop overlay */}
           <div className="hidden md:flex absolute bottom-4 right-4 gap-2 z-10">
-            <button className="bg-white/95 backdrop-blur-sm text-neutral-500 hover:text-red-500 text-xs font-medium px-3 py-2 rounded-lg shadow-lg flex items-center gap-1.5 transition-colors">
-              <Heart size={13} /> Save
-            </button>
+            <div className="bg-white/95 backdrop-blur-sm text-neutral-500 hover:text-[#FF3B30] text-xs font-medium px-3 py-2 rounded-lg shadow-lg flex items-center gap-1.5 transition-colors">
+              <FavoriteButton propertyId={property.id} size={13} className="font-medium" />
+            </div>
             <button className="bg-white/95 backdrop-blur-sm text-neutral-500 hover:text-brand text-xs font-medium px-3 py-2 rounded-lg shadow-lg flex items-center gap-1.5 transition-colors">
               <Share2 size={13} /> Share
             </button>

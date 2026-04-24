@@ -192,6 +192,16 @@ class ClientDetailView(generics.RetrieveUpdateAPIView):
 
 # ── Rental Application Views ───────────────────────────────────────────────────
 
+class UserRentalApplicationListView(generics.ListAPIView):
+    """GET /api/v1/leads/apply/my-applications/ — User's own applications."""
+    serializer_class = RentalApplicationAdminSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return RentalApplication.objects.filter(
+            email=self.request.user.email
+        ).select_related("property").order_by("-submitted_at")
+
 class RentalApplicationCreateView(generics.CreateAPIView):
     """POST /api/v1/leads/apply/ — public form submission."""
     serializer_class   = RentalApplicationCreateSerializer

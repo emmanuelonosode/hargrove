@@ -127,6 +127,18 @@ def send_invoice(request, transaction_pk, invoice_pk):
     return Response({"detail": "Invoice queued for delivery."})
 
 
+class UserPaymentListView(generics.ListAPIView):
+    """GET /api/v1/transactions/my-payments/ — payments for the logged-in client."""
+    serializer_class = PaymentSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        from django.db.models import Q
+        return Payment.objects.filter(
+            Q(rental_application__email=self.request.user.email) | 
+            Q(transaction__client__user=self.request.user)
+        ).select_related("rental_application", "transaction").order_by("-created_at")
+
 @api_view(["GET"])
 @permission_classes([permissions.IsAuthenticated])
 def client_invoices(request):

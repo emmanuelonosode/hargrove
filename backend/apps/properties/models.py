@@ -177,3 +177,17 @@ class PropertyAmenity(models.Model):
 
     def __str__(self):
         return self.name
+
+class FavoriteProperty(models.Model):
+    user = models.ForeignKey("accounts.CustomUser", on_delete=models.CASCADE, related_name="favorite_properties")
+    property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name="favorited_by")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Favorite Property"
+        verbose_name_plural = "Favorite Properties"
+        unique_together = ("user", "property")
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.user} - {self.property.title}"

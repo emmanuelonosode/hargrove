@@ -4,11 +4,36 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 
-from .models import Property
-from .serializers import PropertyListSerializer, PropertyDetailSerializer
+from .models import Property, FavoriteProperty
+from .serializers import PropertyListSerializer, PropertyDetailSerializer, FavoritePropertySerializer
 from .filters import PropertyFilter
 from apps.accounts.permissions import IsAgentOrAbove
 
+
+class FavoritePropertyListView(generics.ListCreateAPIView):
+    """GET/POST /api/v1/properties/favorites/ - Manage favorite properties"""
+    serializer_class = FavoritePropertySerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return FavoriteProperty.objects.filter(user=self.request.user).select_related("property")
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class FavoritePropertyDetailView(generics.DestroyAPIView):
+    """DELETE /api/v1/properties/favorites/{property_id}/ - Remove a favorite"""
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_object(self):
+        try:
+            return FavoriteProperty.objects.get(
+                user=self.request.user, 
+                property_id=self.kwargs["property_id"]
+            )
+        except FavoriteProperty.DoesNotExist:
+            from django.http import Http404
+            raise Http404("Favorite not found")
 
 class FlexiblePageSize(PageNumberPagination):
     page_size = 24

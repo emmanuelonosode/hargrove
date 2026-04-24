@@ -6,6 +6,7 @@ import {
   Home, CreditCard, AlertCircle, CheckCircle, ArrowRight,
   MapPin, Clock, Download, Wrench, Search,
   FileText, ChevronRight, Building2, Mail, Wallet,
+  ListTodo, Heart,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { apiFetch } from "@/lib/auth";
@@ -34,6 +35,31 @@ interface Invoice {
   pdf: string | null;
   property_title: string;
   transaction_type: string;
+}
+
+interface Application {
+  id: number;
+  status: string;
+  submitted_at: string;
+  property_title: string;
+}
+
+interface Payment {
+  id: number;
+  amount: string;
+  payment_method: string;
+  status: string;
+  created_at: string;
+}
+
+interface Favorite {
+  id: number;
+  property: {
+    slug: string;
+    title: string;
+    primary_image_url: string;
+    price: string;
+  };
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -78,6 +104,20 @@ function statusLabel(s: string) {
   return m[s] ?? s;
 }
 
+function appStatusLabel(s: string) {
+  const m: Record<string, string> = {
+    DRAFT: "Draft",
+    PENDING_PAYMENT: "Pending Payment",
+    PENDING_VERIFICATION: "Verifying Payment",
+    SUBMITTED: "Submitted",
+    REVIEWED: "Under Review",
+    APPROVED: "Approved",
+    REJECTED: "Rejected",
+    PAYMENT_FAILED: "Payment Failed",
+  };
+  return m[s] ?? s;
+}
+
 // ── Skeleton ──────────────────────────────────────────────────────────────────
 
 function Skeleton({ className }: { className?: string }) {
@@ -118,16 +158,25 @@ export default function DashboardPage() {
   const { user } = useAuth();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [payments, setPayments] = useState<Payment[]>([]);
+  const [favorites, setFavorites] = useState<Favorite[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     Promise.all([
       apiFetch(`${API_BASE}/api/v1/transactions/`).then((r) => (r.ok ? r.json() : null)),
       apiFetch(`${API_BASE}/api/v1/transactions/my-invoices/`).then((r) => (r.ok ? r.json() : [])),
+      apiFetch(`${API_BASE}/api/v1/leads/apply/my-applications/`).then((r) => (r.ok ? r.json() : [])),
+      apiFetch(`${API_BASE}/api/v1/transactions/my-payments/`).then((r) => (r.ok ? r.json() : [])),
+      apiFetch(`${API_BASE}/api/v1/properties/favorites/`).then((r) => (r.ok ? r.json() : [])),
     ])
-      .then(([txData, invData]) => {
+      .then(([txData, invData, appData, payData, favData]) => {
         setTransactions(txData?.results ?? (Array.isArray(txData) ? txData : []));
         setInvoices(Array.isArray(invData) ? invData : []);
+        setApplications(Array.isArray(appData?.results) ? appData.results : (Array.isArray(appData) ? appData : []));
+        setPayments(Array.isArray(payData?.results) ? payData.results : (Array.isArray(payData) ? payData : []));
+        setFavorites(Array.isArray(favData?.results) ? favData.results : (Array.isArray(favData) ? favData : []));
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -200,14 +249,31 @@ export default function DashboardPage() {
         {/* ── Bento Grid ────────────────────────────────────────────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-3">
 
-          {/* Active Lease — spans 2 cols */}
-          <div className="lg:col-span-2">
+          {/* Left Column (Lease or Applications) */}
+          <div className="lg:col-span-2 space-y-3">
             {loading ? (
               <Skeleton className="h-80" />
             ) : active ? (
               <LeaseCard transaction={active} />
             ) : (
-              <NoLeaseCard />
+              <Card>
+                <PanelHeader
+                  title="My Applications"
+                  badge={applications.length > 0 ? String(applications.length) : undefined}
+                  badgeColor="blue"
+                  href="/properties"
+                  linkLabel="Browse"
+                />
+                {applications.length === 0 ? (
+                  <NoLeaseCard />
+                ) : (
+                  <div className="divide-y divide-black/[0.04] px-2 pb-2">
+                    {applications.slice(0, 4).map((app) => (
+                      <ApplicationRow key={app.id} app={app} />
+                    ))}
+                  </div>
+                )}
+              </Card>
             )}
           </div>
 
@@ -217,32 +283,20 @@ export default function DashboardPage() {
             {/* Outstanding invoices */}
             {loading ? (
               <Skeleton className="h-48" />
-            ) : (
+            ) : outstanding.length > 0 && (
               <Card>
                 <PanelHeader
                   title="Outstanding"
-                  badge={outstanding.length > 0 ? String(outstanding.length) : undefined}
+                  badge={String(outstanding.length)}
                   badgeColor="amber"
                   href="/portal/payments"
                   linkLabel="See all"
                 />
-                {outstanding.length === 0 ? (
-                  <div className="px-5 pb-5 flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-[#F5F5F7] flex items-center justify-center shrink-0">
-                      <CheckCircle size={15} className="text-[#34C759]" strokeWidth={2} />
-                    </div>
-                    <div>
-                      <p className="text-[13px] font-semibold text-[#1D1D1F]">All paid up</p>
-                      <p className="text-[12px] text-[#6E6E73]">No outstanding invoices.</p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="divide-y divide-black/[0.04] px-2">
-                    {outstanding.slice(0, 3).map((inv) => (
-                      <InvoiceRow key={inv.id} invoice={inv} />
-                    ))}
-                  </div>
-                )}
+                <div className="divide-y divide-black/[0.04] px-2">
+                  {outstanding.slice(0, 3).map((inv) => (
+                    <InvoiceRow key={inv.id} invoice={inv} />
+                  ))}
+                </div>
               </Card>
             )}
 
@@ -256,12 +310,12 @@ export default function DashboardPage() {
                   href="/portal/payments"
                   linkLabel="History"
                 />
-                {recentPaid.length === 0 ? (
+                {payments.length === 0 ? (
                   <p className="px-5 pb-5 text-[13px] text-[#6E6E73]">No payments recorded yet.</p>
                 ) : (
                   <div className="divide-y divide-black/[0.04] px-2">
-                    {recentPaid.map((inv) => (
-                      <PaymentRow key={inv.id} invoice={inv} />
+                    {payments.slice(0, 3).map((pay) => (
+                      <PaymentRow key={pay.id} payment={pay} />
                     ))}
                   </div>
                 )}
@@ -269,6 +323,22 @@ export default function DashboardPage() {
             )}
           </div>
         </div>
+
+        {/* ── Saved Properties (Favorites) ───────────────────────────────── */}
+        {!loading && favorites.length > 0 && (
+          <div>
+            <p className="text-[11px] font-semibold tracking-[0.08em] uppercase text-[#6E6E73] px-1 mb-2 mt-2">
+              Saved Properties
+            </p>
+            <div className="flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory hide-scrollbar">
+              {favorites.map(fav => (
+                <div key={fav.id} className="snap-start">
+                  <FavoriteCard favorite={fav} />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* ── Quick Actions Bento ────────────────────────────────────────── */}
         <div>
@@ -555,32 +625,89 @@ function InvoiceRow({ invoice: inv }: { invoice: Invoice }) {
   );
 }
 
-// ── Payment Row ───────────────────────────────────────────────────────────────
+// ── Application Row ───────────────────────────────────────────────────────────
 
-function PaymentRow({ invoice: inv }: { invoice: Invoice }) {
+function ApplicationRow({ app }: { app: Application }) {
   return (
     <div className="flex items-center gap-3 px-3 py-3.5">
       <div className="w-7 h-7 rounded-lg bg-[#F5F5F7] flex items-center justify-center shrink-0">
-        <CheckCircle size={13} className="text-[#34C759]" strokeWidth={2} />
+        <ListTodo size={13} className="text-[#1A56DB]" strokeWidth={2} />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-[13px] font-semibold text-[#1D1D1F] truncate">{inv.invoice_number}</p>
-        <p className="text-[11px] text-[#6E6E73] truncate">{fmtDate(inv.issued_date)}</p>
+        <p className="text-[13px] font-semibold text-[#1D1D1F] truncate">{app.property_title || "Application"}</p>
+        <p className="text-[11px] text-[#6E6E73] truncate">Submitted {fmtDate(app.submitted_at)}</p>
       </div>
-      <div className="flex items-center gap-2 shrink-0">
-        <p className="text-[13px] font-semibold text-[#34C759]">{fmtMoney(inv.total)}</p>
-        {inv.pdf && (
-          <a
-            href={inv.pdf}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-7 h-7 rounded-lg bg-black/[0.04] hover:bg-brand hover:text-white flex items-center justify-center transition-colors text-[#6E6E73]"
-            title="Download PDF"
-          >
-            <Download size={12} />
-          </a>
-        )}
+      <div className="shrink-0">
+        <span className="text-[10px] font-bold bg-[#F5F5F7] text-[#6E6E73] px-2 py-1 rounded-md uppercase tracking-wide">
+          {appStatusLabel(app.status)}
+        </span>
       </div>
     </div>
+  );
+}
+
+// ── Payment Row ───────────────────────────────────────────────────────────────
+
+function PaymentRow({ payment: pay }: { payment: Payment }) {
+  const isVerified = pay.status === "VERIFIED" || pay.status === "SUCCESSFUL";
+  const isPending = pay.status === "PENDING_VERIFICATION" || pay.status === "PENDING";
+  const isRejected = pay.status === "REJECTED" || pay.status === "FAILED";
+
+  return (
+    <div className="flex items-center gap-3 px-3 py-3.5">
+      <div className="w-7 h-7 rounded-lg bg-[#F5F5F7] flex items-center justify-center shrink-0">
+        {isVerified ? (
+          <CheckCircle size={13} className="text-[#34C759]" strokeWidth={2} />
+        ) : isRejected ? (
+          <AlertCircle size={13} className="text-[#FF3B30]" strokeWidth={2} />
+        ) : (
+          <Clock size={13} className="text-[#FF9F0A]" strokeWidth={2} />
+        )}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-1.5">
+          <p className="text-[13px] font-semibold text-[#1D1D1F] truncate">{pay.payment_method}</p>
+          {!isVerified && (
+            <span className={cn(
+              "text-[10px] font-bold px-1.5 py-0.5 rounded-md uppercase tracking-wide shrink-0",
+              isRejected ? "bg-[#FFEEEE] text-[#FF3B30]" : "bg-[#FFF3DC] text-[#FF9F0A]"
+            )}>
+              {pay.status === "PENDING_VERIFICATION" ? "Reviewing" : pay.status}
+            </span>
+          )}
+        </div>
+        <p className="text-[11px] text-[#6E6E73] truncate">{fmtDate(pay.created_at)}</p>
+      </div>
+      <div className="flex items-center gap-2 shrink-0">
+        <p className={cn("text-[13px] font-semibold", isVerified ? "text-[#34C759]" : "text-[#1D1D1F]")}>
+          {fmtMoney(pay.amount)}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ── Favorite Card ─────────────────────────────────────────────────────────────
+
+function FavoriteCard({ favorite: fav }: { favorite: Favorite }) {
+  return (
+    <Link href={`/properties/${fav.property.slug}`} className="group min-w-[200px] w-[200px] shrink-0 bg-white rounded-xl overflow-hidden border border-black/[0.04] shadow-sm hover:shadow-md transition-all">
+      <div className="h-[120px] bg-[#F5F5F7] relative">
+        {fav.property.primary_image_url ? (
+          <img src={fav.property.primary_image_url} alt={fav.property.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+        ) : (
+          <div className="flex items-center justify-center h-full">
+            <Building2 className="text-[#C7C7CC]" size={24} />
+          </div>
+        )}
+        <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-white/90 flex items-center justify-center shadow-sm">
+          <Heart size={12} className="text-[#FF3B30] fill-[#FF3B30]" />
+        </div>
+      </div>
+      <div className="p-3">
+        <h3 className="text-[13px] font-semibold text-[#1D1D1F] truncate">{fav.property.title}</h3>
+        <p className="text-[12px] text-brand font-medium mt-0.5">{fmtMoney(fav.property.price)}/mo</p>
+      </div>
+    </Link>
   );
 }

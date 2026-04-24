@@ -1,8 +1,14 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from unfold.admin import ModelAdmin, TabularInline
-from .models import Property, PropertyImage, PropertyAmenity, AmenityCategory
+from .models import Property, PropertyImage, PropertyAmenity, AmenityCategory, FavoriteProperty
 
+
+@admin.register(FavoriteProperty)
+class FavoritePropertyAdmin(ModelAdmin):
+    list_display = ["user", "property", "created_at"]
+    search_fields = ["user__email", "user__first_name", "user__last_name", "property__title"]
+    list_filter = ["created_at"]
 
 class PropertyImageInline(TabularInline):
     model = PropertyImage

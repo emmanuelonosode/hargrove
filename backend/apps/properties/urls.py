@@ -4,6 +4,8 @@ from . import views
 urlpatterns = [
     path("", views.PropertyListCreateView.as_view(), name="property-list-create"),
     path("featured/", views.FeaturedPropertiesView.as_view(), name="property-featured"),
+    path("favorites/", views.FavoritePropertyListView.as_view(), name="property-favorites"),
+    path("favorites/<int:property_id>/", views.FavoritePropertyDetailView.as_view(), name="property-favorites-detail"),
     path("map-pins/", views.MapPinsView.as_view(), name="property-map-pins"),
     path("<slug:slug>/", views.PropertyDetailView.as_view(), name="property-detail"),
     path("<slug:slug>/inquiries/", views.property_inquiry, name="property-inquiry"),

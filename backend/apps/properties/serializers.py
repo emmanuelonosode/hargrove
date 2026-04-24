@@ -50,6 +50,19 @@ class PropertyListSerializer(serializers.ModelSerializer):
     def get_agent_name(self, obj):
         return obj.agent.full_name if obj.agent_id else ""
 
+class FavoritePropertySerializer(serializers.ModelSerializer):
+    property = PropertyListSerializer(read_only=True)
+    property_id = serializers.PrimaryKeyRelatedField(
+        queryset=__import__("apps.properties.models", fromlist=["Property"]).Property.objects.filter(is_published=True),
+        source="property",
+        write_only=True
+    )
+
+    class Meta:
+        from .models import FavoriteProperty
+        model = FavoriteProperty
+        fields = ["id", "property", "property_id", "created_at"]
+        read_only_fields = ["id", "created_at"]
 
 class PropertyDetailSerializer(serializers.ModelSerializer):
     """Full serializer for detail views."""
