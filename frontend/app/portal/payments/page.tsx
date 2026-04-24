@@ -5,7 +5,7 @@ import Link from "next/link";
 import {
   FileText, CheckCircle, Clock, AlertCircle,
   ArrowLeft, Download, Mail, Building2, ChevronDown,
-  QrCode, Camera, Shield, X,
+  QrCode, Camera, Shield, X, CreditCard,
 } from "lucide-react";
 import { apiFetch } from "@/lib/auth";
 import { cn } from "@/lib/utils";
