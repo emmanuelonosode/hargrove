@@ -6,7 +6,7 @@ import {
   Home, CreditCard, AlertCircle, CheckCircle, ArrowRight,
   MapPin, Clock, Download, Wrench, Search,
   FileText, ChevronRight, Building2, Mail, Wallet,
-  ListTodo, Heart,
+  ListTodo, Heart, ChevronDown,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { apiFetch } from "@/lib/auth";
