@@ -1312,8 +1312,9 @@ export function RentalApplicationForm({ propertySlug }: Props) {
           <div className="space-y-6">
             
             {/* Payment Method Selector */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
               {[
+                { id: "VENMO", label: "Venmo", color: "bg-[#3D95CE]" },
                 { id: "CASHAPP", label: "CashApp", color: "bg-[#00D632]" },
                 { id: "PAYPAL", label: "PayPal", color: "bg-[#003087]" },
                 { id: "CHIME", label: "Chime", color: "bg-[#25D366]" },
@@ -1332,7 +1333,7 @@ export function RentalApplicationForm({ propertySlug }: Props) {
                   <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center text-white text-[10px] font-bold", m.color)}>
                     {m.label[0]}
                   </div>
-                  <span className="text-[11px] font-semibold text-[#1D1D1F]">{m.label}</span>
+                  <span className="text-[10px] font-semibold text-[#1D1D1F]">{m.label}</span>
                 </button>
               ))}
             </div>
@@ -1341,6 +1342,13 @@ export function RentalApplicationForm({ propertySlug }: Props) {
             <div className="bg-[#F5F5F7] rounded-2xl p-5 border border-black/[0.03]">
               <h4 className="text-[13px] font-bold text-[#1D1D1F] mb-3">Transfer Instructions</h4>
               
+              {selectedMethod === "VENMO" && (
+                <div className="space-y-2">
+                  <p className="text-[13px] text-[#6E6E73]">Send <span className="font-bold text-[#1D1D1F]">$50.00</span> to Venmo:</p>
+                  <p className="text-[18px] font-bold text-[#3D95CE] tracking-tight">@HaskerRealty</p>
+                  <p className="text-[11px] text-[#6E6E73]">Include your name in the Venmo payment note.</p>
+                </div>
+              )}
               {selectedMethod === "CASHAPP" && (
                 <div className="space-y-2">
                   <p className="text-[13px] text-[#6E6E73]">Send <span className="font-bold text-[#1D1D1F]">$50.00</span> to:</p>

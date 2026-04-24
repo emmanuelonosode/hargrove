@@ -1,4 +1,6 @@
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 
 class TransactionType(models.TextChoices):
@@ -20,11 +22,13 @@ class PaymentMethod(models.TextChoices):
     CASH = "CASH", "Cash"
     CHECK = "CHECK", "Check"
     PAYPAL = "PAYPAL", "PayPal"
+    VENMO = "VENMO", "Venmo"
     CASHAPP = "CASHAPP", "CashApp"
     CHIME = "CHIME", "Chime"
 
 
 class PaymentStatus(models.TextChoices):
+    # ... (rest of choices remain the same)
     PENDING = "PENDING", "Pending"
     PENDING_VERIFICATION = "PENDING_VERIFICATION", "Pending Verification"
     SUCCESSFUL = "SUCCESSFUL", "Successful"
@@ -94,6 +98,12 @@ class Payment(models.Model):
         related_name="payments",
         null=True, blank=True
     )
+    invoice = models.ForeignKey(
+        "Invoice",
+        on_delete=models.CASCADE,
+        related_name="payments",
+        null=True, blank=True
+    )
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     payment_method = models.CharField(max_length=20, choices=PaymentMethod.choices)
     status = models.CharField(max_length=20, choices=PaymentStatus.choices, default=PaymentStatus.PENDING)
@@ -133,8 +143,22 @@ class Payment(models.Model):
 
 
 class Invoice(models.Model):
-    transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE, related_name="invoices")
-    invoice_number = models.CharField(max_length=20, unique=True)  # HRG-2025-0001
+    user = models.ForeignKey(
+        "accounts.CustomUser",
+        on_delete=models.CASCADE,
+        related_name="invoices",
+        null=True, blank=True,
+        help_text="Directly assign an invoice to a user profile."
+    )
+    transaction = models.ForeignKey(
+        Transaction, 
+        on_delete=models.CASCADE, 
+        related_name="invoices",
+        null=True, blank=True
+    )
+    invoice_number = models.CharField(max_length=20, unique=True)
+    title = models.CharField(max_length=200, help_text='e.g. "Monthly Rent - August 2026"')
+    description = models.TextField(blank=True, help_text="Detailed breakdown of the charges.")
     issued_date = models.DateField()
     due_date = models.DateField()
     line_items = models.JSONField(
@@ -173,3 +197,30 @@ class Invoice(models.Model):
         if not self.invoice_number:
             self.invoice_number = self.generate_invoice_number()
         super().save(*args, **kwargs)
+
+
+# ── Signals ───────────────────────────────────────────────────────────────────
+
+@receiver(post_save, sender=Invoice)
+def trigger_invoice_notification(sender, instance, created, **kwargs):
+    """Trigger email when invoice is marked as SENT."""
+    if instance.status == "SENT":
+        from apps.notifications.tasks import send_invoice_email
+        # Ensure we don't spam — maybe check if PDF exists?
+        # send_invoice_email handles the PDF check and email sending.
+        if instance.pdf:
+            send_invoice_email.delay(instance.pk)
+
+
+@receiver(post_save, sender=Payment)
+def trigger_payment_notifications(sender, instance, created, **kwargs):
+    """Trigger emails for payment submission and verification."""
+    from apps.notifications.tasks import send_payment_submitted_email, send_payment_verified_email
+    
+    if created and instance.status == "PENDING_VERIFICATION":
+        send_payment_submitted_email.delay(instance.pk)
+    
+    # Check for transition to VERIFIED
+    # (Note: simpler to just check if status is VERIFIED on any save)
+    if instance.status == "VERIFIED" and instance.verified_at:
+        send_payment_verified_email.delay(instance.pk)

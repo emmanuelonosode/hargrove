@@ -92,16 +92,16 @@ class TransactionAdmin(ModelAdmin):
 class PaymentAdmin(ModelAdmin):
     list_display = [
         "id", "payment_method", "amount", "status_badge", 
-        "reference_id", "rental_application_link", "proof_preview", "created_at"
+        "reference_id", "rental_application_link", "invoice_link", "proof_preview", "created_at"
     ]
     list_filter = ["status", "payment_method", "created_at"]
-    search_fields = ["reference_id", "rental_application__first_name", "rental_application__last_name"]
+    search_fields = ["reference_id", "rental_application__first_name", "rental_application__last_name", "invoice__invoice_number"]
     readonly_fields = ["proof_preview_large", "verified_by", "verified_at", "created_at"]
     actions = ["verify_payment", "reject_payment"]
 
     fieldsets = (
         ("Payment Context", {
-            "fields": ("transaction", "rental_application", "amount", "payment_method", "status"),
+            "fields": ("transaction", "rental_application", "invoice", "amount", "payment_method", "status"),
         }),
         ("Manual Verification", {
             "fields": ("reference_id", "proof_preview_large"),
@@ -122,6 +122,15 @@ class PaymentAdmin(ModelAdmin):
             )
         return "—"
     rental_application_link.short_description = "Application"
+
+    def invoice_link(self, obj):
+        if obj.invoice:
+            return format_html(
+                '<a href="/admin/transactions/invoice/{}/change/" style="color:#1A56DB;font-weight:600">{}</a>',
+                obj.invoice.pk, obj.invoice.invoice_number
+            )
+        return "—"
+    invoice_link.short_description = "Invoice"
 
     def status_badge(self, obj):
         from .models import PaymentStatus
@@ -160,7 +169,7 @@ class PaymentAdmin(ModelAdmin):
     @admin.action(description="Verify Selected Payments")
     def verify_payment(self, request, queryset):
         from django.utils import timezone
-        from .models import PaymentStatus
+        from .models import PaymentStatus, InvoiceStatus
         from apps.crm.models import ApplicationStatus
         
         count = 0
@@ -176,6 +185,12 @@ class PaymentAdmin(ModelAdmin):
                 app.is_fee_paid = True
                 app.status = ApplicationStatus.SUBMITTED
                 app.save()
+
+            # Update linked invoice
+            if payment.invoice:
+                inv = payment.invoice
+                inv.status = InvoiceStatus.PAID
+                inv.save()
             
             count += 1
         self.message_user(request, f"{count} payments verified successfully.")
@@ -200,16 +215,19 @@ class PaymentAdmin(ModelAdmin):
 
 @admin.register(Invoice)
 class InvoiceAdmin(ModelAdmin):
-    list_display  = ["invoice_number", "transaction", "total_display", "status_badge", "issued_date", "due_date", "pdf_link"]
-    list_filter   = ["status"]
-    search_fields = ["invoice_number", "transaction__client__lead__full_name"]
+    list_display  = ["invoice_number", "title", "user_or_client", "total_display", "status_badge", "issued_date", "due_date", "pdf_link"]
+    list_filter   = ["status", "issued_date"]
+    search_fields = ["invoice_number", "title", "user__email", "transaction__client__lead__full_name"]
     ordering      = ["-created_at"]
     readonly_fields = ["invoice_number", "pdf", "created_at", "pdf_link"]
     actions = ["generate_pdf_action", "send_invoice_action"]
 
     fieldsets = (
         ("Invoice Info", {
-            "fields": ("transaction", "invoice_number", "status"),
+            "fields": ("user", "transaction", "invoice_number", "status"),
+        }),
+        ("Details", {
+            "fields": ("title", "description"),
         }),
         ("Dates", {
             "fields": ("issued_date", "due_date"),
@@ -226,6 +244,14 @@ class InvoiceAdmin(ModelAdmin):
             "classes": ("collapse",),
         }),
     )
+
+    def user_or_client(self, obj):
+        if obj.user:
+            return obj.user.full_name
+        if obj.transaction:
+            return obj.transaction.client.full_name
+        return "—"
+    user_or_client.short_description = "Recipient"
 
     def total_display(self, obj):
         return f"${obj.total:,.2f}"

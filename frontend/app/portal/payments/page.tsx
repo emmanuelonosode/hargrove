@@ -5,9 +5,11 @@ import Link from "next/link";
 import {
   FileText, CheckCircle, Clock, AlertCircle,
   ArrowLeft, Download, Mail, Building2, ChevronDown,
+  QrCode, Camera, Shield, X,
 } from "lucide-react";
 import { apiFetch } from "@/lib/auth";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 const API_BASE = "";
 
@@ -21,6 +23,8 @@ interface InvoiceLineItem {
 interface Invoice {
   id: number;
   invoice_number: string;
+  title: string;
+  description: string;
   issued_date: string;
   due_date: string;
   line_items: InvoiceLineItem[];
@@ -63,23 +67,195 @@ function fmtDate(d: string) {
   });
 }
 
+// ── Payment Modal ─────────────────────────────────────────────────────────────
+
+function PaymentModal({ 
+  invoice, 
+  onClose, 
+  onSuccess 
+}: { 
+  invoice: Invoice; 
+  onClose: () => void;
+  onSuccess: () => void;
+}) {
+  const [method, setMethod] = useState<string>("VENMO");
+  const [refId, setRefId] = useState("");
+  const [file, setProofFile] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const methods = [
+    { id: "VENMO", label: "Venmo", color: "bg-[#3D95CE]", handle: "@HaskerRealty" },
+    { id: "CASHAPP", label: "CashApp", color: "bg-[#00D632]", handle: "$HaskerRealty" },
+    { id: "PAYPAL", label: "PayPal", color: "bg-[#003087]", handle: "payments@haskerrealtygroup.com" },
+    { id: "CHIME", label: "Chime", color: "bg-[#25D366]", handle: "@Hasker-Realty" },
+    { id: "BANK_TRANSFER", label: "Zelle", color: "bg-[#6E6E73]", handle: "info@haskerrealtygroup.com" },
+  ];
+
+  const current = methods.find(m => m.id === method) || methods[0];
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!refId.trim()) return setError("Enter your transaction reference (e.g. Username)");
+    if (!file) return setError("Please upload a screenshot of your transfer");
+
+    setLoading(true);
+    setError("");
+
+    try {
+      // 1. Convert file to base64
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = err => reject(err);
+      });
+
+      // 2. Submit to backend
+      const res = await apiFetch(`/api/v1/transactions/my-payments/submit-proof/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          invoice: invoice.id,
+          amount: invoice.total,
+          payment_method: method,
+          reference_id: refId,
+          proof_file: base64,
+        }),
+      });
+
+      if (!res.ok) throw new Error("Failed to submit proof. Try again.");
+      
+      onSuccess();
+      onClose();
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-[#0B1F3A]/60 backdrop-blur-sm" onClick={onClose} />
+      
+      {/* Modal */}
+      <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+        {/* Header */}
+        <div className="px-6 py-5 border-b border-black/[0.04] flex items-center justify-between">
+          <div>
+            <h3 className="text-[17px] font-bold text-[#1D1D1F]">Submit Payment Proof</h3>
+            <p className="text-[12px] text-[#6E6E73]">{invoice.invoice_number} • {fmt(invoice.total)}</p>
+          </div>
+          <button onClick={onClose} className="w-8 h-8 rounded-full bg-[#F5F5F7] flex items-center justify-center text-[#6E6E73] hover:text-[#1D1D1F] transition-colors">
+            <X size={16} />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          {/* Method Selection */}
+          <div className="grid grid-cols-5 gap-2">
+            {methods.map((m) => (
+              <button
+                key={m.id}
+                type="button"
+                onClick={() => setMethod(m.id)}
+                className={cn(
+                  "flex flex-col items-center gap-1.5 p-2 rounded-xl border-2 transition-all",
+                  method === m.id ? "border-brand bg-brand/5 shadow-sm" : "border-transparent bg-[#F5F5F7] grayscale opacity-60"
+                )}
+              >
+                <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center text-white text-[10px] font-bold", m.color)}>
+                  {m.label[0]}
+                </div>
+              </button>
+            ))}
+          </div>
+
+          {/* Instructions */}
+          <div className="bg-[#F5F5F7] rounded-2xl p-5 border border-black/[0.02]">
+            <p className="text-[11px] font-bold text-[#6E6E73] uppercase tracking-widest mb-2">Send {fmt(invoice.total)} to</p>
+            <p className="text-[18px] font-bold text-[#1D1D1F] tracking-tight">{current.handle}</p>
+            <p className="text-[12px] text-[#6E6E73] mt-1">Include invoice <span className="font-mono font-bold text-brand">{invoice.invoice_number}</span> in the notes.</p>
+          </div>
+
+          {/* Form Fields */}
+          <div className="space-y-4">
+            <div>
+              <label className="block text-[11px] font-semibold text-[#6E6E73] uppercase mb-1.5 px-1">Your {current.label} Name / Ref *</label>
+              <input 
+                value={refId}
+                onChange={e => setRefId(e.target.value)}
+                placeholder={current.id === "CASHAPP" ? "$Username" : "Confirmation ID"}
+                className="w-full rounded-xl bg-[#F5F5F7] px-4 py-3 text-[14px] outline-none focus:ring-2 focus:ring-brand/20 border border-transparent"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-semibold text-[#6E6E73] uppercase mb-1.5 px-1">Upload Receipt Screenshot *</label>
+              <label className={cn(
+                "flex flex-col items-center justify-center w-full aspect-[16/6] rounded-2xl border-2 border-dashed transition-all cursor-pointer",
+                file ? "border-brand bg-brand/5" : "border-black/10 bg-[#F5F5F7]"
+              )}>
+                <input type="file" accept="image/*" className="sr-only" onChange={e => setProofFile(e.target.files?.[0] || null)} />
+                {file ? (
+                  <div className="text-center px-4">
+                    <CheckCircle size={20} className="text-brand mx-auto mb-1" />
+                    <p className="text-[12px] font-semibold text-brand truncate">{file.name}</p>
+                  </div>
+                ) : (
+                  <div className="text-center text-[#6E6E73]">
+                    <Camera size={20} className="mx-auto mb-1 opacity-40" />
+                    <p className="text-[12px] font-medium">Click to upload</p>
+                  </div>
+                )}
+              </label>
+            </div>
+          </div>
+
+          {error && <p className="text-[12px] text-red-500 bg-red-50 p-3 rounded-xl border border-red-100">{error}</p>}
+
+          <button
+            disabled={loading}
+            type="submit"
+            className="w-full bg-brand text-white font-bold py-4 rounded-2xl hover:bg-brand-hover transition-colors shadow-lg shadow-brand/20 flex items-center justify-center gap-2"
+          >
+            {loading ? <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : "Submit Proof of Payment"}
+          </button>
+          
+          <div className="flex items-center gap-2 justify-center text-[#6E6E73]">
+            <Shield size={12} />
+            <p className="text-[11px]">Manual verification takes 1-2 hours.</p>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 export default function PaymentsPage() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<number | null>(null);
+  const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const [invData, payData] = await Promise.all([
+        apiFetch(`${API_BASE}/api/v1/transactions/my-invoices/`).then((r) => (r.ok ? r.json() : [])).catch(() => []),
+        apiFetch(`${API_BASE}/api/v1/transactions/my-payments/`).then((r) => (r.ok ? r.json() : [])).catch(() => [])
+      ]);
+      setInvoices(invData?.results ?? (Array.isArray(invData) ? invData : []));
+      setPayments(payData?.results ?? (Array.isArray(payData) ? payData : []));
+    } catch {}
+    setLoading(false);
+  };
 
   useEffect(() => {
-    Promise.all([
-      apiFetch(`${API_BASE}/api/v1/transactions/my-invoices/`).then((r) => (r.ok ? r.json() : [])).catch(() => []),
-      apiFetch(`${API_BASE}/api/v1/transactions/my-payments/`).then((r) => (r.ok ? r.json() : [])).catch(() => [])
-    ])
-      .then(([invData, payData]) => {
-        setInvoices(invData?.results ?? (Array.isArray(invData) ? invData : []));
-        setPayments(payData?.results ?? (Array.isArray(payData) ? payData : []));
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+    fetchData();
   }, []);
 
   const pending = invoices.filter((i) => i.status === "SENT");
@@ -88,6 +264,18 @@ export default function PaymentsPage() {
   return (
     <div className="min-h-screen bg-[#F5F5F7] px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
       <div className="max-w-3xl mx-auto space-y-4">
+        
+        {/* Payment Modal */}
+        {selectedInvoice && (
+          <PaymentModal 
+            invoice={selectedInvoice} 
+            onClose={() => setSelectedInvoice(null)}
+            onSuccess={() => {
+              fetchData();
+              toast.success("Proof of payment submitted for verification.");
+            }}
+          />
+        )}
 
         {/* Header */}
         <div className="flex items-center gap-3 px-1">
@@ -182,6 +370,7 @@ export default function PaymentsPage() {
                           invoice={inv}
                           expanded={expanded === inv.id}
                           onToggle={() => setExpanded(expanded === inv.id ? null : inv.id)}
+                          onPay={(i) => setSelectedInvoice(i)}
                         />
                       ))}
                     </div>
@@ -199,6 +388,7 @@ export default function PaymentsPage() {
                           invoice={inv}
                           expanded={expanded === inv.id}
                           onToggle={() => setExpanded(expanded === inv.id ? null : inv.id)}
+                          onPay={(i) => setSelectedInvoice(i)}
                         />
                       ))}
                     </div>
@@ -272,10 +462,12 @@ function InvoiceCard({
   invoice,
   expanded,
   onToggle,
+  onPay,
 }: {
   invoice: Invoice;
   expanded: boolean;
   onToggle: () => void;
+  onPay: (inv: Invoice) => void;
 }) {
   const cfg = STATUS[invoice.status] ?? STATUS.SENT;
   const StatusIcon = cfg.icon;
@@ -305,7 +497,7 @@ function InvoiceCard({
               {overdue ? "Overdue" : cfg.label}
             </span>
           </div>
-          <p className="text-[12px] text-[#6E6E73] mt-0.5 truncate">{invoice.property_title}</p>
+          <p className="text-[12px] text-[#6E6E73] mt-0.5 truncate">{invoice.title || invoice.property_title}</p>
         </div>
 
         {/* Amount + chevron */}
@@ -325,12 +517,19 @@ function InvoiceCard({
       {/* Expanded detail */}
       {expanded && (
         <div className="border-t border-black/[0.04] px-5 py-5">
+          {invoice.description && (
+             <div className="mb-5 bg-[#F5F5F7] p-4 rounded-xl">
+                <p className="text-[11px] text-[#6E6E73] font-bold uppercase tracking-widest mb-1.5">Description</p>
+                <p className="text-[13px] text-[#475569] leading-relaxed whitespace-pre-line">{invoice.description}</p>
+             </div>
+          )}
+
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-5">
             {[
               { label: "Issued", value: fmtDate(invoice.issued_date), danger: false },
               { label: "Due Date", value: fmtDate(invoice.due_date), danger: overdue },
-              { label: "Property", value: invoice.property_title, danger: false },
-              { label: "Type", value: invoice.transaction_type?.toLowerCase(), danger: false },
+              { label: "Property", value: invoice.property_title || "General", danger: false },
+              { label: "Type", value: invoice.transaction_type?.toLowerCase() || "billing", danger: false },
             ].map(({ label, value, danger }) => (
               <div key={label}>
                 <p className="text-[11px] text-[#6E6E73] font-medium uppercase tracking-wide mb-1">
@@ -382,6 +581,15 @@ function InvoiceCard({
           )}
 
           <div className="flex flex-wrap gap-2">
+            {invoice.status === "SENT" && (
+              <button
+                onClick={() => onPay(invoice)}
+                className="inline-flex items-center gap-1.5 text-[12px] font-bold text-white bg-brand px-5 py-2 rounded-xl hover:bg-brand-hover transition-colors shadow-sm"
+              >
+                <CreditCard size={13} />
+                Pay Now
+              </button>
+            )}
             {invoice.pdf && (
               <a
                 href={invoice.pdf}

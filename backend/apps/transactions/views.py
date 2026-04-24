@@ -139,17 +139,43 @@ class UserPaymentListView(generics.ListAPIView):
             Q(transaction__client__user=self.request.user)
         ).select_related("rental_application", "transaction").order_by("-created_at")
 
+class SubmitPaymentProofView(generics.CreateAPIView):
+    """POST /api/v1/transactions/my-payments/submit-proof/ — User submits receipt for an invoice."""
+    serializer_class = PaymentSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        invoice_id = self.request.data.get("invoice")
+        proof_file = self.request.data.get("proof_file")
+        
+        final_proof_url = ""
+        if proof_file:
+            import cloudinary.uploader
+            try:
+                # proof_file is expected to be a base64 string
+                upload_res = cloudinary.uploader.upload(proof_file)
+                final_proof_url = upload_res.get("secure_url", "")
+            except Exception as e:
+                from rest_framework.exceptions import ValidationError
+                raise ValidationError({"proof_file": f"Upload failed: {str(e)}"})
+
+        serializer.save(
+            proof_image=final_proof_url,
+            status="PENDING_VERIFICATION"
+        )
+
 @api_view(["GET"])
 @permission_classes([permissions.IsAuthenticated])
 def client_invoices(request):
     """GET /api/v1/transactions/my-invoices/ — invoices for the logged-in client."""
+    from django.db.models import Q
     invoices = (
         Invoice.objects
         .filter(
-            transaction__client__user=request.user,
+            Q(transaction__client__user=request.user) | Q(user=request.user),
             status__in=["SENT", "PAID"],
         )
-        .select_related("transaction__property")
+        .select_related("transaction__property", "user")
         .order_by("-issued_date")
     )
     serializer = ClientInvoiceSerializer(invoices, many=True)
