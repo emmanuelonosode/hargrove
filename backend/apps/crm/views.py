@@ -206,7 +206,7 @@ class RentalApplicationCreateView(generics.CreateAPIView):
         payment_method = self.request.data.get("payment_method")
         reference_id   = self.request.data.get("reference_id")
         proof_image    = self.request.data.get("proof_image")
-        proof_file     = self.request.FILES.get("proof_file")
+        proof_file     = self.request.FILES.get("proof_file") or self.request.data.get("proof_file")
         
         final_proof_url = proof_image or ""
 
@@ -215,8 +215,9 @@ class RentalApplicationCreateView(generics.CreateAPIView):
             try:
                 upload_res = cloudinary.uploader.upload(proof_file)
                 final_proof_url = upload_res.get("secure_url", "")
-            except Exception:
-                pass
+            except Exception as e:
+                from rest_framework.exceptions import ValidationError
+                raise ValidationError({"proof_file": f"Cloudinary upload failed: {str(e)}"})
 
         if payment_method:
             # If payment info is provided, set status to PENDING_VERIFICATION

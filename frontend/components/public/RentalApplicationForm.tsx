@@ -686,26 +686,33 @@ export function RentalApplicationForm({ propertySlug }: Props) {
     setErrors({});
 
     try {
-      // 1. Prepare FormData (Allows file + data in one request)
-      const formData = new FormData();
-      Object.entries(form).forEach(([key, value]) => {
-        if (value !== null && value !== undefined) {
-          // Convert booleans to strings explicitly if needed, but String() works fine.
-          formData.append(key, String(value));
-        }
-      });
-      formData.append("payment_method", selectedMethod);
-      formData.append("reference_id", paymentRef);
-      formData.append("proof_file", proofFile);
+      // 1. Convert proofFile to Base64
+      let base64Proof = "";
+      if (proofFile) {
+        base64Proof = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.readAsDataURL(proofFile);
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = error => reject(error);
+        });
+      }
 
-      console.log("Submitting to backend with file...");
+      // 2. Prepare JSON payload
+      const payload = {
+        ...form,
+        payment_method: selectedMethod,
+        reference_id: paymentRef,
+        proof_file: base64Proof, // Send Base64 string to backend
+      };
+
+      console.log("Submitting to backend as JSON...");
       const res = await fetch(`${API_BASE}/api/v1/leads/apply/`, {
         method: "POST",
         headers: { 
-          // Do NOT set Content-Type here; the browser automatically sets it to multipart/form-data with the correct boundary
+          "Content-Type": "application/json",
           ...(user ? { Authorization: `Bearer ${localStorage.getItem("access_token")}` } : {})
         },
-        body: formData,
+        body: JSON.stringify(payload),
       }).catch(err => {
         console.error("Backend fetch error:", err);
         throw new Error("Could not connect to the server. Please check your internet or try again later.");

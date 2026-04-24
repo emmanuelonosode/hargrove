@@ -178,10 +178,14 @@ class RentalApplicationAdmin(ModelAdmin):
 
     def status_badge(self, obj):
         colors = {
-            ApplicationStatus.NEW:      "#2563eb",
-            ApplicationStatus.REVIEWED: "#d97706",
-            ApplicationStatus.APPROVED: "#16a34a",
-            ApplicationStatus.REJECTED: "#dc2626",
+            ApplicationStatus.DRAFT:                "#9ca3af",
+            ApplicationStatus.PENDING_PAYMENT:      "#f59e0b",
+            ApplicationStatus.PENDING_VERIFICATION: "#2563eb",
+            ApplicationStatus.SUBMITTED:            "#8b5cf6",
+            ApplicationStatus.REVIEWED:             "#14b8a6",
+            ApplicationStatus.APPROVED:             "#10b981",
+            ApplicationStatus.REJECTED:             "#ef4444",
+            ApplicationStatus.PAYMENT_FAILED:       "#ef4444",
         }
         color = colors.get(obj.status, "#6b7280")
         return format_html(
