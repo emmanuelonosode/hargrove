@@ -125,13 +125,14 @@ class RentalApplicationCreateSerializer(serializers.ModelSerializer):
             "certification_text",
             "application_fee", "is_fee_paid", "status",
             # Virtual fields for payment proof submission
-            "payment_method", "reference_id", "proof_image",
+            "payment_method", "reference_id", "proof_image", "proof_file"
         ]
         read_only_fields = ["id", "application_fee", "is_fee_paid", "status"]
 
     payment_method = serializers.CharField(write_only=True, required=False)
     reference_id   = serializers.CharField(write_only=True, required=False)
     proof_image    = serializers.CharField(write_only=True, required=False)
+    proof_file     = serializers.CharField(write_only=True, required=False)
 
     def create(self, validated_data):
         # Remove non-model fields used for payment proof
