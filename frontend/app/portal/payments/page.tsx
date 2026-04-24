@@ -36,6 +36,14 @@ interface Invoice {
   transaction_type: string;
 }
 
+interface Payment {
+  id: number;
+  amount: string;
+  payment_method: string;
+  status: string;
+  created_at: string;
+}
+
 const STATUS = {
   SENT:  { label: "Due",   icon: Clock,       text: "text-[#FF9F0A]", bg: "bg-[#F5F5F7]" },
   PAID:  { label: "Paid",  icon: CheckCircle, text: "text-[#34C759]", bg: "bg-[#F5F5F7]" },
@@ -57,13 +65,19 @@ function fmtDate(d: string) {
 
 export default function PaymentsPage() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<number | null>(null);
 
   useEffect(() => {
-    apiFetch(`${API_BASE}/api/v1/transactions/my-invoices/`)
-      .then((r) => (r.ok ? r.json() : []))
-      .then((data) => setInvoices(Array.isArray(data) ? data : []))
+    Promise.all([
+      apiFetch(`${API_BASE}/api/v1/transactions/my-invoices/`).then((r) => (r.ok ? r.json() : [])).catch(() => []),
+      apiFetch(`${API_BASE}/api/v1/transactions/my-payments/`).then((r) => (r.ok ? r.json() : [])).catch(() => [])
+    ])
+      .then(([invData, payData]) => {
+        setInvoices(invData?.results ?? (Array.isArray(invData) ? invData : []));
+        setPayments(payData?.results ?? (Array.isArray(payData) ? payData : []));
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
@@ -120,75 +134,135 @@ export default function PaymentsPage() {
               <div key={i} className="h-20 rounded-2xl bg-black/[0.04] animate-pulse" />
             ))}
           </div>
-        ) : invoices.length === 0 ? (
+        ) : invoices.length === 0 && payments.length === 0 ? (
           <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] py-16 flex flex-col items-center text-center px-6">
             <div className="w-14 h-14 rounded-2xl bg-[#F5F5F7] flex items-center justify-center mb-4">
               <FileText size={26} className="text-[#C7C7CC]" strokeWidth={1.5} />
             </div>
             <h2 className="text-[15px] font-semibold text-[#1D1D1F] tracking-tight mb-2">
-              No invoices yet
+              No invoices or payments yet
             </h2>
             <p className="text-[13px] text-[#6E6E73] max-w-xs leading-relaxed">
-              When your property manager sends an invoice it will appear here.
+              When an invoice is issued or you make a payment, it will appear here.
             </p>
           </div>
         ) : (
-          <div className="space-y-5">
-            {pending.length > 0 && (
-              <div className="bg-[#FFF8EC] border border-[#FF9F0A]/20 rounded-2xl p-4 flex gap-3 items-start">
-                <AlertCircle size={16} className="text-[#FF9F0A] mt-0.5 shrink-0" strokeWidth={1.8} />
-                <div>
-                  <p className="text-[13px] font-semibold text-[#1D1D1F]">
-                    {pending.length} outstanding invoice{pending.length > 1 ? "s" : ""}
-                  </p>
-                  <p className="text-[12px] text-[#6E6E73] mt-0.5">
-                    Pay via bank transfer using your invoice number as the reference.
-                  </p>
-                  <a
-                    href="mailto:info@haskerrealtygroup.com?subject=Payment Inquiry"
-                    className="inline-flex items-center gap-1 text-[12px] font-semibold text-brand mt-1.5 hover:underline"
-                  >
-                    <Mail size={11} /> Questions? Email us
-                  </a>
-                </div>
+          <div className="space-y-8">
+            {/* Invoices Section */}
+            {invoices.length > 0 && (
+              <div className="space-y-5">
+                {pending.length > 0 && (
+                  <div className="bg-[#FFF8EC] border border-[#FF9F0A]/20 rounded-2xl p-4 flex gap-3 items-start">
+                    <AlertCircle size={16} className="text-[#FF9F0A] mt-0.5 shrink-0" strokeWidth={1.8} />
+                    <div>
+                      <p className="text-[13px] font-semibold text-[#1D1D1F]">
+                        {pending.length} outstanding invoice{pending.length > 1 ? "s" : ""}
+                      </p>
+                      <p className="text-[12px] text-[#6E6E73] mt-0.5">
+                        Pay via bank transfer using your invoice number as the reference.
+                      </p>
+                      <a
+                        href="mailto:info@haskerrealtygroup.com?subject=Payment Inquiry"
+                        className="inline-flex items-center gap-1 text-[12px] font-semibold text-brand mt-1.5 hover:underline"
+                      >
+                        <Mail size={11} /> Questions? Email us
+                      </a>
+                    </div>
+                  </div>
+                )}
+                {pending.length > 0 && (
+                  <section>
+                    <p className="text-[11px] font-semibold tracking-[0.08em] uppercase text-[#6E6E73] px-1 mb-2">
+                      Outstanding Invoices ({pending.length})
+                    </p>
+                    <div className="space-y-2">
+                      {pending.map((inv) => (
+                        <InvoiceCard
+                          key={inv.id}
+                          invoice={inv}
+                          expanded={expanded === inv.id}
+                          onToggle={() => setExpanded(expanded === inv.id ? null : inv.id)}
+                        />
+                      ))}
+                    </div>
+                  </section>
+                )}
+                {paid.length > 0 && (
+                  <section>
+                    <p className="text-[11px] font-semibold tracking-[0.08em] uppercase text-[#6E6E73] px-1 mb-2">
+                      Invoice History ({paid.length})
+                    </p>
+                    <div className="space-y-2">
+                      {paid.map((inv) => (
+                        <InvoiceCard
+                          key={inv.id}
+                          invoice={inv}
+                          expanded={expanded === inv.id}
+                          onToggle={() => setExpanded(expanded === inv.id ? null : inv.id)}
+                        />
+                      ))}
+                    </div>
+                  </section>
+                )}
               </div>
             )}
-            {pending.length > 0 && (
+
+            {/* Payments Section */}
+            {payments.length > 0 && (
               <section>
                 <p className="text-[11px] font-semibold tracking-[0.08em] uppercase text-[#6E6E73] px-1 mb-2">
-                  Outstanding ({pending.length})
+                  My Payments ({payments.length})
                 </p>
                 <div className="space-y-2">
-                  {pending.map((inv) => (
-                    <InvoiceCard
-                      key={inv.id}
-                      invoice={inv}
-                      expanded={expanded === inv.id}
-                      onToggle={() => setExpanded(expanded === inv.id ? null : inv.id)}
-                    />
-                  ))}
-                </div>
-              </section>
-            )}
-            {paid.length > 0 && (
-              <section>
-                <p className="text-[11px] font-semibold tracking-[0.08em] uppercase text-[#6E6E73] px-1 mb-2">
-                  History ({paid.length})
-                </p>
-                <div className="space-y-2">
-                  {paid.map((inv) => (
-                    <InvoiceCard
-                      key={inv.id}
-                      invoice={inv}
-                      expanded={expanded === inv.id}
-                      onToggle={() => setExpanded(expanded === inv.id ? null : inv.id)}
-                    />
+                  {payments.map((pay) => (
+                    <PaymentRow key={pay.id} payment={pay} />
                   ))}
                 </div>
               </section>
             )}
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+// ── Payment Row ───────────────────────────────────────────────────────────────
+
+function PaymentRow({ payment: pay }: { payment: Payment }) {
+  const isVerified = pay.status === "VERIFIED" || pay.status === "SUCCESSFUL";
+  const isPending = pay.status === "PENDING_VERIFICATION" || pay.status === "PENDING";
+  const isRejected = pay.status === "REJECTED" || pay.status === "FAILED";
+
+  return (
+    <div className="flex items-center gap-3 px-5 py-4 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-md transition-shadow">
+      <div className="w-9 h-9 rounded-xl bg-[#F5F5F7] flex items-center justify-center shrink-0">
+        {isVerified ? (
+          <CheckCircle size={15} className="text-[#34C759]" strokeWidth={2} />
+        ) : isRejected ? (
+          <AlertCircle size={15} className="text-[#FF3B30]" strokeWidth={2} />
+        ) : (
+          <Clock size={15} className="text-[#FF9F0A]" strokeWidth={2} />
+        )}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 flex-wrap">
+          <p className="text-[14px] font-semibold text-[#1D1D1F] truncate">{pay.payment_method}</p>
+          {!isVerified && (
+            <span className={cn(
+              "text-[10px] font-bold px-1.5 py-0.5 rounded-md uppercase tracking-wide shrink-0",
+              isRejected ? "bg-[#FFEEEE] text-[#FF3B30]" : "bg-[#FFF3DC] text-[#FF9F0A]"
+            )}>
+              {pay.status === "PENDING_VERIFICATION" ? "Reviewing" : pay.status}
+            </span>
+          )}
+        </div>
+        <p className="text-[12px] text-[#6E6E73] truncate">{fmtDate(pay.created_at)}</p>
+      </div>
+      <div className="flex items-center gap-2 shrink-0">
+        <p className={cn("text-[15px] font-semibold", isVerified ? "text-[#34C759]" : "text-[#1D1D1F]")}>
+          {fmt(pay.amount)}
+        </p>
       </div>
     </div>
   );

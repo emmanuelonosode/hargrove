@@ -11,9 +11,10 @@ interface FavoriteButtonProps {
   propertyId: number;
   className?: string;
   size?: number;
+  showText?: boolean;
 }
 
-export function FavoriteButton({ propertyId, className, size = 16 }: FavoriteButtonProps) {
+export function FavoriteButton({ propertyId, className, size = 16, showText = false }: FavoriteButtonProps) {
   const { user } = useAuth();
   const [isFavorite, setIsFavorite] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -82,7 +83,7 @@ export function FavoriteButton({ propertyId, className, size = 16 }: FavoriteBut
       )}
     >
       <Heart size={size} className={cn("transition-all", isFavorite && "fill-[#FF3B30]")} />
-      {isFavorite ? "Saved" : "Save"}
+      {showText && (isFavorite ? "Saved" : "Save")}
     </button>
   );
 }

@@ -154,7 +154,7 @@ function Card({
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
-export default function DashboardPage() {
+export default function ProfilePage() {
   const { user } = useAuth();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -162,21 +162,22 @@ export default function DashboardPage() {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [favorites, setFavorites] = useState<Favorite[]>([]);
   const [loading, setLoading] = useState(true);
+  const [expandedApp, setExpandedApp] = useState<number | null>(null);
 
   useEffect(() => {
     Promise.all([
-      apiFetch(`${API_BASE}/api/v1/transactions/`).then((r) => (r.ok ? r.json() : null)),
-      apiFetch(`${API_BASE}/api/v1/transactions/my-invoices/`).then((r) => (r.ok ? r.json() : [])),
-      apiFetch(`${API_BASE}/api/v1/leads/apply/my-applications/`).then((r) => (r.ok ? r.json() : [])),
-      apiFetch(`${API_BASE}/api/v1/transactions/my-payments/`).then((r) => (r.ok ? r.json() : [])),
-      apiFetch(`${API_BASE}/api/v1/properties/favorites/`).then((r) => (r.ok ? r.json() : [])),
+      apiFetch(`${API_BASE}/api/v1/transactions/`).then((r) => (r.ok ? r.json() : null)).catch(() => null),
+      apiFetch(`${API_BASE}/api/v1/transactions/my-invoices/`).then((r) => (r.ok ? r.json() : [])).catch(() => []),
+      apiFetch(`${API_BASE}/api/v1/leads/apply/my-applications/`).then((r) => (r.ok ? r.json() : [])).catch(() => []),
+      apiFetch(`${API_BASE}/api/v1/transactions/my-payments/`).then((r) => (r.ok ? r.json() : [])).catch(() => []),
+      apiFetch(`${API_BASE}/api/v1/properties/favorites/`).then((r) => (r.ok ? r.json() : [])).catch(() => []),
     ])
       .then(([txData, invData, appData, payData, favData]) => {
         setTransactions(txData?.results ?? (Array.isArray(txData) ? txData : []));
-        setInvoices(Array.isArray(invData) ? invData : []);
-        setApplications(Array.isArray(appData?.results) ? appData.results : (Array.isArray(appData) ? appData : []));
-        setPayments(Array.isArray(payData?.results) ? payData.results : (Array.isArray(payData) ? payData : []));
-        setFavorites(Array.isArray(favData?.results) ? favData.results : (Array.isArray(favData) ? favData : []));
+        setInvoices(invData?.results ?? (Array.isArray(invData) ? invData : []));
+        setApplications(appData?.results ?? (Array.isArray(appData) ? appData : []));
+        setPayments(payData?.results ?? (Array.isArray(payData) ? payData : []));
+        setFavorites(favData?.results ?? (Array.isArray(favData) ? favData : []));
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -269,7 +270,12 @@ export default function DashboardPage() {
                 ) : (
                   <div className="divide-y divide-black/[0.04] px-2 pb-2">
                     {applications.slice(0, 4).map((app) => (
-                      <ApplicationRow key={app.id} app={app} />
+                      <ApplicationRow 
+                        key={app.id} 
+                        app={app} 
+                        expanded={expandedApp === app.id}
+                        onToggle={() => setExpandedApp(expandedApp === app.id ? null : app.id)}
+                      />
                     ))}
                   </div>
                 )}
@@ -627,21 +633,95 @@ function InvoiceRow({ invoice: inv }: { invoice: Invoice }) {
 
 // ── Application Row ───────────────────────────────────────────────────────────
 
-function ApplicationRow({ app }: { app: Application }) {
+function ApplicationRow({ 
+  app, 
+  expanded, 
+  onToggle 
+}: { 
+  app: Application; 
+  expanded: boolean; 
+  onToggle: () => void; 
+}) {
+  const roadmap = [
+    { id: "submitted", label: "Applied",    done: true },
+    { id: "payment",   label: "Payment",    done: ["SUBMITTED", "REVIEWED", "APPROVED", "REJECTED"].includes(app.status), failed: app.status === "PAYMENT_FAILED" },
+    { id: "reviewing", label: "Review",     done: ["REVIEWED", "APPROVED", "REJECTED"].includes(app.status) },
+    { id: "decision",  label: "Decision",   done: ["APPROVED", "REJECTED"].includes(app.status), failed: app.status === "REJECTED" },
+  ];
+
   return (
-    <div className="flex items-center gap-3 px-3 py-3.5">
-      <div className="w-7 h-7 rounded-lg bg-[#F5F5F7] flex items-center justify-center shrink-0">
-        <ListTodo size={13} className="text-[#1A56DB]" strokeWidth={2} />
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-[13px] font-semibold text-[#1D1D1F] truncate">{app.property_title || "Application"}</p>
-        <p className="text-[11px] text-[#6E6E73] truncate">Submitted {fmtDate(app.submitted_at)}</p>
-      </div>
-      <div className="shrink-0">
-        <span className="text-[10px] font-bold bg-[#F5F5F7] text-[#6E6E73] px-2 py-1 rounded-md uppercase tracking-wide">
-          {appStatusLabel(app.status)}
-        </span>
-      </div>
+    <div className="overflow-hidden">
+      <button 
+        onClick={onToggle}
+        className="w-full flex items-center gap-3 px-3 py-3.5 hover:bg-black/[0.015] transition-colors text-left"
+      >
+        <div className="w-7 h-7 rounded-lg bg-[#F5F5F7] flex items-center justify-center shrink-0">
+          <ListTodo size={13} className="text-[#1A56DB]" strokeWidth={2} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-[13px] font-semibold text-[#1D1D1F] truncate">{app.property_title || "Application"}</p>
+          <p className="text-[11px] text-[#6E6E73] truncate">Submitted {fmtDate(app.submitted_at)}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] font-bold bg-[#F5F5F7] text-[#6E6E73] px-2 py-1 rounded-md uppercase tracking-wide">
+            {appStatusLabel(app.status)}
+          </span>
+          <ChevronDown 
+            size={14} 
+            className={cn("text-[#C7C7CC] transition-transform duration-200", expanded && "rotate-180")} 
+          />
+        </div>
+      </button>
+
+      {expanded && (
+        <div className="px-3 pb-5 pt-1">
+          <div className="bg-[#F5F5F7] rounded-xl p-4">
+            <p className="text-[10px] font-bold text-[#6E6E73] uppercase tracking-widest mb-4">Application Progress</p>
+            <div className="flex items-center">
+              {roadmap.map((step, i) => (
+                <div key={step.id} className="flex-1 flex items-center group relative">
+                  <div className="flex flex-col items-center flex-1">
+                    <div className={cn(
+                      "w-6 h-6 rounded-full flex items-center justify-center z-10 border-2 transition-colors",
+                      step.done 
+                        ? (step.failed ? "bg-red-500 border-red-500 text-white" : "bg-[#34C759] border-[#34C759] text-white") 
+                        : "bg-white border-[#E5E5EA] text-[#C7C7CC]"
+                    )}>
+                      {step.done ? (
+                        step.failed ? <AlertCircle size={12} strokeWidth={3} /> : <CheckCircle size={12} strokeWidth={3} />
+                      ) : (
+                        <span className="text-[10px] font-bold">{i + 1}</span>
+                      )}
+                    </div>
+                    <span className={cn(
+                      "text-[9px] font-bold mt-1.5 uppercase tracking-tighter",
+                      step.done ? "text-[#1D1D1F]" : "text-[#C7C7CC]"
+                    )}>
+                      {step.label}
+                    </span>
+                  </div>
+                  {i < roadmap.length - 1 && (
+                    <div className={cn(
+                      "absolute left-[50%] right-[-50%] top-[11px] h-0.5 -z-0",
+                      roadmap[i+1].done ? "bg-[#34C759]" : "bg-[#E5E5EA]"
+                    )} />
+                  )}
+                </div>
+              ))}
+            </div>
+            
+            <div className="mt-4 pt-4 border-t border-black/[0.04]">
+              <p className="text-[11px] text-[#6E6E73] leading-relaxed">
+                {app.status === "PENDING_VERIFICATION" && "We are currently verifying your payment proof. This typically takes 1-2 hours."}
+                {app.status === "SUBMITTED" && "Your application is in our queue and will be reviewed shortly."}
+                {app.status === "REVIEWED" && "Our team is currently reviewing your background and credit history."}
+                {app.status === "APPROVED" && "Congratulations! Your application has been approved. Check your email for next steps."}
+                {app.status === "REJECTED" && "Unfortunately, your application was not approved at this time."}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

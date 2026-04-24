@@ -8,6 +8,7 @@ import {
   Search, ChevronDown, Heart, SlidersHorizontal,
   List, Map as MapIcon, Layers,
 } from "lucide-react";
+import { FavoriteButton } from "./FavoriteButton";
 import { PropertiesMapLoader } from "./PropertiesMapLoader";
 import type { MapMarker, MapBounds } from "./PropertiesMap";
 import type { PropertyListItemAPI } from "@/lib/properties";
@@ -163,78 +164,90 @@ export function PropertiesClient({
 
       {/* ── Filter bar ──────────────────────────────────────────────────── */}
       <div className="shrink-0 bg-white border-b border-neutral-200 z-30">
-        <form onSubmit={handleSearch} className="flex items-center h-14 px-3 gap-1.5">
+        <form onSubmit={handleSearch} className="flex flex-col md:flex-row md:items-center p-3 md:h-16 gap-3 md:gap-2">
 
-          {/* Location */}
-          <div className="flex items-center gap-2 flex-1 min-w-0 bg-white border border-neutral-300 rounded-lg px-3 h-11 hover:border-neutral-400 transition-colors">
-            <Search size={14} className="text-neutral-400 shrink-0" />
-            <input
-              type="text"
-              placeholder="City, state or zip"
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              className="flex-1 text-sm text-brand-dark placeholder:text-neutral-400 outline-none bg-transparent min-w-0"
-            />
+          <div className="flex gap-2">
+            {/* Location */}
+            <div className="flex items-center gap-2 flex-1 bg-white border border-neutral-300 rounded-xl px-3 h-11 hover:border-neutral-400 transition-colors shadow-sm">
+              <Search size={14} className="text-neutral-400 shrink-0" />
+              <input
+                type="text"
+                placeholder="City, state or zip"
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                className="flex-1 text-sm text-brand-dark placeholder:text-neutral-400 outline-none bg-transparent min-w-0"
+              />
+            </div>
+            
+            {/* Mobile Filter Toggle (only visible on mobile) */}
+            <button
+              type="button"
+              className="md:hidden flex items-center justify-center w-11 h-11 rounded-xl border border-neutral-300 bg-white text-neutral-600 hover:bg-neutral-50 transition-colors shadow-sm"
+            >
+              <SlidersHorizontal size={18} />
+            </button>
           </div>
 
-          {/* Pricing */}
-          <FilterSelect
-            value={priceRange}
-            onChange={(v) => {
-              setPriceRange(v);
-              const [min, max] = v.split("-");
-              navigate({ minPrice: min || undefined, maxPrice: max || undefined });
-            }}
-            label="Pricing"
-          >
-            {PRICE_RANGES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
-          </FilterSelect>
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 md:pb-0">
+            {/* Pricing */}
+            <FilterSelect
+              value={priceRange}
+              onChange={(v) => {
+                setPriceRange(v);
+                const [min, max] = v.split("-");
+                navigate({ minPrice: min || undefined, maxPrice: max || undefined });
+              }}
+              label="Pricing"
+            >
+              {PRICE_RANGES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
+            </FilterSelect>
 
-          {/* Beds / Baths */}
-          <FilterSelect
-            value={beds}
-            onChange={(v) => { setBeds(v); navigate({ beds: v || undefined }); }}
-            label="Beds / Baths"
-          >
-            {BEDS_OPTIONS.map((b) => <option key={b.value} value={b.value}>{b.label}</option>)}
-          </FilterSelect>
+            {/* Beds / Baths */}
+            <FilterSelect
+              value={beds}
+              onChange={(v) => { setBeds(v); navigate({ beds: v || undefined }); }}
+              label="Beds"
+            >
+              {BEDS_OPTIONS.map((b) => <option key={b.value} value={b.value}>{b.label}</option>)}
+            </FilterSelect>
 
-          {/* Type */}
-          <FilterSelect
-            value={listingType}
-            onChange={(v) => { setListingType(v); navigate({ listing_type: v || undefined }); }}
-            label="Type"
-          >
-            <option value="">All Types</option>
-            <option value="for-rent">For Rent</option>
-            <option value="for-sale">For Sale</option>
-          </FilterSelect>
+            {/* Type */}
+            <FilterSelect
+              value={listingType}
+              onChange={(v) => { setListingType(v); navigate({ listing_type: v || undefined }); }}
+              label="Type"
+            >
+              <option value="">Type</option>
+              <option value="for-rent">For Rent</option>
+              <option value="for-sale">For Sale</option>
+            </FilterSelect>
 
-          {/* All Filters */}
-          <button
-            type="button"
-            className={`hidden md:flex items-center gap-1.5 h-11 px-3 rounded-lg border text-xs font-semibold transition-colors whitespace-nowrap ${
-              activeFiltersCount > 0
-                ? "bg-brand text-white border-brand"
-                : "border-neutral-300 text-neutral-600 hover:border-neutral-400"
-            }`}
-          >
-            <SlidersHorizontal size={14} />
-            Filters
-            {activeFiltersCount > 0 && (
-              <span className="ml-0.5 bg-white/30 rounded-full w-5 h-5 flex items-center justify-center text-[11px] font-bold">
-                {activeFiltersCount}
-              </span>
-            )}
-          </button>
+            {/* All Filters (Desktop) */}
+            <button
+              type="button"
+              className={`hidden md:flex items-center gap-1.5 h-11 px-3 rounded-xl border text-xs font-semibold transition-colors whitespace-nowrap shadow-sm ${
+                activeFiltersCount > 0
+                  ? "bg-brand text-white border-brand"
+                  : "border-neutral-300 text-neutral-600 hover:border-neutral-400 bg-white"
+              }`}
+            >
+              <SlidersHorizontal size={14} />
+              Filters
+              {activeFiltersCount > 0 && (
+                <span className="ml-0.5 bg-white/30 rounded-full w-5 h-5 flex items-center justify-center text-[11px] font-bold">
+                  {activeFiltersCount}
+                </span>
+              )}
+            </button>
 
-          {/* Save search */}
-          <button
-            type="button"
-            className="hidden lg:flex items-center h-11 px-3 text-xs font-semibold text-brand border border-brand rounded-lg hover:bg-blue-50 transition-colors whitespace-nowrap"
-          >
-            Save search
-          </button>
+            {/* Save search (Desktop) */}
+            <button
+              type="button"
+              className="hidden lg:flex items-center h-11 px-4 text-xs font-semibold text-brand border border-brand/30 rounded-xl hover:bg-blue-50 transition-colors whitespace-nowrap shadow-sm bg-white"
+            >
+              Save search
+            </button>
+          </div>
 
           <button type="submit" className="sr-only">Search</button>
         </form>
@@ -486,13 +499,11 @@ function PropertyCard({ property, isActive }: { property: PropertyListItemAPI; i
         </div>
 
         {/* Heart */}
-        <button
-          onClick={(e) => e.preventDefault()}
-          className="absolute top-1 right-1 w-9 h-9 bg-white/90 rounded-full flex items-center justify-center text-neutral-400 hover:text-red-500 transition-colors shadow-sm"
-          aria-label="Save"
-        >
-          <Heart size={14} />
-        </button>
+        <div className="absolute top-2 right-2">
+          <div className="w-9 h-9 bg-white/90 rounded-full flex items-center justify-center text-neutral-400 hover:text-red-500 transition-colors shadow-sm overflow-hidden">
+            <FavoriteButton propertyId={property.id} size={14} className="hover:scale-110 active:scale-90 transition-transform" />
+          </div>
+        </div>
 
         {/* Listing type badge */}
         <div className="absolute bottom-2 left-2">

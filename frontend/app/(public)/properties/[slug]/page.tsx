@@ -229,7 +229,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
           {/* Save / Share — desktop overlay */}
           <div className="hidden md:flex absolute bottom-4 right-4 gap-2 z-10">
             <div className="bg-white/95 backdrop-blur-sm text-neutral-500 hover:text-[#FF3B30] text-xs font-medium px-3 py-2 rounded-lg shadow-lg flex items-center gap-1.5 transition-colors">
-              <FavoriteButton propertyId={property.id} size={13} className="font-medium" />
+              <FavoriteButton propertyId={property.id} size={13} className="font-medium" showText={true} />
             </div>
             <button className="bg-white/95 backdrop-blur-sm text-neutral-500 hover:text-brand text-xs font-medium px-3 py-2 rounded-lg shadow-lg flex items-center gap-1.5 transition-colors">
               <Share2 size={13} /> Share
