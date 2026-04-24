@@ -42,7 +42,7 @@ function SplitScreenLogin() {
   const { login } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const next = searchParams.get("next") ?? "/portal/dashboard";
+  const next = searchParams.get("next") ?? "/portal/profile";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

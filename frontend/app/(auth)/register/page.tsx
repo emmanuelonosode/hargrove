@@ -420,7 +420,7 @@ function MultiStepRegister() {
                         {loading ? (
                           <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                         ) : (
-                          <>Go to Dashboard <ArrowRight size={18} /></>
+                          <>Go to Profile <ArrowRight size={18} /></>
                         )}
                       </button>
                     </div>

@@ -92,7 +92,7 @@ export default function PaymentsPage() {
         {/* Header */}
         <div className="flex items-center gap-3 px-1">
           <Link
-            href="/portal/dashboard"
+            href="/portal/profile"
             className="w-8 h-8 rounded-xl flex items-center justify-center bg-white shadow-[0_2px_8px_rgba(0,0,0,0.06)] text-[#6E6E73] hover:text-[#1D1D1F] transition-colors"
           >
             <ArrowLeft size={15} strokeWidth={2} />
