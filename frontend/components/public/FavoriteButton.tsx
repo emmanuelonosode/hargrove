@@ -77,7 +77,7 @@ export function FavoriteButton({ propertyId, className, size = 16, showText = fa
       disabled={loading}
       aria-label={isFavorite ? "Remove from saved properties" : "Save property"}
       className={cn(
-        "transition-colors flex items-center gap-1.5",
+        "transition-colors flex items-center justify-center gap-1.5 min-w-[44px] min-h-[44px]",
         isFavorite ? "text-[#FF3B30] hover:text-[#FF3B30]/80" : "text-neutral-500 hover:text-[#FF3B30]",
         className
       )}

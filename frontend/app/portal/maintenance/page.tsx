@@ -447,6 +447,23 @@ export default function MaintenancePage() {
                   Email Us
                 </a>
               </div>
+            ) : loadError === "other" ? (
+              <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-6 text-center">
+                <div className="w-12 h-12 rounded-2xl bg-[#FFF5F5] flex items-center justify-center mx-auto mb-3">
+                  <AlertCircle size={22} className="text-[#FF3B30]" strokeWidth={1.5} />
+                </div>
+                <p className="text-[14px] font-semibold text-[#1D1D1F] mb-1">Could not load requests</p>
+                <p className="text-[13px] text-[#6E6E73] max-w-xs mx-auto leading-relaxed mb-4">
+                  There was a problem fetching your maintenance history. Please refresh the page or contact us if the issue persists.
+                </p>
+                <a
+                  href="mailto:info@haskerrealtygroup.com"
+                  className="inline-flex items-center gap-1.5 bg-brand text-white text-[12px] font-semibold px-4 py-2.5 rounded-xl hover:bg-brand-hover transition-colors"
+                >
+                  <Mail size={13} />
+                  Contact Support
+                </a>
+              </div>
             ) : requests.length === 0 ? (
               <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] py-14 flex flex-col items-center text-center px-6">
                 <div className="w-14 h-14 rounded-2xl bg-[#F5F5F7] flex items-center justify-center mb-4">

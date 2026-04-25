@@ -35,13 +35,8 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    setUser(getStoredUser());
-    setIsLoading(false);
-  }, []);
+  const [user, setUser] = useState<AuthUser | null>(() => getStoredUser());
+  const [isLoading, setIsLoading] = useState(false);
 
   const fetchLatestProfile = useCallback(async () => {
     const res = await apiFetch("/api/v1/leads/apply/latest-profile/");

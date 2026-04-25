@@ -92,6 +92,12 @@ html {
 }
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 
+/* ─── Payment modal success progress bar ────────────────────── */
+@keyframes shrink {
+  from { width: 100%; }
+  to   { width: 0%; }
+}
+
 /* ─── Leaflet property popup ─────────────────────────────────── */
 .property-popup .leaflet-popup-content-wrapper {
   padding: 14px;

@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   Home, CreditCard, AlertCircle, CheckCircle, ArrowRight,
-  MapPin, Clock, Download, Wrench, Search,
+  MapPin, Clock, Wrench, Search,
   FileText, ChevronRight, Building2, Mail, Wallet,
   ListTodo, Heart, ChevronDown,
 } from "lucide-react";
@@ -59,6 +60,7 @@ interface Favorite {
     title: string;
     primary_image_url: string;
     price: string;
+    listing_type?: string;
   };
 }
 
@@ -336,7 +338,7 @@ export default function ProfilePage() {
             <p className="text-[11px] font-semibold tracking-[0.08em] uppercase text-[#6E6E73] px-1 mb-2 mt-2">
               Saved Properties
             </p>
-            <div className="flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory hide-scrollbar">
+            <div className="flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
               {favorites.map(fav => (
                 <div key={fav.id} className="snap-start">
                   <FavoriteCard favorite={fav} />
@@ -355,7 +357,7 @@ export default function ProfilePage() {
             {[
               { icon: CreditCard, label: "Payments",     desc: "Invoices & billing",  href: "/portal/payments" },
               { icon: FileText,   label: "Documents",    desc: "Agreements & files",  href: "/portal/documents" },
-              { icon: Wrench,     label: "Maintenance",  desc: "Submit a request",    href: "/contact" },
+              { icon: Wrench,     label: "Maintenance",  desc: "Submit a request",    href: "/portal/maintenance" },
               { icon: Search,     label: "Browse Homes", desc: "Find properties",     href: "/properties" },
             ].map(({ icon: Icon, label, desc, href }) => (
               <Card key={label} href={href} className="p-4 group">
@@ -611,7 +613,10 @@ function PanelHeader({
 function InvoiceRow({ invoice: inv }: { invoice: Invoice }) {
   const overdue = isOverdue(inv.due_date);
   return (
-    <div className="flex items-center gap-3 px-3 py-3.5">
+    <Link
+      href="/portal/payments"
+      className="flex items-center gap-3 px-3 py-3.5 hover:bg-black/[0.02] rounded-xl transition-colors group"
+    >
       <div className="w-7 h-7 rounded-lg bg-[#F5F5F7] flex items-center justify-center shrink-0">
         <AlertCircle size={13} className={overdue ? "text-[#FF3B30]" : "text-[#6E6E73]"} strokeWidth={2} />
       </div>
@@ -626,8 +631,13 @@ function InvoiceRow({ invoice: inv }: { invoice: Invoice }) {
         </div>
         <p className="text-[11px] text-[#6E6E73] truncate">Due {fmtDate(inv.due_date)}</p>
       </div>
-      <p className="text-[13px] font-semibold text-[#1D1D1F] shrink-0">{fmtMoney(inv.total)}</p>
-    </div>
+      <div className="flex items-center gap-1.5 shrink-0">
+        <p className={cn("text-[13px] font-semibold", overdue ? "text-[#FF3B30]" : "text-[#1D1D1F]")}>
+          {fmtMoney(inv.total)}
+        </p>
+        <ChevronRight size={13} className="text-[#C7C7CC] group-hover:text-brand transition-colors" strokeWidth={2.5} />
+      </div>
+    </Link>
   );
 }
 
@@ -643,10 +653,10 @@ function ApplicationRow({
   onToggle: () => void; 
 }) {
   const roadmap = [
-    { id: "submitted", label: "Applied",    done: true },
-    { id: "payment",   label: "Payment",    done: ["SUBMITTED", "REVIEWED", "APPROVED", "REJECTED"].includes(app.status), failed: app.status === "PAYMENT_FAILED" },
-    { id: "reviewing", label: "Review",     done: ["REVIEWED", "APPROVED", "REJECTED"].includes(app.status) },
-    { id: "decision",  label: "Decision",   done: ["APPROVED", "REJECTED"].includes(app.status), failed: app.status === "REJECTED" },
+    { id: "submitted", label: "Applied",  done: app.status !== "DRAFT" },
+    { id: "payment",   label: "Payment",  done: ["SUBMITTED", "REVIEWED", "APPROVED", "REJECTED"].includes(app.status), failed: app.status === "PAYMENT_FAILED" },
+    { id: "reviewing", label: "Review",   done: ["REVIEWED", "APPROVED", "REJECTED"].includes(app.status) },
+    { id: "decision",  label: "Decision", done: ["APPROVED", "REJECTED"].includes(app.status), failed: app.status === "REJECTED" },
   ];
 
   return (
@@ -660,7 +670,9 @@ function ApplicationRow({
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-[13px] font-semibold text-[#1D1D1F] truncate">{app.property_title || "Application"}</p>
-          <p className="text-[11px] text-[#6E6E73] truncate">Submitted {fmtDate(app.submitted_at)}</p>
+          <p className="text-[11px] text-[#6E6E73] truncate">
+            {app.submitted_at ? `Submitted ${fmtDate(app.submitted_at)}` : "Draft — not yet submitted"}
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-[10px] font-bold bg-[#F5F5F7] text-[#6E6E73] px-2 py-1 rounded-md uppercase tracking-wide">
@@ -710,14 +722,27 @@ function ApplicationRow({
               ))}
             </div>
             
-            <div className="mt-4 pt-4 border-t border-black/[0.04]">
+            <div className="mt-4 pt-4 border-t border-black/[0.04] space-y-3">
               <p className="text-[11px] text-[#6E6E73] leading-relaxed">
-                {app.status === "PENDING_VERIFICATION" && "We are currently verifying your payment proof. This typically takes 1-2 hours."}
-                {app.status === "SUBMITTED" && "Your application is in our queue and will be reviewed shortly."}
-                {app.status === "REVIEWED" && "Our team is currently reviewing your background and credit history."}
-                {app.status === "APPROVED" && "Congratulations! Your application has been approved. Check your email for next steps."}
-                {app.status === "REJECTED" && "Unfortunately, your application was not approved at this time."}
+                {app.status === "DRAFT"                && "Your application has been saved but not yet submitted."}
+                {app.status === "PENDING_PAYMENT"      && "A payment is required to complete your application submission."}
+                {app.status === "PENDING_VERIFICATION" && "We are verifying your payment proof. This typically takes 1–2 hours."}
+                {app.status === "SUBMITTED"            && "Your application is in our queue and will be reviewed shortly."}
+                {app.status === "REVIEWED"             && "Our team is currently reviewing your background and credit history."}
+                {app.status === "APPROVED"             && "Congratulations! Your application has been approved. Check your email for next steps."}
+                {app.status === "REJECTED"             && "Unfortunately, your application was not approved at this time. Contact us to learn more."}
+                {app.status === "PAYMENT_FAILED"       && "Your payment could not be verified. Please resubmit your proof of payment."}
               </p>
+              {(app.status === "PENDING_PAYMENT" || app.status === "PAYMENT_FAILED") && (
+                <Link
+                  href="/portal/payments"
+                  className="inline-flex items-center gap-1.5 bg-brand text-white text-[11px] font-bold px-3.5 py-2 rounded-lg hover:bg-brand-hover transition-colors"
+                >
+                  <CreditCard size={11} strokeWidth={2.5} />
+                  Go to Payments
+                  <ArrowRight size={10} />
+                </Link>
+              )}
             </div>
           </div>
         </div>
@@ -730,7 +755,6 @@ function ApplicationRow({
 
 function PaymentRow({ payment: pay }: { payment: Payment }) {
   const isVerified = pay.status === "VERIFIED" || pay.status === "SUCCESSFUL";
-  const isPending = pay.status === "PENDING_VERIFICATION" || pay.status === "PENDING";
   const isRejected = pay.status === "REJECTED" || pay.status === "FAILED";
 
   return (
@@ -770,11 +794,18 @@ function PaymentRow({ payment: pay }: { payment: Payment }) {
 // ── Favorite Card ─────────────────────────────────────────────────────────────
 
 function FavoriteCard({ favorite: fav }: { favorite: Favorite }) {
+  const isRental = fav.property.listing_type === "for-rent" || fav.property.listing_type === "for-lease";
   return (
     <Link href={`/properties/${fav.property.slug}`} className="group min-w-[200px] w-[200px] shrink-0 bg-white rounded-xl overflow-hidden border border-black/[0.04] shadow-sm hover:shadow-md transition-all">
       <div className="h-[120px] bg-[#F5F5F7] relative">
         {fav.property.primary_image_url ? (
-          <img src={fav.property.primary_image_url} alt={fav.property.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+          <Image
+            src={fav.property.primary_image_url}
+            alt={fav.property.title}
+            fill
+            className="object-cover group-hover:scale-105 transition-transform duration-300"
+            sizes="200px"
+          />
         ) : (
           <div className="flex items-center justify-center h-full">
             <Building2 className="text-[#C7C7CC]" size={24} />
@@ -786,7 +817,9 @@ function FavoriteCard({ favorite: fav }: { favorite: Favorite }) {
       </div>
       <div className="p-3">
         <h3 className="text-[13px] font-semibold text-[#1D1D1F] truncate">{fav.property.title}</h3>
-        <p className="text-[12px] text-brand font-medium mt-0.5">{fmtMoney(fav.property.price)}/mo</p>
+        <p className="text-[12px] text-brand font-medium mt-0.5">
+          {fmtMoney(fav.property.price)}{isRental ? "/mo" : ""}
+        </p>
       </div>
     </Link>
   );

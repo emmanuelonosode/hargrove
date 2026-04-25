@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, CreditCard, FileText, Wrench, User, LogOut, Home, Bell } from "lucide-react";
+import { LayoutDashboard, CreditCard, FileText, Wrench, User, LogOut, Home } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 
@@ -24,8 +24,11 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
   const { user, isLoading, logout } = useAuth();
 
   useEffect(() => {
-    if (!isLoading && !user) router.replace("/login");
-  }, [user, isLoading, router]);
+    if (!isLoading && !user) {
+      const next = encodeURIComponent(pathname);
+      router.replace(`/login?next=${next}`);
+    }
+  }, [user, isLoading, router, pathname]);
 
   if (isLoading || !user) {
     return (

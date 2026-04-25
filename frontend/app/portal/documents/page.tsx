@@ -106,10 +106,10 @@ export default function DocumentsPage() {
     Promise.all([
       apiFetch(`${API_BASE}/api/v1/documents/my-documents/`)
         .then((r) => (r.ok ? r.json() : []))
-        .then((d) => setDocuments(Array.isArray(d) ? d : [])),
+        .then((d) => setDocuments(d?.results ?? (Array.isArray(d) ? d : []))),
       apiFetch(`${API_BASE}/api/v1/transactions/my-invoices/`)
         .then((r) => (r.ok ? r.json() : []))
-        .then((d) => setInvoices(Array.isArray(d) ? d : [])),
+        .then((d) => setInvoices(d?.results ?? (Array.isArray(d) ? d : []))),
     ])
       .catch(() => {})
       .finally(() => setLoading(false));

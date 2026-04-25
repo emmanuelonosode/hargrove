@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Bed, Bath, Maximize, MapPin, Heart } from "lucide-react";
+import { Bed, Bath, Maximize, MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
+import { FavoriteButton } from "@/components/public/FavoriteButton";
 import { formatPrice, formatNumber } from "@/lib/utils";
 import type { Property } from "@/types";
 
@@ -119,13 +120,12 @@ export function PropertyCard({ property, variant = "default" }: PropertyCardProp
         </div>
 
         {/* Wishlist */}
-        <button
-          className="absolute top-3 right-3 w-10 h-10 rounded-full bg-white/90 flex items-center justify-center text-neutral-400 hover:text-red-500 transition-colors"
+        <div
+          className="absolute top-3 right-3 w-11 h-11 rounded-full bg-white/90 flex items-center justify-center shadow-sm"
           onClick={(e) => e.preventDefault()}
-          aria-label="Save property"
         >
-          <Heart size={15} />
-        </button>
+          <FavoriteButton propertyId={Number(property.id)} size={17} className="min-w-0 min-h-0" />
+        </div>
 
         {/* Image count */}
         {property.images.length > 1 && (

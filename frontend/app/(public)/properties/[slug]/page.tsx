@@ -228,8 +228,13 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
 
           {/* Save / Share — desktop overlay */}
           <div className="hidden md:flex absolute bottom-4 right-4 gap-2 z-10">
-            <div className="bg-white/95 backdrop-blur-sm text-neutral-500 hover:text-[#FF3B30] text-xs font-medium px-3 py-2 rounded-lg shadow-lg flex items-center gap-1.5 transition-colors">
-              <FavoriteButton propertyId={property.id} size={13} className="font-medium" showText={true} />
+            <div className="bg-white/95 backdrop-blur-sm rounded-lg shadow-lg overflow-hidden">
+              <FavoriteButton
+                propertyId={property.id}
+                size={14}
+                showText={true}
+                className="text-xs font-medium px-3 text-neutral-500 hover:text-[#FF3B30] min-w-0 min-h-0 h-9"
+              />
             </div>
             <button className="bg-white/95 backdrop-blur-sm text-neutral-500 hover:text-brand text-xs font-medium px-3 py-2 rounded-lg shadow-lg flex items-center gap-1.5 transition-colors">
               <Share2 size={13} /> Share
@@ -549,6 +554,11 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
               <p className="text-xs font-semibold uppercase tracking-wider text-neutral-400">{listingLabel}</p>
               <p className="font-serif text-xl font-bold text-brand-dark leading-tight">{priceDisplay}</p>
             </div>
+            <FavoriteButton
+              propertyId={property.id}
+              size={18}
+              className="shrink-0 w-11 h-11 rounded-lg border border-neutral-200 bg-neutral-50 hover:border-[#FF3B30]/30 hover:bg-[#FFF5F5]"
+            />
             <a
               href="#schedule-form"
               className="shrink-0 h-11 px-5 bg-brand-dark text-white text-sm font-semibold rounded-lg flex items-center gap-1.5 hover:bg-brand transition-colors"

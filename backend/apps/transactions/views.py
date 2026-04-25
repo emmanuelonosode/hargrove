@@ -145,15 +145,17 @@ class SubmitPaymentProofView(generics.CreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
-        invoice_id = self.request.data.get("invoice")
-        proof_file = self.request.data.get("proof_file")
-        
+        proof_file = self.request.FILES.get("proof_file")
+
         final_proof_url = ""
         if proof_file:
             import cloudinary.uploader
             try:
-                # proof_file is expected to be a base64 string
-                upload_res = cloudinary.uploader.upload(proof_file)
+                upload_res = cloudinary.uploader.upload(
+                    proof_file,
+                    folder="hasker/payment_proofs",
+                    resource_type="image",
+                )
                 final_proof_url = upload_res.get("secure_url", "")
             except Exception as e:
                 from rest_framework.exceptions import ValidationError
@@ -161,7 +163,7 @@ class SubmitPaymentProofView(generics.CreateAPIView):
 
         serializer.save(
             proof_image=final_proof_url,
-            status="PENDING_VERIFICATION"
+            status="PENDING_VERIFICATION",
         )
 
 @api_view(["GET"])

@@ -11,11 +11,64 @@ import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
-const API_BASE = typeof window !== "undefined" 
-  ? "" 
+const API_BASE = typeof window !== "undefined"
+  ? ""
   : (process.env.NEXT_PUBLIC_API_URL ?? "https://admin.haskerrealtygroup.com");
 const STORAGE_KEY = "hasker_app_draft";
 const SAVED_PROFILE_KEY = "hasker_saved_profile";
+const MAX_PROOF_SIZE = 10 * 1024 * 1024; // 10 MB
+
+// ── Inline SVG payment logos (avoids CSP issues with external URLs) ───────────
+
+function VenmoLogo() {
+  return (
+    <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" className="w-full h-full" aria-hidden="true">
+      <rect width="32" height="32" rx="7" fill="#3D95CE"/>
+      <path d="M22 9c.7 1.2 1 2.6 1 4.3 0 5-4.3 11.5-7.8 15.7H9.1L6.5 9.6l5.6-.5 1.3 10.8c1.2-2.3 2.8-6 2.8-8.5 0-1.4-.2-2.4-.6-3.1L22 9z" fill="white"/>
+    </svg>
+  );
+}
+function CashAppLogo() {
+  return (
+    <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" className="w-full h-full" aria-hidden="true">
+      <rect width="32" height="32" rx="7" fill="#00D64F"/>
+      <path d="M17.2 9.5V8h-2.4v1.6c-2 .4-3.3 1.8-3.3 3.5 0 2 1.7 2.8 3.3 3.4 1.4.5 2.4.9 2.4 1.8 0 .8-.7 1.3-2 1.3-1.3 0-2.5-.6-3.3-1.4l-1 1.5c.8.9 2 1.5 3.9 1.7V24h2.4v-1.6c2.2-.4 3.5-1.9 3.5-3.7 0-2-1.7-2.9-3.4-3.5-1.4-.5-2.2-.9-2.2-1.6 0-.7.6-1.1 1.5-1.1 1.1 0 2.2.5 2.9 1.2l1-1.5c-.9-.8-2.1-1.3-3.3-1.7z" fill="white"/>
+    </svg>
+  );
+}
+function PayPalLogo() {
+  return (
+    <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" className="w-full h-full" aria-hidden="true">
+      <rect width="32" height="32" rx="7" fill="#F4F6F8"/>
+      <path d="M19.8 8H14a.5.5 0 0 0-.5.4L11 23.6c0 .2.1.4.4.4h2.6c.3 0 .5-.2.5-.5l.6-3.7c.1-.3.3-.5.6-.5H17c3.4 0 5.5-1.7 6-4.9.3-1.4 0-2.6-.6-3.4C21.7 9.7 20.9 8 19.8 8zm.5 5c-.3 2-1.7 2-3 2h-.8l.6-3.6c0-.2.2-.3.3-.3h.4c.9 0 1.8 0 2.2.5.3.4.4.9.3 1.4z" fill="#003087"/>
+      <path d="M22.5 13h-2.6c-.2 0-.3.1-.3.3l-.1.5c.5-.7 1.5-1 2.5-1h.2c1.8 0 3 .8 3.4 2.3.7 2.8-1.2 5.2-4 5.2h-.9c-.3 0-.5.2-.6.4l-.6 3.7c0 .2-.2.4-.4.4h-2.4c-.2 0-.4-.2-.3-.4l1.2-7.7" fill="#009CDE"/>
+    </svg>
+  );
+}
+function ChimeLogo() {
+  return (
+    <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" className="w-full h-full" aria-hidden="true">
+      <rect width="32" height="32" rx="7" fill="#1DA462"/>
+      <path d="M16 7C10.5 7 6 11.5 6 17s4.5 10 10 10 10-4.5 10-10S21.5 7 16 7zm.5 15.5c-3 0-5.5-2.5-5.5-5.5s2.5-5.5 5.5-5.5c1.5 0 2.8.6 3.8 1.5l-1.8 1.8c-.5-.5-1.2-.8-2-.8-1.7 0-3 1.3-3 3s1.3 3 3 3c.8 0 1.5-.3 2-.8l1.8 1.8c-1 1-2.3 1.5-3.8 1.5z" fill="white"/>
+    </svg>
+  );
+}
+function ZelleLogo() {
+  return (
+    <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" className="w-full h-full" aria-hidden="true">
+      <rect width="32" height="32" rx="7" fill="#6D1ED4"/>
+      <path d="M24 9H8v3l9.5 8H8v3h16v-3L14.5 12H24V9z" fill="white"/>
+    </svg>
+  );
+}
+
+const PAYMENT_LOGOS: Record<string, React.ReactNode> = {
+  VENMO:         <VenmoLogo />,
+  CASHAPP:       <CashAppLogo />,
+  PAYPAL:        <PayPalLogo />,
+  CHIME:         <ChimeLogo />,
+  BANK_TRANSFER: <ZelleLogo />,
+};
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -571,13 +624,12 @@ export function RentalApplicationForm({ propertySlug }: Props) {
     if (authMode === "register") {
       const domFName = (document.getElementById("auth-first-name") as HTMLInputElement)?.value || "";
       const domLName = (document.getElementById("auth-last-name") as HTMLInputElement)?.value || "";
-      
+
       const fName = domFName.trim() || authForm.first_name.trim() || form.first_name.trim();
       const lName = domLName.trim() || authForm.last_name.trim() || form.last_name.trim();
 
       if (!fName || !lName) {
         setAuthError("Enter your full name.");
-        console.error("Auth validation failed: Missing names", { fName, lName, domFName, domLName });
         return;
       }
       if (!emailVal) { setAuthError("Enter your email."); return; }
@@ -602,11 +654,10 @@ export function RentalApplicationForm({ propertySlug }: Props) {
       } else {
         await login(emailVal, passVal);
       }
-    } catch (err: any) {
-      const { message, fields } = parseBackendError(err.response?.data || err.message || err);
-      setAuthError(message);
-      setErrors(fields);
-      toast.error("Authentication failed", { description: message });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Authentication failed.";
+      setAuthError(msg);
+      toast.error("Authentication failed", { description: msg });
     } finally {
       setAuthLoading(false);
     }
@@ -619,10 +670,10 @@ export function RentalApplicationForm({ propertySlug }: Props) {
     setAuthLoading(true); setAuthError(null);
     try {
       await verifyEmail(authForm.email || form.email, otp);
-    } catch (err: any) {
-      const { message } = parseBackendError(err.response?.data || err.message || err);
-      setAuthError(message);
-      toast.error("Verification failed", { description: message });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Invalid code.";
+      setAuthError(msg);
+      toast.error("Verification failed", { description: msg });
     } finally {
       setAuthLoading(false);
     }
@@ -636,9 +687,8 @@ export function RentalApplicationForm({ propertySlug }: Props) {
       await resendOTP(emailVal);
       setResendCooldown(60);
       toast.success("Code resent successfully");
-    } catch (err: any) {
-      const { message } = parseBackendError(err.response?.data || err.message || err);
-      setAuthError(message);
+    } catch (err: unknown) {
+      setAuthError(err instanceof Error ? err.message : "Failed to resend code.");
     }
   }
 
@@ -669,9 +719,6 @@ export function RentalApplicationForm({ propertySlug }: Props) {
   // ── Final submit ───────────────────────────────────────────────────────────
 
   async function handleSubmit() {
-    if (!validateStep(PAYMENT_STEP)) return;
-    
-    // Validate manual payment fields
     if (!paymentRef.trim()) {
       toast.error("Please enter your transaction reference (e.g. CashTag or Email)");
       return;
@@ -686,43 +733,49 @@ export function RentalApplicationForm({ propertySlug }: Props) {
     setErrors({});
 
     try {
-      // 1. Convert proofFile to Base64
-      let base64Proof = "";
-      if (proofFile) {
-        base64Proof = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.readAsDataURL(proofFile);
-          reader.onload = () => resolve(reader.result as string);
-          reader.onerror = error => reject(error);
-        });
+      // Send as multipart FormData so the file is streamed — avoids Django's
+      // 2.5 MB JSON body limit that breaks base64-encoded image uploads.
+      const fd = new FormData();
+      fd.append("first_name", form.first_name);
+      fd.append("middle_name", form.middle_name);
+      fd.append("last_name", form.last_name);
+      fd.append("email", form.email);
+      fd.append("cell_phone", form.cell_phone);
+      fd.append("home_phone", form.home_phone);
+      fd.append("present_address", form.present_address);
+      fd.append("city", form.city);
+      fd.append("state", form.state);
+      fd.append("zip_code", form.zip_code);
+      fd.append("move_in_date", form.move_in_date);
+      fd.append("intended_stay_duration", form.intended_stay_duration);
+      fd.append("months_rent_upfront", String(form.months_rent_upfront));
+      fd.append("has_kids", String(form.has_kids));
+      fd.append("number_of_kids", String(form.number_of_kids));
+      fd.append("has_pets", String(form.has_pets));
+      fd.append("pet_description", form.pet_description);
+      fd.append("smokes", String(form.smokes));
+      fd.append("drinks", String(form.drinks));
+      if (form.rental_property) fd.append("rental_property", form.rental_property);
+      fd.append("payment_method", selectedMethod);
+      fd.append("reference_id", paymentRef.trim());
+      fd.append("proof_file", proofFile);
+
+      const headers: Record<string, string> = {};
+      if (user) {
+        const token = localStorage.getItem("access_token");
+        if (token) headers.Authorization = `Bearer ${token}`;
       }
 
-      // 2. Prepare JSON payload
-      const payload = {
-        ...form,
-        payment_method: selectedMethod,
-        reference_id: paymentRef,
-        proof_file: base64Proof, // Send Base64 string to backend
-      };
-
-      console.log("Submitting to backend as JSON...");
       const res = await fetch(`${API_BASE}/api/v1/leads/apply/`, {
         method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          ...(user ? { Authorization: `Bearer ${localStorage.getItem("access_token")}` } : {})
-        },
-        body: JSON.stringify(payload),
-      }).catch(err => {
-        console.error("Backend fetch error:", err);
-        throw new Error("Could not connect to the server. Please check your internet or try again later.");
+        headers,
+        body: fd,
       });
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         const { message, fields } = parseBackendError(data);
-        
-        // Auto-navigate to step with error
+
         const errFields = Object.keys(fields);
         if (errFields.length > 0) {
           const first = errFields[0];
@@ -730,7 +783,6 @@ export function RentalApplicationForm({ propertySlug }: Props) {
           else if (["present_address", "city", "state", "zip_code"].includes(first)) setStep(1);
           else if (["move_in_date", "intended_stay_duration"].includes(first)) setStep(2);
           else if (["has_kids", "has_pets"].includes(first)) setStep(3);
-          
           toast.error("Please fix the errors in the form", { description: message });
         } else {
           toast.error(message);
@@ -741,8 +793,7 @@ export function RentalApplicationForm({ propertySlug }: Props) {
       }
 
       const data = await res.json();
-      
-      // Tiered Persistence
+
       const profileToSave = { ...form };
       delete (profileToSave as any).confirmed;
       delete (profileToSave as any).rental_property;
@@ -1314,39 +1365,25 @@ export function RentalApplicationForm({ propertySlug }: Props) {
             {/* Payment Method Selector */}
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
               {[
-                { 
-                  id: "VENMO", label: "Venmo", 
-                  logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Venmo_logo.svg/512px-Venmo_logo.svg.png"
-                },
-                { 
-                  id: "CASHAPP", label: "CashApp", 
-                  logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Square_Cash_app_logo.svg/512px-Square_Cash_app_logo.svg.png"
-                },
-                { 
-                  id: "PAYPAL", label: "PayPal", 
-                  logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/PayPal.svg/512px-PayPal.svg.png"
-                },
-                { 
-                  id: "CHIME", label: "Chime", 
-                  logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Chime_logo.svg/512px-Chime_logo.svg.png"
-                },
-                { 
-                  id: "BANK_TRANSFER", label: "Zelle", 
-                  logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Zelle_logo.svg/512px-Zelle_logo.svg.png"
-                },
+                { id: "VENMO",         label: "Venmo" },
+                { id: "CASHAPP",       label: "CashApp" },
+                { id: "PAYPAL",        label: "PayPal" },
+                { id: "CHIME",         label: "Chime" },
+                { id: "BANK_TRANSFER", label: "Zelle" },
               ].map((m) => (
                 <button
                   key={m.id}
+                  type="button"
                   onClick={() => setSelectedMethod(m.id)}
                   className={cn(
                     "flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all",
-                    selectedMethod === m.id 
-                      ? "border-brand bg-brand/5 shadow-sm" 
+                    selectedMethod === m.id
+                      ? "border-brand bg-brand/5 shadow-sm"
                       : "border-black/[0.05] hover:border-black/10 bg-white"
                   )}
                 >
-                  <div className="w-9 h-9 rounded-xl bg-white flex items-center justify-center shrink-0 border border-black/[0.03] p-1.5">
-                    <img src={m.logoUrl} alt={m.label} className="w-full h-full object-contain" />
+                  <div className="w-9 h-9 rounded-xl overflow-hidden shrink-0">
+                    {PAYMENT_LOGOS[m.id]}
                   </div>
                   <span className="text-[10px] font-bold text-[#1D1D1F] uppercase tracking-tight">{m.label}</span>
                 </button>
@@ -1414,11 +1451,19 @@ export function RentalApplicationForm({ propertySlug }: Props) {
                   "flex flex-col items-center justify-center w-full aspect-[16/6] rounded-2xl border-2 border-dashed transition-all cursor-pointer",
                   proofFile ? "border-brand bg-brand/5" : "border-black/10 hover:border-black/20 bg-[#F5F5F7]"
                 )}>
-                  <input 
-                    type="file" 
-                    accept="image/*" 
-                    className="sr-only" 
-                    onChange={(e) => setProofFile(e.target.files?.[0] || null)}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="sr-only"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0] || null;
+                      if (f && f.size > MAX_PROOF_SIZE) {
+                        toast.error("File too large — maximum 10 MB allowed.");
+                        e.target.value = "";
+                        return;
+                      }
+                      setProofFile(f);
+                    }}
                   />
                   {proofFile ? (
                     <div className="flex flex-col items-center text-center px-4">

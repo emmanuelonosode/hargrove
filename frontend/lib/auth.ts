@@ -36,7 +36,7 @@ export function saveTokens(tokens: AuthTokens) {
   localStorage.setItem("access_token", tokens.access);
   localStorage.setItem("refresh_token", tokens.refresh);
   localStorage.setItem("auth_user", JSON.stringify(tokens.user));
-  setCookie("access_token", tokens.access, 60 * 60); // 1 hour
+  setCookie("access_token", tokens.access, 4 * 60 * 60); // 4 hours — matches JWT expiry
 }
 
 export function clearTokens() {
@@ -147,7 +147,7 @@ export async function refreshAccessToken(): Promise<string | null> {
     if (!res.ok) return null;
     const data: { access: string } = await res.json();
     localStorage.setItem("access_token", data.access);
-    setCookie("access_token", data.access, 60 * 60);
+    setCookie("access_token", data.access, 4 * 60 * 60);
     return data.access;
   } catch {
     return null;

@@ -49,11 +49,31 @@ class InvoiceSerializer(serializers.ModelSerializer):
         read_only_fields = ["invoice_number", "created_at"]
 
 class ClientInvoiceSerializer(serializers.ModelSerializer):
-    property_title = serializers.CharField(source="transaction.property.title", read_only=True)
+    property_title = serializers.SerializerMethodField()
+    property_address = serializers.SerializerMethodField()
+    transaction_type = serializers.SerializerMethodField()
+
+    def get_property_title(self, obj):
+        if obj.transaction and obj.transaction.property:
+            return obj.transaction.property.title
+        return ""
+
+    def get_property_address(self, obj):
+        p = obj.transaction.property if obj.transaction else None
+        if p:
+            parts = [p.address, p.city, p.state]
+            return ", ".join(x for x in parts if x)
+        return ""
+
+    def get_transaction_type(self, obj):
+        return obj.transaction.transaction_type if obj.transaction else ""
 
     class Meta:
         model = Invoice
         fields = [
-            "id", "invoice_number", "issued_date", "due_date",
-            "total", "status", "pdf", "property_title"
+            "id", "invoice_number", "title", "description",
+            "issued_date", "due_date", "line_items",
+            "subtotal", "tax_rate", "tax_amount", "total",
+            "status", "pdf", "created_at",
+            "property_title", "property_address", "transaction_type",
         ]
