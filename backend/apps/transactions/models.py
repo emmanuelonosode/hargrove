@@ -222,22 +222,28 @@ class Invoice(models.Model):
 def trigger_invoice_notification(sender, instance, created, **kwargs):
     """Trigger email when invoice is marked as SENT."""
     if instance.status == "SENT":
-        from apps.notifications.tasks import send_invoice_email
-        # Ensure we don't spam — maybe check if PDF exists?
-        # send_invoice_email handles the PDF check and email sending.
-        if instance.pdf:
-            send_invoice_email.delay(instance.pk)
+        try:
+            from apps.notifications.tasks import send_invoice_email
+            # Ensure we don't spam — maybe check if PDF exists?
+            # send_invoice_email handles the PDF check and email sending.
+            if instance.pdf:
+                send_invoice_email.delay(instance.pk)
+        except Exception:
+            pass
 
 
 @receiver(post_save, sender=Payment)
 def trigger_payment_notifications(sender, instance, created, **kwargs):
     """Trigger emails for payment submission and verification."""
-    from apps.notifications.tasks import send_payment_submitted_email, send_payment_verified_email
-    
-    if created and instance.status == "PENDING_VERIFICATION":
-        send_payment_submitted_email.delay(instance.pk)
-    
-    # Check for transition to VERIFIED
-    # (Note: simpler to just check if status is VERIFIED on any save)
-    if instance.status == "VERIFIED" and instance.verified_at:
-        send_payment_verified_email.delay(instance.pk)
+    try:
+        from apps.notifications.tasks import send_payment_submitted_email, send_payment_verified_email
+        
+        if created and instance.status == "PENDING_VERIFICATION":
+            send_payment_submitted_email.delay(instance.pk)
+        
+        # Check for transition to VERIFIED
+        # (Note: simpler to just check if status is VERIFIED on any save)
+        if instance.status == "VERIFIED" and instance.verified_at:
+            send_payment_verified_email.delay(instance.pk)
+    except Exception:
+        pass
