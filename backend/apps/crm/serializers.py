@@ -132,7 +132,7 @@ class RentalApplicationCreateSerializer(serializers.ModelSerializer):
     payment_method = serializers.CharField(write_only=True, required=False)
     reference_id   = serializers.CharField(write_only=True, required=False)
     proof_image    = serializers.CharField(write_only=True, required=False)
-    proof_file     = serializers.CharField(write_only=True, required=False)
+    proof_file     = serializers.FileField(write_only=True, required=False, allow_empty_file=False)
 
     def create(self, validated_data):
         # Remove non-model fields used for payment proof

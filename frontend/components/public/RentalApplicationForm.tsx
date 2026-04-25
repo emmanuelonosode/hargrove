@@ -1382,68 +1382,99 @@ export function RentalApplicationForm({ propertySlug }: Props) {
 
       {/* ── Payment Step ──────────────────────────────────────────────── */}
       {step === PAYMENT_STEP && (
-        <Section icon={Lock} title="Pay Application Fee" sub="Choose your preferred method and upload proof of transfer">
-          <div className="space-y-6">
-            
-            {/* Payment Method Selector */}
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-              {(paymentConfig.length > 0 ? paymentConfig : FALLBACK_METHODS).map((m) => (
-                <button
-                  key={m.method}
-                  type="button"
-                  onClick={() => setSelectedMethod(m.method)}
-                  className={cn(
-                    "flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all",
-                    selectedMethod === m.method
-                      ? "border-brand bg-brand/5 shadow-sm"
-                      : "border-black/[0.05] hover:border-black/10 bg-white"
-                  )}
-                >
-                  <div className="w-9 h-9 rounded-xl overflow-hidden shrink-0">
-                    {PAYMENT_LOGOS[m.method]}
-                  </div>
-                  <span className="text-[10px] font-bold text-[#1D1D1F] uppercase tracking-tight">{m.display_name}</span>
-                </button>
-              ))}
+        <Section icon={Lock} title="Application Fee" sub="One-time, non-refundable · covers processing & background check">
+          <div className="space-y-5">
+
+            {/* Fee summary */}
+            <div className="flex items-center justify-between px-4 py-3.5 bg-[#F5F5F7] rounded-2xl">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-white shadow-sm flex items-center justify-center shrink-0">
+                  <Lock size={15} className="text-brand" />
+                </div>
+                <div>
+                  <p className="text-[13px] font-bold text-[#1D1D1F]">Application Fee</p>
+                  <p className="text-[11px] text-[#6E6E73]">One-time · non-refundable</p>
+                </div>
+              </div>
+              <p className="text-[22px] font-bold text-[#1D1D1F]">
+                $50<span className="text-[14px] font-semibold text-[#6E6E73]">.00</span>
+              </p>
             </div>
 
-            {/* Transfer Instructions */}
+            {/* Payment method selector */}
+            <div>
+              <p className="text-[10px] font-bold text-[#6E6E73] uppercase tracking-widest mb-2">Choose payment method</p>
+              <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                {(paymentConfig.length > 0 ? paymentConfig : FALLBACK_METHODS).map((m) => (
+                  <button
+                    key={m.method}
+                    type="button"
+                    onClick={() => setSelectedMethod(m.method)}
+                    className={cn(
+                      "flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all",
+                      selectedMethod === m.method
+                        ? "border-brand bg-brand/5 shadow-sm"
+                        : "border-transparent bg-[#F5F5F7] opacity-55 hover:opacity-80"
+                    )}
+                  >
+                    <div className="w-9 h-9 rounded-xl overflow-hidden shrink-0">
+                      {PAYMENT_LOGOS[m.method]}
+                    </div>
+                    <span className={cn(
+                      "text-[9px] font-bold leading-none text-center",
+                      selectedMethod === m.method ? "text-brand" : "text-[#6E6E73]"
+                    )}>
+                      {m.display_name}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Dark instruction box */}
             {(() => {
               const methods = paymentConfig.length > 0 ? paymentConfig : FALLBACK_METHODS;
               const cfg = methods.find((m) => m.method === selectedMethod) ?? methods[0];
               return (
-                <div className="bg-[#F5F5F7] rounded-2xl p-5 border border-black/[0.03]">
-                  <h4 className="text-[13px] font-bold text-[#1D1D1F] mb-3">Transfer Instructions</h4>
-                  <div className="space-y-2">
-                    <p className="text-[13px] text-[#6E6E73]">
-                      Send <span className="font-bold text-[#1D1D1F]">$50.00</span> to {cfg.display_name}:
-                    </p>
-                    <p className="text-[18px] font-bold text-[#1D1D1F] tracking-tight">{cfg.handle}</p>
-                    {cfg.extra_instructions && (
-                      <p className="text-[11px] text-[#6E6E73]">{cfg.extra_instructions}</p>
-                    )}
+                <div className="bg-[#0B1F3A] rounded-2xl p-5 text-white">
+                  <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-3">Send to</p>
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0">
+                      {PAYMENT_LOGOS[cfg.method]}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[19px] font-bold tracking-tight truncate">{cfg.handle}</p>
+                      <p className="text-[12px] text-white/50">{cfg.display_name}</p>
+                    </div>
                   </div>
+                  <div className="pt-3 border-t border-white/10 flex items-center justify-between">
+                    <p className="text-[12px] text-white/50">Amount due</p>
+                    <p className="text-[18px] font-bold">$50.00</p>
+                  </div>
+                  {cfg.extra_instructions && (
+                    <p className="text-[11px] text-white/40 mt-2">{cfg.extra_instructions}</p>
+                  )}
                 </div>
               );
             })()}
 
-            {/* Proof Upload */}
+            {/* Transaction ref + proof upload */}
             <div className="space-y-4">
               <div>
-                <Label isAutofilled={autofilledFields.has("payment_ref")}>Transaction Ref / Your Username *</Label>
-                <Input 
+                <Label isAutofilled={autofilledFields.has("payment_ref")}>Your transaction ref / username *</Label>
+                <Input
                   isAutofilled={autofilledFields.has("payment_ref")}
                   onClearAutofill={() => setAutofilledFields(prev => { const n = new Set(prev); n.delete("payment_ref"); return n; })}
-                  value={paymentRef} 
-                  onChange={(e) => setPaymentRef(e.target.value)} 
+                  value={paymentRef}
+                  onChange={(e) => setPaymentRef(e.target.value)}
                   placeholder={selectedMethod === "CASHAPP" ? "Your $CashTag" : selectedMethod === "VENMO" ? "Your @Username" : "Confirmation # or Email"}
                 />
               </div>
 
-              <div className="relative">
-                <Label>Upload Receipt Screenshot *</Label>
+              <div>
+                <Label>Upload receipt screenshot *</Label>
                 <label className={cn(
-                  "flex flex-col items-center justify-center w-full aspect-[16/6] rounded-2xl border-2 border-dashed transition-all cursor-pointer",
+                  "flex items-center justify-center gap-3 w-full py-6 rounded-2xl border-2 border-dashed transition-all cursor-pointer",
                   proofFile ? "border-brand bg-brand/5" : "border-black/10 hover:border-black/20 bg-[#F5F5F7]"
                 )}>
                   <input
@@ -1461,26 +1492,30 @@ export function RentalApplicationForm({ propertySlug }: Props) {
                     }}
                   />
                   {proofFile ? (
-                    <div className="flex flex-col items-center text-center px-4">
-                      <Check size={24} className="text-brand mb-1" />
-                      <p className="text-[13px] font-semibold text-brand truncate max-w-full">{proofFile.name}</p>
-                      <p className="text-[10px] text-brand/60 uppercase font-bold mt-1">Tap to change</p>
-                    </div>
+                    <>
+                      <Check size={18} className="text-brand shrink-0" />
+                      <div>
+                        <p className="text-[13px] font-semibold text-brand truncate max-w-[200px]">{proofFile.name}</p>
+                        <p className="text-[10px] text-brand/60">tap to change · {(proofFile.size / 1024 / 1024).toFixed(1)} MB</p>
+                      </div>
+                    </>
                   ) : (
-                    <div className="flex flex-col items-center text-[#6E6E73]">
-                      <Camera size={24} className="mb-2 opacity-50" />
-                      <p className="text-[13px] font-medium">Capture or Upload Receipt</p>
-                      <p className="text-[11px] opacity-60 mt-1">PNG, JPG or Screenshot</p>
-                    </div>
+                    <>
+                      <Camera size={20} className="text-[#6E6E73] opacity-50 shrink-0" />
+                      <div>
+                        <p className="text-[13px] font-medium text-[#6E6E73]">Capture or upload receipt</p>
+                        <p className="text-[11px] text-[#6E6E73] opacity-60">PNG, JPG or screenshot · up to 10 MB</p>
+                      </div>
+                    </>
                   )}
                 </label>
               </div>
             </div>
 
             <div className="flex items-start gap-3 p-4 bg-green-50 rounded-xl border border-green-100">
-              <Shield className="text-green-600 shrink-0" size={18} />
+              <Shield className="text-green-600 shrink-0 mt-0.5" size={15} />
               <p className="text-[12px] text-green-700 leading-relaxed">
-                Your payment proof will be manually verified by our team. You will receive an email once confirmed.
+                Your proof will be verified manually. You&apos;ll receive a confirmation email once approved — typically within 1–2 business hours.
               </p>
             </div>
 
