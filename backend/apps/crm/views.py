@@ -247,9 +247,10 @@ class RentalApplicationCreateView(generics.CreateAPIView):
             application = serializer.save(ip_address=ip)
 
             
-        # Trigger async PDF generation
+        # Fire immediate applicant confirmation email (independent of PDF)
         try:
-            from apps.notifications.tasks import generate_rental_application_pdf
+            from apps.notifications.tasks import send_application_submitted_email, generate_rental_application_pdf
+            send_application_submitted_email.delay(application.id)
             generate_rental_application_pdf.delay(application.id)
         except Exception:
             pass  # Celery may not be running in dev — fail silently
@@ -259,4 +260,4 @@ class RentalApplicationDetailView(generics.RetrieveUpdateAPIView):
     """GET/PATCH /api/v1/leads/apply/<pk>/ — staff only."""
     serializer_class   = RentalApplicationAdminSerializer
     permission_classes = [IsAgentOrAbove]
-    queryset           = RentalApplication.objects.select_related("property", "lead")
+    queryset           = RentalApplication.objects.select_related("rental_property", "lead")

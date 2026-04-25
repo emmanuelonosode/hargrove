@@ -1,7 +1,16 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from unfold.admin import ModelAdmin, TabularInline
-from .models import Transaction, Payment, Invoice, TransactionStatus, InvoiceStatus
+from .models import Transaction, Payment, Invoice, TransactionStatus, InvoiceStatus, PaymentMethodConfig
+
+
+@admin.register(PaymentMethodConfig)
+class PaymentMethodConfigAdmin(ModelAdmin):
+    list_display = ["method", "display_name", "handle", "is_active", "updated_at"]
+    list_editable = ["handle", "display_name", "is_active"]
+    list_display_links = ["method"]
+    ordering = ["method"]
+    fields = ["method", "display_name", "handle", "is_active", "extra_instructions"]
 
 
 class PaymentInline(TabularInline):

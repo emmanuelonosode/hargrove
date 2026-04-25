@@ -18,6 +18,21 @@ const STORAGE_KEY = "hasker_app_draft";
 const SAVED_PROFILE_KEY = "hasker_saved_profile";
 const MAX_PROOF_SIZE = 10 * 1024 * 1024; // 10 MB
 
+interface PaymentConfig {
+  method: string;
+  display_name: string;
+  handle: string;
+  extra_instructions: string;
+}
+
+const FALLBACK_METHODS: PaymentConfig[] = [
+  { method: "VENMO",         display_name: "Venmo",    handle: "@HaskerRealty",                  extra_instructions: "Include your name in the payment note." },
+  { method: "CASHAPP",       display_name: "CashApp",  handle: "$HaskerRealty",                  extra_instructions: "Include your full name in the CashApp notes." },
+  { method: "PAYPAL",        display_name: "PayPal",   handle: "payments@haskerrealtygroup.com", extra_instructions: 'Use "Friends & Family" to avoid delays.' },
+  { method: "CHIME",         display_name: "Chime",    handle: "@Hasker-Realty",                 extra_instructions: "" },
+  { method: "BANK_TRANSFER", display_name: "Zelle",    handle: "info@haskerrealtygroup.com",     extra_instructions: "" },
+];
+
 // ── Inline SVG payment logos (avoids CSP issues with external URLs) ───────────
 
 function VenmoLogo() {
@@ -441,7 +456,14 @@ export function RentalApplicationForm({ propertySlug }: Props) {
   const [selectedMethod, setSelectedMethod] = useState<string>("CASHAPP");
   const [paymentRef, setPaymentRef] = useState("");
   const [proofFile, setProofFile] = useState<File | null>(null);
-  const [uploadingProof, setUploadingProof] = useState(false);
+  const [paymentConfig, setPaymentConfig] = useState<PaymentConfig[]>([]);
+
+  useEffect(() => {
+    fetch(`${API_BASE}/api/v1/transactions/payment-config/`)
+      .then((r) => r.ok ? r.json() : [])
+      .then((data) => { if (Array.isArray(data) && data.length > 0) setPaymentConfig(data); })
+      .catch(() => {});
+  }, []);
 
   // LocalStorage fallback for guests
   useEffect(() => {
@@ -789,7 +811,8 @@ export function RentalApplicationForm({ propertySlug }: Props) {
         }
 
         setErrors(fields);
-        throw new Error(message);
+        setServerError(message);
+        return;
       }
 
       const data = await res.json();
@@ -1364,73 +1387,45 @@ export function RentalApplicationForm({ propertySlug }: Props) {
             
             {/* Payment Method Selector */}
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-              {[
-                { id: "VENMO",         label: "Venmo" },
-                { id: "CASHAPP",       label: "CashApp" },
-                { id: "PAYPAL",        label: "PayPal" },
-                { id: "CHIME",         label: "Chime" },
-                { id: "BANK_TRANSFER", label: "Zelle" },
-              ].map((m) => (
+              {(paymentConfig.length > 0 ? paymentConfig : FALLBACK_METHODS).map((m) => (
                 <button
-                  key={m.id}
+                  key={m.method}
                   type="button"
-                  onClick={() => setSelectedMethod(m.id)}
+                  onClick={() => setSelectedMethod(m.method)}
                   className={cn(
                     "flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all",
-                    selectedMethod === m.id
+                    selectedMethod === m.method
                       ? "border-brand bg-brand/5 shadow-sm"
                       : "border-black/[0.05] hover:border-black/10 bg-white"
                   )}
                 >
                   <div className="w-9 h-9 rounded-xl overflow-hidden shrink-0">
-                    {PAYMENT_LOGOS[m.id]}
+                    {PAYMENT_LOGOS[m.method]}
                   </div>
-                  <span className="text-[10px] font-bold text-[#1D1D1F] uppercase tracking-tight">{m.label}</span>
+                  <span className="text-[10px] font-bold text-[#1D1D1F] uppercase tracking-tight">{m.display_name}</span>
                 </button>
               ))}
             </div>
 
-            {/* Dynamic Instructions */}
-            <div className="bg-[#F5F5F7] rounded-2xl p-5 border border-black/[0.03]">
-              <h4 className="text-[13px] font-bold text-[#1D1D1F] mb-3">Transfer Instructions</h4>
-              
-              {selectedMethod === "VENMO" && (
-                <div className="space-y-2">
-                  <p className="text-[13px] text-[#6E6E73]">Send <span className="font-bold text-[#1D1D1F]">$50.00</span> to Venmo:</p>
-                  <p className="text-[18px] font-bold text-[#3D95CE] tracking-tight">@HaskerRealty</p>
-                  <p className="text-[11px] text-[#6E6E73]">Include your name in the Venmo payment note.</p>
-                </div>
-              )}
-              {selectedMethod === "CASHAPP" && (
-                <div className="space-y-2">
-                  <p className="text-[13px] text-[#6E6E73]">Send <span className="font-bold text-[#1D1D1F]">$50.00</span> to:</p>
-                  <p className="text-[18px] font-bold text-[#00D632] tracking-tight">$HaskerRealty</p>
-                  <p className="text-[11px] text-[#6E6E73]">Include your full name in the CashApp notes.</p>
-                </div>
-              )}
-              {selectedMethod === "PAYPAL" && (
-                <div className="space-y-2">
-                  <p className="text-[13px] text-[#6E6E73]">Send <span className="font-bold text-[#1D1D1F]">$50.00</span> via PayPal to:</p>
-                  <p className="text-[16px] font-bold text-[#003087]">payments@haskerrealtygroup.com</p>
-                  <p className="text-[11px] text-[#6E6E73]">Use "Friends & Family" to avoid delays.</p>
-                </div>
-              )}
-              {selectedMethod === "CHIME" && (
-                <div className="space-y-2">
-                  <p className="text-[13px] text-[#6E6E73]">Send <span className="font-bold text-[#1D1D1F]">$50.00</span> to Chime user:</p>
-                  <p className="text-[18px] font-bold text-[#25D366]">@Hasker-Realty</p>
-                </div>
-              )}
-              {selectedMethod === "BANK_TRANSFER" && (
-                <div className="space-y-2">
-                  <p className="text-[13px] text-[#6E6E73]">Transfer <span className="font-bold text-[#1D1D1F]">$50.00</span> via Zelle or Bank:</p>
-                  <div className="text-[12px] text-[#1D1D1F] font-medium leading-relaxed">
-                    Account: Hasker & Co Realty<br/>
-                    Zelle: info@haskerrealtygroup.com
+            {/* Transfer Instructions */}
+            {(() => {
+              const methods = paymentConfig.length > 0 ? paymentConfig : FALLBACK_METHODS;
+              const cfg = methods.find((m) => m.method === selectedMethod) ?? methods[0];
+              return (
+                <div className="bg-[#F5F5F7] rounded-2xl p-5 border border-black/[0.03]">
+                  <h4 className="text-[13px] font-bold text-[#1D1D1F] mb-3">Transfer Instructions</h4>
+                  <div className="space-y-2">
+                    <p className="text-[13px] text-[#6E6E73]">
+                      Send <span className="font-bold text-[#1D1D1F]">$50.00</span> to {cfg.display_name}:
+                    </p>
+                    <p className="text-[18px] font-bold text-[#1D1D1F] tracking-tight">{cfg.handle}</p>
+                    {cfg.extra_instructions && (
+                      <p className="text-[11px] text-[#6E6E73]">{cfg.extra_instructions}</p>
+                    )}
                   </div>
                 </div>
-              )}
-            </div>
+              );
+            })()}
 
             {/* Proof Upload */}
             <div className="space-y-4">
@@ -1441,7 +1436,7 @@ export function RentalApplicationForm({ propertySlug }: Props) {
                   onClearAutofill={() => setAutofilledFields(prev => { const n = new Set(prev); n.delete("payment_ref"); return n; })}
                   value={paymentRef} 
                   onChange={(e) => setPaymentRef(e.target.value)} 
-                  placeholder={selectedMethod === "CASHAPP" ? "Your $CashTag" : "Confirmation # or Email"} 
+                  placeholder={selectedMethod === "CASHAPP" ? "Your $CashTag" : selectedMethod === "VENMO" ? "Your @Username" : "Confirmation # or Email"}
                 />
               </div>
 

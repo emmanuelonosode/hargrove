@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Payment, Transaction, Invoice
+from .models import Payment, Transaction, Invoice, PaymentMethodConfig
 
 class PaymentSerializer(serializers.ModelSerializer):
     proof_file = serializers.CharField(write_only=True, required=False)
@@ -47,6 +47,12 @@ class InvoiceSerializer(serializers.ModelSerializer):
         model = Invoice
         fields = "__all__"
         read_only_fields = ["invoice_number", "created_at"]
+
+class PaymentMethodConfigSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PaymentMethodConfig
+        fields = ["method", "display_name", "handle", "extra_instructions"]
+
 
 class ClientInvoiceSerializer(serializers.ModelSerializer):
     property_title = serializers.SerializerMethodField()

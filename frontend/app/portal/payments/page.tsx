@@ -51,6 +51,13 @@ interface Payment {
   invoice: number | null;
 }
 
+interface PaymentConfig {
+  method: string;
+  display_name: string;
+  handle: string;
+  extra_instructions: string;
+}
+
 const STATUS = {
   SENT:  { label: "Due",   icon: Clock,       text: "text-[#FF9F0A]", bg: "bg-[#F5F5F7]" },
   PAID:  { label: "Paid",  icon: CheckCircle, text: "text-[#34C759]", bg: "bg-[#F5F5F7]" },
@@ -131,12 +138,22 @@ const PAYMENT_LOGOS: Record<string, React.ReactNode> = {
 
 type ModalStep = "form" | "success";
 
+const FALLBACK_METHODS: PaymentConfig[] = [
+  { method: "VENMO",         display_name: "Venmo",    handle: "@HaskerRealty",                    extra_instructions: "" },
+  { method: "CASHAPP",       display_name: "Cash App", handle: "$HaskerRealty",                    extra_instructions: "" },
+  { method: "PAYPAL",        display_name: "PayPal",   handle: "payments@haskerrealtygroup.com",   extra_instructions: "Use Friends & Family to avoid delays." },
+  { method: "CHIME",         display_name: "Chime",    handle: "@Hasker-Realty",                   extra_instructions: "" },
+  { method: "BANK_TRANSFER", display_name: "Zelle",    handle: "info@haskerrealtygroup.com",       extra_instructions: "" },
+];
+
 function PaymentModal({
   invoice,
+  paymentConfig,
   onClose,
   onSuccess,
 }: {
   invoice: Invoice;
+  paymentConfig: PaymentConfig[];
   onClose: () => void;
   onSuccess: () => void;
 }) {
@@ -199,13 +216,12 @@ function PaymentModal({
     }
   }
 
-  const methods = [
-    { id: "VENMO",         label: "Venmo",    handle: "@HaskerRealty" },
-    { id: "CASHAPP",       label: "Cash App", handle: "$HaskerRealty" },
-    { id: "PAYPAL",        label: "PayPal",   handle: "payments@haskerrealtygroup.com" },
-    { id: "CHIME",         label: "Chime",    handle: "@Hasker-Realty" },
-    { id: "BANK_TRANSFER", label: "Zelle",    handle: "info@haskerrealtygroup.com" },
-  ];
+  const methods = (paymentConfig.length > 0 ? paymentConfig : FALLBACK_METHODS).map((c) => ({
+    id: c.method,
+    label: c.display_name,
+    handle: c.handle,
+    extra: c.extra_instructions,
+  }));
 
   const current = methods.find((m) => m.id === method) ?? methods[0];
 
@@ -292,6 +308,9 @@ function PaymentModal({
                 </div>
                 <p className="text-[17px] font-bold text-[#1D1D1F] tracking-tight">{current.handle}</p>
               </div>
+              {current.extra && (
+                <p className="text-[12px] text-[#6E6E73] mt-1">{current.extra}</p>
+              )}
               <p className="text-[12px] text-[#6E6E73] mt-2">
                 Include invoice{" "}
                 <span className="font-mono font-bold text-brand">{invoice.invoice_number}</span>{" "}
@@ -383,6 +402,7 @@ function PaymentModal({
 export default function PaymentsPage() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
+  const [paymentConfig, setPaymentConfig] = useState<PaymentConfig[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [expanded, setExpanded] = useState<number | null>(null);
@@ -392,14 +412,19 @@ export default function PaymentsPage() {
     setLoading(true);
     setLoadError(false);
     try {
-      const [invRes, payRes] = await Promise.all([
+      const [invRes, payRes, configRes] = await Promise.all([
         apiFetch(`${API_BASE}/api/v1/transactions/my-invoices/`),
         apiFetch(`${API_BASE}/api/v1/transactions/my-payments/`),
+        fetch(`${API_BASE}/api/v1/transactions/payment-config/`),
       ]);
       if (!invRes.ok || !payRes.ok) throw new Error("API error");
       const [invData, payData] = await Promise.all([invRes.json(), payRes.json()]);
       setInvoices(invData?.results ?? (Array.isArray(invData) ? invData : []));
       setPayments(payData?.results ?? (Array.isArray(payData) ? payData : []));
+      if (configRes.ok) {
+        const configData = await configRes.json();
+        setPaymentConfig(Array.isArray(configData) ? configData : []);
+      }
     } catch {
       setLoadError(true);
     } finally {
@@ -426,6 +451,7 @@ export default function PaymentsPage() {
         {selectedInvoice && (
           <PaymentModal
             invoice={selectedInvoice}
+            paymentConfig={paymentConfig}
             onClose={() => setSelectedInvoice(null)}
             onSuccess={() => {
               fetchData();

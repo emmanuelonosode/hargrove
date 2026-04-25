@@ -177,7 +177,8 @@
       "Bash(ls ../venv/)",
       "Bash(which python3 *)",
       "Bash(which python *)",
-      "Bash(grep -E \"\\\\.\\(tsx|ts|jsx|js\\)$\")"
+      "Bash(grep -E \"\\\\.\\(tsx|ts|jsx|js\\)$\")",
+      "Bash(cmd.exe *)"
     ]
   }
 }

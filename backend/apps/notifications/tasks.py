@@ -559,7 +559,42 @@ def send_move_in_instructions_email(self, application_id: int):
 
 
 # ---------------------------------------------------------------------------
-# Rental Application PDF
+# Rental Application emails / PDF
+
+@shared_task(bind=True, max_retries=3, default_retry_delay=60)
+def send_application_submitted_email(self, application_id: int):
+    """
+    Send an immediate HTML confirmation to the applicant when their application
+    is received. Fires directly from perform_create — does NOT depend on PDF
+    generation, so the applicant always gets a confirmation even if Celery or
+    WeasyPrint is misconfigured.
+    """
+    try:
+        from apps.crm.models import RentalApplication
+
+        app = RentalApplication.objects.select_related("rental_property").get(pk=application_id)
+
+        from_header, connection = _get_email_sender()
+        subject = "Your Application Has Been Received — Hasker & Co. Realty Group"
+        body = render_to_string("notifications/application_submitted.html", {
+            "app": app,
+            "frontend_url": settings.FRONTEND_URL,
+        })
+
+        msg = EmailMessage(
+            subject=subject,
+            body=body,
+            from_email=from_header,
+            to=[app.email],
+            connection=connection,
+        )
+        msg.content_subtype = "html"
+        msg.send()
+        return f"Application confirmation sent to {app.email}"
+
+    except Exception as exc:
+        raise self.retry(exc=exc)
+
 
 @shared_task(bind=True, max_retries=3, default_retry_delay=120)
 def generate_rental_application_pdf(self, application_id: int):
@@ -608,36 +643,38 @@ def generate_rental_application_pdf(self, application_id: int):
 
 
 def _send_rental_application_emails(app, pdf_url: str):
-    """Email confirmation + PDF to applicant and notification to agent."""
+    """Email PDF + notification to the property agent/managers after PDF generation."""
     try:
         import urllib.request
         pdf_data = urllib.request.urlopen(pdf_url).read()
     except Exception:
         pdf_data = None
 
-    # Email to applicant
-    body = render_to_string("notifications/rental_application_email.txt", {"app": app, "pdf_url": pdf_url})
-    msg  = EmailMessage(
-        subject=f"Your Rental Application — Hasker & Co. Realty Group",
-        body=body,
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        to=[app.email],
-    )
-    if pdf_data:
-        msg.attach(f"RentalApplication_{app.last_name}.pdf", pdf_data, "application/pdf")
-    msg.send(fail_silently=True)
+    from_header, connection = _get_email_sender()
 
-    # Email to assigned agent (via property agent)
+    # Determine agent recipients
     if app.rental_property and app.rental_property.agent:
+        agent_recipients = [app.rental_property.agent.email]
+    else:
+        # Fall back to notifying all active managers
+        from apps.accounts.models import CustomUser, Role
+        agent_recipients = list(
+            CustomUser.objects.filter(role=Role.MANAGER, is_active=True).values_list("email", flat=True)
+        )
+
+    if agent_recipients:
+        admin_url = getattr(settings, "BACKEND_ADMIN_URL", settings.FRONTEND_URL)
         agent_body = render_to_string(
             "notifications/rental_application_agent_email.txt",
-            {"app": app},
+            {"app": app, "admin_url": admin_url},
         )
+        prop_title = app.rental_property.title if app.rental_property else "No property"
         agent_msg = EmailMessage(
-            subject=f"New Rental Application: {app.full_name} for {app.rental_property.title}",
+            subject=f"New Rental Application: {app.full_name} — {prop_title}",
             body=agent_body,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            to=[app.rental_property.agent.email],
+            from_email=from_header,
+            to=agent_recipients,
+            connection=connection,
         )
         if pdf_data:
             agent_msg.attach(f"RentalApplication_{app.last_name}.pdf", pdf_data, "application/pdf")

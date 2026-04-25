@@ -5,10 +5,11 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 
 from apps.accounts.permissions import IsAgentOrAbove, IsManagerOrAbove, IsAccountantOrAbove
-from .models import Transaction, Payment, Invoice, TransactionStatus
+from .models import Transaction, Payment, Invoice, TransactionStatus, PaymentMethodConfig
 from .serializers import (
     TransactionListSerializer, TransactionDetailSerializer,
     PaymentSerializer, InvoiceSerializer, ClientInvoiceSerializer,
+    PaymentMethodConfigSerializer,
 )
 
 
@@ -57,7 +58,6 @@ class TransactionDetailView(generics.RetrieveUpdateAPIView):
 
     def perform_update(self, serializer):
         instance = serializer.save()
-        # Auto-set completed_at when status changes to COMPLETED
         if instance.status == TransactionStatus.COMPLETED and not instance.completed_at:
             Transaction.objects.filter(pk=instance.pk).update(completed_at=timezone.now())
 
@@ -74,7 +74,6 @@ class PaymentListCreateView(generics.ListCreateAPIView):
         transaction = Transaction.objects.get(pk=self.kwargs["transaction_pk"])
         payment = serializer.save(transaction=transaction)
 
-        # Trigger receipt PDF generation for successful payments
         if payment.status == "SUCCESSFUL":
             try:
                 from apps.notifications.tasks import generate_payment_receipt
@@ -95,7 +94,6 @@ class InvoiceListCreateView(generics.ListCreateAPIView):
         transaction = Transaction.objects.get(pk=self.kwargs["transaction_pk"])
         invoice = serializer.save(transaction=transaction)
 
-        # Kick off PDF generation
         try:
             from apps.notifications.tasks import generate_invoice_pdf
             generate_invoice_pdf.delay(invoice.id)
@@ -135,9 +133,10 @@ class UserPaymentListView(generics.ListAPIView):
     def get_queryset(self):
         from django.db.models import Q
         return Payment.objects.filter(
-            Q(rental_application__email=self.request.user.email) | 
+            Q(rental_application__email=self.request.user.email) |
             Q(transaction__client__user=self.request.user)
         ).select_related("rental_application", "transaction").order_by("-created_at")
+
 
 class SubmitPaymentProofView(generics.CreateAPIView):
     """POST /api/v1/transactions/my-payments/submit-proof/ — User submits receipt for an invoice."""
@@ -166,6 +165,16 @@ class SubmitPaymentProofView(generics.CreateAPIView):
             status="PENDING_VERIFICATION",
         )
 
+
+@api_view(["GET"])
+@permission_classes([permissions.AllowAny])
+def payment_method_config(request):
+    """GET /api/v1/transactions/payment-config/ — active payment handles for tenants."""
+    configs = PaymentMethodConfig.objects.filter(is_active=True)
+    serializer = PaymentMethodConfigSerializer(configs, many=True)
+    return Response(serializer.data)
+
+
 @api_view(["GET"])
 @permission_classes([permissions.IsAuthenticated])
 def client_invoices(request):
@@ -182,5 +191,3 @@ def client_invoices(request):
     )
     serializer = ClientInvoiceSerializer(invoices, many=True)
     return Response(serializer.data)
-
-

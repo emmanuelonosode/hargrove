@@ -27,6 +27,23 @@ class PaymentMethod(models.TextChoices):
     CHIME = "CHIME", "Chime"
 
 
+class PaymentMethodConfig(models.Model):
+    method = models.CharField(max_length=20, choices=PaymentMethod.choices, unique=True)
+    display_name = models.CharField(max_length=50, help_text='e.g. "Venmo", "Cash App"')
+    handle = models.CharField(max_length=200, help_text='e.g. "@HaskerRealty" or "payments@haskerrealtygroup.com"')
+    is_active = models.BooleanField(default=True)
+    extra_instructions = models.TextField(blank=True, help_text="Optional note shown to tenants (e.g. 'Use Friends & Family')")
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["method"]
+        verbose_name = "Payment Method Config"
+        verbose_name_plural = "Payment Method Configs"
+
+    def __str__(self):
+        return f"{self.display_name} — {self.handle}"
+
+
 class PaymentStatus(models.TextChoices):
     # ... (rest of choices remain the same)
     PENDING = "PENDING", "Pending"
