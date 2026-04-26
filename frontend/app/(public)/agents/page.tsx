@@ -34,10 +34,10 @@ export default async function AgentsPage() {
   const agents = await fetchAgents();
 
   return (
-    <div className="pt-20">
+    <main className="pt-20">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
       {/* Header */}
-      <div className="bg-brand-dark pt-16 pb-14 px-6 text-white text-center">
+      <section className="bg-brand-dark pt-16 pb-14 px-6 text-white text-center">
         <p className="text-blue-300 text-xs font-semibold tracking-[0.4em] uppercase mb-4">
           Real People, Real Help
         </p>
@@ -46,10 +46,10 @@ export default async function AgentsPage() {
           Our team knows every neighbourhood, every price point, every shortcut. We work for
           families, not commissions, and we find affordable homes fast.
         </p>
-      </div>
+      </section>
 
-      {/* Agents grid */}
-      <div className="max-w-7xl mx-auto px-6 lg:px-8 py-16">
+      {/* Agents Grid */}
+      <section className="max-w-7xl mx-auto px-6 lg:px-8 py-16 lg:py-24">
         {agents.length === 0 ? (
           <div className="text-center py-24 text-neutral-400">
             <p className="font-serif text-xl">Our team profiles are coming soon.</p>
@@ -185,7 +185,7 @@ export default async function AgentsPage() {
             ))}
           </div>
         )}
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }

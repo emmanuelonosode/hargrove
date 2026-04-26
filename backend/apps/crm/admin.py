@@ -206,18 +206,45 @@ class RentalApplicationAdmin(ModelAdmin):
 
     @admin.action(description="Mark selected as Reviewed")
     def mark_reviewed(self, request, queryset):
-        queryset.update(status=ApplicationStatus.REVIEWED)
-        self.message_user(request, "Marked as Reviewed.")
+        count = 0
+        for app in queryset:
+            app.status = ApplicationStatus.REVIEWED
+            app.save()
+            try:
+                from apps.notifications.tasks import send_application_under_review_email
+                send_application_under_review_email.delay(app.pk)
+            except Exception:
+                pass
+            count += 1
+        self.message_user(request, f"{count} application(s) marked as Reviewed.")
 
     @admin.action(description="Mark selected as Approved")
     def mark_approved(self, request, queryset):
-        queryset.update(status=ApplicationStatus.APPROVED)
-        self.message_user(request, "Marked as Approved.")
+        count = 0
+        for app in queryset:
+            app.status = ApplicationStatus.APPROVED
+            app.save()
+            try:
+                from apps.notifications.tasks import send_application_approved_email
+                send_application_approved_email.delay(app.pk)
+            except Exception:
+                pass
+            count += 1
+        self.message_user(request, f"{count} application(s) approved — approval emails queued.")
 
     @admin.action(description="Mark selected as Rejected")
     def mark_rejected(self, request, queryset):
-        queryset.update(status=ApplicationStatus.REJECTED)
-        self.message_user(request, "Marked as Rejected.")
+        count = 0
+        for app in queryset:
+            app.status = ApplicationStatus.REJECTED
+            app.save()
+            try:
+                from apps.notifications.tasks import send_application_rejected_email
+                send_application_rejected_email.delay(app.pk)
+            except Exception:
+                pass
+            count += 1
+        self.message_user(request, f"{count} application(s) rejected — rejection emails queued.")
 
     @admin.action(description="Re-generate application PDF")
     def regenerate_pdf(self, request, queryset):

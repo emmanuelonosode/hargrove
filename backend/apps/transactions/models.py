@@ -224,26 +224,33 @@ def trigger_invoice_notification(sender, instance, created, **kwargs):
     if instance.status == "SENT":
         try:
             from apps.notifications.tasks import send_invoice_email
-            # Ensure we don't spam — maybe check if PDF exists?
-            # send_invoice_email handles the PDF check and email sending.
-            if instance.pdf:
-                send_invoice_email.delay(instance.pk)
+            send_invoice_email.delay(instance.pk)
         except Exception:
             pass
 
 
 @receiver(post_save, sender=Payment)
 def trigger_payment_notifications(sender, instance, created, **kwargs):
-    """Trigger emails for payment submission and verification."""
+    """Trigger emails for payment submission, verification, and rejection."""
     try:
-        from apps.notifications.tasks import send_payment_submitted_email, send_payment_verified_email
-        
+        from apps.notifications.tasks import (
+            send_payment_submitted_email,
+            send_payment_verified_email,
+            send_payment_rejected_email,
+        )
+
         if created and instance.status == "PENDING_VERIFICATION":
             send_payment_submitted_email.delay(instance.pk)
-        
-        # Check for transition to VERIFIED
-        # (Note: simpler to just check if status is VERIFIED on any save)
-        if instance.status == "VERIFIED" and instance.verified_at:
+
+        # Only fire verification email once — gate on receipt_sent flag
+        if instance.status == "VERIFIED" and instance.verified_at and not instance.receipt_sent:
+            Payment.objects.filter(pk=instance.pk).update(receipt_sent=True)
             send_payment_verified_email.delay(instance.pk)
+
+        # Rejection notification — use paid_at=None as proxy for "not yet notified"
+        if instance.status == "REJECTED" and not instance.receipt_sent:
+            Payment.objects.filter(pk=instance.pk).update(receipt_sent=True)
+            send_payment_rejected_email.delay(instance.pk)
+
     except Exception:
         pass

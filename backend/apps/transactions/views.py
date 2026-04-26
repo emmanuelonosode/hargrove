@@ -134,8 +134,10 @@ class UserPaymentListView(generics.ListAPIView):
         from django.db.models import Q
         return Payment.objects.filter(
             Q(rental_application__email=self.request.user.email) |
-            Q(transaction__client__user=self.request.user)
-        ).select_related("rental_application", "transaction").order_by("-created_at")
+            Q(transaction__client__user=self.request.user) |
+            Q(invoice__user=self.request.user) |
+            Q(invoice__transaction__client__user=self.request.user)
+        ).select_related("rental_application", "transaction", "invoice").order_by("-created_at")
 
 
 class SubmitPaymentProofView(generics.CreateAPIView):
@@ -148,8 +150,8 @@ class SubmitPaymentProofView(generics.CreateAPIView):
 
         final_proof_url = ""
         if proof_file:
-            import cloudinary.uploader
             try:
+                import cloudinary.uploader
                 upload_res = cloudinary.uploader.upload(
                     proof_file,
                     folder="hasker/payment_proofs",
@@ -170,9 +172,12 @@ class SubmitPaymentProofView(generics.CreateAPIView):
 @permission_classes([permissions.AllowAny])
 def payment_method_config(request):
     """GET /api/v1/transactions/payment-config/ — active payment handles for tenants."""
-    configs = PaymentMethodConfig.objects.filter(is_active=True)
-    serializer = PaymentMethodConfigSerializer(configs, many=True)
-    return Response(serializer.data)
+    try:
+        configs = PaymentMethodConfig.objects.filter(is_active=True)
+        serializer = PaymentMethodConfigSerializer(configs, many=True)
+        return Response(serializer.data)
+    except Exception:
+        return Response([])
 
 
 @api_view(["GET"])

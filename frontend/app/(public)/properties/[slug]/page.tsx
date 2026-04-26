@@ -197,9 +197,9 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
   };
 
   return (
-    <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(listingSchema) }} />
+    <main>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(listingSchema) }} />
 
       <div className="pt-20 bg-white">
 
@@ -580,7 +580,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
         <div className="lg:hidden h-20" />
 
       </div>
-    </>
+    </main>
   );
 }
 

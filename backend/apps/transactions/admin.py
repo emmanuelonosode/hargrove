@@ -206,18 +206,25 @@ class PaymentAdmin(ModelAdmin):
 
     @admin.action(description="Reject Selected Payments")
     def reject_payment(self, request, queryset):
-        from .models import PaymentStatus
+        from .models import PaymentStatus, InvoiceStatus
         from apps.crm.models import ApplicationStatus
-        
+
         count = 0
         for payment in queryset:
             payment.status = PaymentStatus.REJECTED
+            payment.rejection_reason = payment.rejection_reason or "Proof could not be verified. Please re-submit a clear screenshot."
             payment.save()
-            
+
             if payment.rental_application:
                 app = payment.rental_application
                 app.status = ApplicationStatus.PAYMENT_FAILED
                 app.save()
+
+            # Revert invoice back to SENT so the tenant can re-submit
+            if payment.invoice and payment.invoice.status == InvoiceStatus.PAID:
+                payment.invoice.status = InvoiceStatus.SENT
+                payment.invoice.save()
+
             count += 1
         self.message_user(request, f"{count} payments rejected.")
 

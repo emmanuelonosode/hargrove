@@ -221,8 +221,8 @@ class RentalApplicationCreateView(generics.CreateAPIView):
         final_proof_url = proof_image or ""
 
         if proof_file:
-            import cloudinary.uploader
             try:
+                import cloudinary.uploader
                 upload_res = cloudinary.uploader.upload(proof_file)
                 final_proof_url = upload_res.get("secure_url", "")
             except Exception as e:

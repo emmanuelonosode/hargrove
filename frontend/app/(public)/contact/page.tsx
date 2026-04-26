@@ -41,24 +41,24 @@ const offices = [
 ];
 
 const breadcrumb = { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Home", item: "https://haskerrealtygroup.com" }, { "@type": "ListItem", position: 2, name: "Contact", item: "https://haskerrealtygroup.com/contact" }] };
-
 export default function ContactPage() {
   return (
-    <div className="pt-20">
+    <main className="pt-20">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
       {/* Header */}
-      <div className="bg-brand-dark pt-16 pb-14 px-6 text-white text-center">
+      <section className="bg-brand-dark pt-16 pb-14 px-6 text-white text-center">
         <p className="text-blue-300 text-xs font-semibold tracking-[0.4em] uppercase mb-4">
           We&apos;re Here to Help
         </p>
         <h1 className="font-serif text-4xl lg:text-5xl font-bold mb-4">Find Your Next Home</h1>
         <p className="text-blue-100 max-w-xl mx-auto">
           Tell us what you&apos;re looking for and our rental specialists will match you with the
-          right options fast. We respond within 24 hours.
+          perfect home. We typically reply within 24 hours.
         </p>
-      </div>
+      </section>
 
-      <div className="max-w-7xl mx-auto px-6 lg:px-8 py-16">
+      {/* Main Content */}
+      <section className="max-w-7xl mx-auto px-6 lg:px-8 py-16 lg:py-24">
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-12">
           {/* Contact Form */}
           <div className="lg:col-span-3">
@@ -131,7 +131,7 @@ export default function ContactPage() {
             ))}
           </div>
         </div>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }

@@ -53,10 +53,10 @@ export default async function BlogPage({ searchParams }: PageProps) {
   const breadcrumb = { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Home", item: "https://haskerrealtygroup.com" }, { "@type": "ListItem", position: 2, name: "Renter's Guide", item: "https://haskerrealtygroup.com/blog" }] };
 
   return (
-    <div className="pt-20">
+    <main className="pt-20">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
       {/* Header */}
-      <div className="bg-brand-dark pt-16 pb-14 px-6 text-white text-center">
+      <section className="bg-brand-dark pt-16 pb-14 px-6 text-white text-center">
         <p className="text-blue-300 text-xs font-semibold tracking-[0.4em] uppercase mb-4">
           Free Resources
         </p>
@@ -65,9 +65,9 @@ export default async function BlogPage({ searchParams }: PageProps) {
           Practical tips, moving checklists, and budgeting guides written by our team, so you
           can find and keep an affordable home with confidence.
         </p>
-      </div>
+      </section>
 
-      <div className="max-w-7xl mx-auto px-6 lg:px-8 py-14">
+      <section className="max-w-7xl mx-auto px-6 lg:px-8 py-14">
         {/* Category filter — URL-based routing */}
         <div className="flex flex-wrap gap-2 mb-10 overflow-x-auto pb-1">
           {CATEGORIES.map((cat) => {
@@ -168,7 +168,7 @@ export default async function BlogPage({ searchParams }: PageProps) {
             ))}
           </div>
         )}
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }

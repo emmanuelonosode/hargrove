@@ -64,7 +64,7 @@ export default async function PropertiesPage({ searchParams }: PageProps) {
   };
 
   return (
-    <>
+    <main>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }}
@@ -82,6 +82,6 @@ export default async function PropertiesPage({ searchParams }: PageProps) {
           initialSort={sort ?? "newest"}
         />
       </Suspense>
-    </>
+    </main>
   );
 }

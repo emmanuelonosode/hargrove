@@ -215,12 +215,6 @@ def send_invoice_email(self, invoice_id: int):
         else:
             return "No recipient found — skipped."
 
-        if not invoice.pdf:
-            return "No PDF available — skipped."
-
-        # Download the PDF from Cloudinary
-        pdf_data = urllib.request.urlopen(invoice.pdf).read()
-
         from_header, connection = _get_email_sender()
         subject = f"Invoice {invoice.invoice_number}: {invoice.title}"
         body = render_to_string("notifications/invoice_email.html", {
@@ -237,13 +231,40 @@ def send_invoice_email(self, invoice_id: int):
             connection=connection,
         )
         msg.content_subtype = "html"
-        msg.attach(f"{invoice.invoice_number}.pdf", pdf_data, "application/pdf")
-        msg.send()
 
+        # Attach PDF if available; send without attachment if still generating
+        if invoice.pdf:
+            try:
+                pdf_data = urllib.request.urlopen(invoice.pdf).read()
+                msg.attach(f"{invoice.invoice_number}.pdf", pdf_data, "application/pdf")
+            except Exception:
+                pass
+
+        msg.send()
         return f"Invoice emailed to {client_email}"
 
     except Exception as exc:
         raise self.retry(exc=exc)
+
+
+def _payment_recipient(payment):
+    """
+    Resolve a payment to (email, full_name) across all three payment contexts:
+    invoice (direct user), invoice (via transaction client), rental application, transaction.
+    Returns None if no recipient can be determined.
+    """
+    if payment.invoice:
+        if payment.invoice.user:
+            return payment.invoice.user.email, payment.invoice.user.full_name
+        if payment.invoice.transaction and payment.invoice.transaction.client:
+            client = payment.invoice.transaction.client
+            return client.lead.email, client.lead.full_name
+    if payment.rental_application:
+        return payment.rental_application.email, payment.rental_application.full_name
+    if payment.transaction and payment.transaction.client:
+        client = payment.transaction.client
+        return client.lead.email, client.lead.full_name
+    return None
 
 
 @shared_task(bind=True, max_retries=3, default_retry_delay=60)
@@ -252,32 +273,30 @@ def send_payment_submitted_email(self, payment_id: int):
     try:
         from apps.transactions.models import Payment
 
-        payment = Payment.objects.select_related("invoice", "rental_application", "transaction__client").get(pk=payment_id)
-        
-        # Determine recipient
-        if payment.invoice and payment.invoice.user:
-            recipient = payment.invoice.user
-        elif payment.rental_application:
-            recipient_email = payment.rental_application.email
-            recipient_name = payment.rental_application.full_name
-            recipient = type('Obj', (object,), {'email': recipient_email, 'full_name': recipient_name})
-        elif payment.transaction:
-            recipient = payment.transaction.client
-        else:
+        payment = Payment.objects.select_related(
+            "invoice__user",
+            "invoice__transaction__client__lead",
+            "rental_application",
+            "transaction__client__lead",
+        ).get(pk=payment_id)
+
+        result = _payment_recipient(payment)
+        if not result:
             return "No recipient found — skipped."
+        recipient_email, recipient_name = result
 
         from_header, connection = _get_email_sender()
         subject = "Payment Received & Pending Verification — Hasker & Co."
         body = render_to_string("notifications/payment_submitted.html", {
             "payment": payment,
-            "recipient_name": recipient.full_name,
+            "recipient_name": recipient_name,
             "frontend_url": settings.FRONTEND_URL,
         })
 
-        msg = EmailMessage(subject=subject, body=body, from_email=from_header, to=[recipient.email], connection=connection)
+        msg = EmailMessage(subject=subject, body=body, from_email=from_header, to=[recipient_email], connection=connection)
         msg.content_subtype = "html"
         msg.send()
-        return f"Payment confirmation sent to {recipient.email}"
+        return f"Payment confirmation sent to {recipient_email}"
     except Exception as exc:
         raise self.retry(exc=exc)
 
@@ -288,31 +307,64 @@ def send_payment_verified_email(self, payment_id: int):
     try:
         from apps.transactions.models import Payment
 
-        payment = Payment.objects.select_related("invoice", "rental_application", "transaction__client").get(pk=payment_id)
-        
-        if payment.invoice and payment.invoice.user:
-            recipient = payment.invoice.user
-        elif payment.rental_application:
-            recipient_email = payment.rental_application.email
-            recipient_name = payment.rental_application.full_name
-            recipient = type('Obj', (object,), {'email': recipient_email, 'full_name': recipient_name})
-        elif payment.transaction:
-            recipient = payment.transaction.client
-        else:
+        payment = Payment.objects.select_related(
+            "invoice__user",
+            "invoice__transaction__client__lead",
+            "rental_application",
+            "transaction__client__lead",
+        ).get(pk=payment_id)
+
+        result = _payment_recipient(payment)
+        if not result:
             return "No recipient found — skipped."
+        recipient_email, recipient_name = result
 
         from_header, connection = _get_email_sender()
         subject = "Payment Verified — Hasker & Co. Realty Group"
         body = render_to_string("notifications/payment_verified.html", {
             "payment": payment,
-            "recipient_name": recipient.full_name,
+            "recipient_name": recipient_name,
             "frontend_url": settings.FRONTEND_URL,
         })
 
-        msg = EmailMessage(subject=subject, body=body, from_email=from_header, to=[recipient.email], connection=connection)
+        msg = EmailMessage(subject=subject, body=body, from_email=from_header, to=[recipient_email], connection=connection)
         msg.content_subtype = "html"
         msg.send()
-        return f"Payment verification sent to {recipient.email}"
+        return f"Payment verification sent to {recipient_email}"
+    except Exception as exc:
+        raise self.retry(exc=exc)
+
+
+@shared_task(bind=True, max_retries=3, default_retry_delay=60)
+def send_payment_rejected_email(self, payment_id: int):
+    """Notify the user that their payment proof was rejected."""
+    try:
+        from apps.transactions.models import Payment
+
+        payment = Payment.objects.select_related(
+            "invoice__user",
+            "invoice__transaction__client__lead",
+            "rental_application",
+            "transaction__client__lead",
+        ).get(pk=payment_id)
+
+        result = _payment_recipient(payment)
+        if not result:
+            return "No recipient found — skipped."
+        recipient_email, recipient_name = result
+
+        from_header, connection = _get_email_sender()
+        subject = "Action Required: Payment Proof Not Verified — Hasker & Co."
+        body = render_to_string("notifications/payment_rejected.html", {
+            "payment": payment,
+            "recipient_name": recipient_name,
+            "frontend_url": settings.FRONTEND_URL,
+        })
+
+        msg = EmailMessage(subject=subject, body=body, from_email=from_header, to=[recipient_email], connection=connection)
+        msg.content_subtype = "html"
+        msg.send()
+        return f"Payment rejection notice sent to {recipient_email}"
     except Exception as exc:
         raise self.retry(exc=exc)
 
@@ -560,6 +612,36 @@ def send_move_in_instructions_email(self, application_id: int):
 
 # ---------------------------------------------------------------------------
 # Rental Application emails / PDF
+
+
+@shared_task(bind=True, max_retries=3, default_retry_delay=60)
+def send_application_under_review_email(self, application_id: int):
+    """Notify the applicant that their application is now being actively reviewed."""
+    try:
+        from apps.crm.models import RentalApplication
+
+        app = RentalApplication.objects.select_related("rental_property").get(pk=application_id)
+
+        from_header, connection = _get_email_sender()
+        subject = "Your Application Is Under Review — Hasker & Co. Realty Group"
+        body = render_to_string("notifications/application_under_review.html", {
+            "app": app,
+            "frontend_url": settings.FRONTEND_URL,
+        })
+
+        msg = EmailMessage(
+            subject=subject,
+            body=body,
+            from_email=from_header,
+            to=[app.email],
+            connection=connection,
+        )
+        msg.content_subtype = "html"
+        msg.send()
+        return f"Under-review email sent to {app.email}"
+
+    except Exception as exc:
+        raise self.retry(exc=exc)
 
 @shared_task(bind=True, max_retries=3, default_retry_delay=60)
 def send_application_submitted_email(self, application_id: int):
