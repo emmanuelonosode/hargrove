@@ -65,14 +65,14 @@ export function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex items-center shrink-0">
             <Image
-              src="/logo.svg"
+              src="/logo/logo.png"
               alt="Hasker & Co. Realty Group"
               width={160}
               height={40}
               priority
               className={cn(
-                "h-9 w-auto transition-[filter] duration-300",
-                !solidBg && "brightness-0 invert"
+                "h-8 w-auto transition-all duration-300",
+                isHeroPage && !scrolled ? "opacity-90" : ""
               )}
             />
           </Link>

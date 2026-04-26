@@ -56,10 +56,15 @@ export function Footer() {
           {/* Brand */}
           <div className="lg:col-span-2">
             <div className="mb-6">
-              <div className="font-serif text-2xl font-bold tracking-tight">HASKER <span className="text-brand">&amp;</span> CO.</div>
-              <div className="text-[10px] tracking-[0.3em] uppercase text-brand font-medium mt-0.5">
-                Realty Group
-              </div>
+              <Link href="/" className="inline-block">
+                <Image
+                  src="/logo/logo.png"
+                  alt="Hasker & Co. Realty Group"
+                  width={160}
+                  height={40}
+                  className="h-8 w-auto opacity-90 hover:opacity-100 transition-opacity"
+                />
+              </Link>
             </div>
             <p className="text-neutral-400 text-sm leading-relaxed max-w-xs">
               Affordable homes to rent and buy. Honest prices, no hidden fees, fast decisions.
