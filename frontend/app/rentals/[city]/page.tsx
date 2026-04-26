@@ -124,7 +124,7 @@ export default async function CityRentalsPage(
       "@type": "RealEstateAgent",
       name: "Hasker & Co. Realty Group",
       url: "https://haskerrealtygroup.com",
-      telephone: "+1-800-000-0000",
+      telephone: "+14045550182",
       address: { "@type": "PostalAddress", addressLocality: "Virginia Beach", addressRegion: "VA", addressCountry: "US" },
     },
   };
@@ -134,8 +134,47 @@ export default async function CityRentalsPage(
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: "https://haskerrealtygroup.com" },
-      { "@type": "ListItem", position: 2, name: "Rentals", item: "https://haskerrealtygroup.com/rentals" },
+      { "@type": "ListItem", position: 2, name: "Properties", item: "https://haskerrealtygroup.com/properties" },
       { "@type": "ListItem", position: 3, name: `${city.name}, ${city.stateCode}`, item: `https://haskerrealtygroup.com/rentals/${slug}` },
+    ],
+  };
+
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: [
+      {
+        "@type": "Question",
+        name: `How much does it cost to rent a home in ${city.name}?`,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: `The average rent in ${city.name} starts around ${city.avgRent}/month. Hasker & Co. Realty Group offers affordable rentals across ${city.name} with no hidden fees and transparent pricing on every listing.`,
+        },
+      },
+      {
+        "@type": "Question",
+        name: `How do I apply for a rental in ${city.name}?`,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: `You can apply online at haskerrealtygroup.com/apply in under 10 minutes. Hasker & Co. Realty Group reviews every application within 24 hours. No paper forms required.`,
+        },
+      },
+      {
+        "@type": "Question",
+        name: `Does Hasker & Co. Realty Group have pet-friendly rentals in ${city.name}?`,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: `Yes. Several of our ${city.name} listings are pet-friendly. Pet policies are disclosed upfront on every listing. You can filter for pet-friendly homes at haskerrealtygroup.com/properties.`,
+        },
+      },
+      {
+        "@type": "Question",
+        name: `Are there any hidden fees when renting through Hasker & Co. in ${city.name}?`,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: `No. Hasker & Co. Realty Group does not charge hidden administrative or processing fees. The price listed is the price you pay. Standard upfront costs are a security deposit (typically 1–2 months rent) and the first month's rent.`,
+        },
+      },
     ],
   };
 
@@ -143,6 +182,7 @@ export default async function CityRentalsPage(
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
 
       {/* ── HERO ─────────────────────────────────────────────────── */}
       <section className="relative min-h-[520px] lg:min-h-[560px] flex items-end overflow-hidden">
@@ -162,7 +202,7 @@ export default async function CityRentalsPage(
             <ol className="flex items-center gap-2 text-xs text-blue-200">
               <li><Link href="/" className="hover:text-white transition-colors">Home</Link></li>
               <li className="text-blue-400">/</li>
-              <li><Link href="/properties" className="hover:text-white transition-colors">Rentals</Link></li>
+              <li><Link href="/properties" className="hover:text-white transition-colors">Properties</Link></li>
               <li className="text-blue-400">/</li>
               <li className="text-white font-medium">{city.name}, {city.stateCode}</li>
             </ol>

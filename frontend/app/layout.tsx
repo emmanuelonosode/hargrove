@@ -110,7 +110,7 @@ const jsonLd = {
   "image": "https://haskerrealtygroup.com/logo/logo.png",
   "logo": "https://haskerrealtygroup.com/logo/logo.png",
   "url": "https://haskerrealtygroup.com",
-  "telephone": "+15550000000",
+  "telephone": "+14045550182",
   "email": "info@haskerrealtygroup.com",
   "address": {
     "@type": "PostalAddress",
