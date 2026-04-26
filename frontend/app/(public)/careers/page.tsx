@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Mail, MapPin, Clock, TrendingUp, Heart, Users, CheckCircle, ArrowRight, Award } from "lucide-react";
+import { Mail, MapPin, Clock, ArrowRight, ArrowUpRight } from "lucide-react";
 import type { Metadata } from "next";
 import { CareerApplicationForm } from "@/components/public/CareerApplicationForm";
 
@@ -135,28 +135,28 @@ const openRoles = [
 
 const values = [
   {
-    icon: Heart,
+    num: "01",
     title: "People First",
     description:
-      "We measure success by how many families we house, not how many deals we close. Every decision starts with the question: does this help our tenants?",
+      "We measure success by how many families we house, not how many deals we close. Every decision starts with: does this help our tenants?",
   },
   {
-    icon: CheckCircle,
+    num: "02",
     title: "Honest Always",
     description:
       "No hidden fees, no jargon, no runaround. We treat every tenant the way we'd want to be treated — with transparency and respect.",
   },
   {
-    icon: TrendingUp,
+    num: "03",
     title: "Grow With Us",
     description:
-      "We invest in our team's development. Whether it's a license sponsorship, a training stipend, or a clear promotion path, we want you to advance.",
+      "We invest in our team's development. License sponsorship, training stipends, clear promotion paths — we want you to advance.",
   },
   {
-    icon: Users,
+    num: "04",
     title: "Real Community",
     description:
-      "We're a small, tight-knit team. No corporate bureaucracy, no anonymous org chart. You'll know your colleagues and your impact.",
+      "A small, tight-knit team. No corporate bureaucracy, no anonymous org chart. You'll know your colleagues and your impact.",
   },
 ];
 
@@ -171,13 +171,6 @@ const benefits = [
   "Monthly team lunches and quarterly outings",
 ];
 
-const lifeImages = [
-  { src: "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=800&q=80", alt: "Team collaboration at Hasker & Co." },
-  { src: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80", alt: "Modern office workspace" },
-  { src: "https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=800&q=80", alt: "Professional real estate team" },
-];
-
-// JSON-LD: BreadcrumbList
 const breadcrumb = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
@@ -187,7 +180,6 @@ const breadcrumb = {
   ],
 };
 
-// JSON-LD: JobPosting entries
 const jobPostings = openRoles.map((role) => ({
   "@context": "https://schema.org",
   "@type": "JobPosting",
@@ -220,14 +212,14 @@ const jobPostings = openRoles.map((role) => ({
 
 export default function CareersPage() {
   return (
-    <main className="pt-20">
+    <main className="pt-20 bg-white">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
       {jobPostings.map((jp, i) => (
         <script key={i} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jp) }} />
       ))}
 
       {/* ── HERO ─────────────────────────────────────────────────────────── */}
-      <section className="relative min-h-[600px] lg:min-h-[680px] flex items-end overflow-hidden">
+      <section className="relative min-h-[90vh] flex flex-col justify-end overflow-hidden bg-brand-dark">
         <Image
           src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=1600&q=80"
           alt="Hasker & Co. Realty Group team at work"
@@ -236,152 +228,224 @@ export default function CareersPage() {
           className="object-cover object-center"
           sizes="100vw"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-brand-dark via-brand-dark/75 to-brand-dark/30" />
+        {/* Sophisticated gradient — dark at bottom, clear at top */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0a1628] via-[#0a1628]/60 to-transparent" />
+        {/* Subtle diagonal texture overlay */}
+        <div
+          className="absolute inset-0 opacity-[0.04]"
+          style={{
+            backgroundImage:
+              "repeating-linear-gradient(45deg, #fff 0px, #fff 1px, transparent 0px, transparent 50%)",
+            backgroundSize: "24px 24px",
+          }}
+        />
 
-        <div className="relative z-10 w-full max-w-7xl mx-auto px-6 lg:px-8 pb-16 pt-32">
-          <p className="text-brand text-xs font-semibold tracking-[0.35em] uppercase mb-4">
-            Now Hiring · Virginia Beach, VA
-          </p>
-          <h1 className="font-serif text-5xl lg:text-6xl xl:text-7xl font-bold text-white leading-[1.05] mb-6 max-w-3xl">
-            Help Families Find&nbsp;a Place to Call Home
+        {/* Top bar */}
+        <div className="absolute top-8 left-0 right-0 z-20 max-w-7xl mx-auto px-6 lg:px-8 flex items-center justify-between">
+          <span className="text-white/50 text-[10px] tracking-[0.4em] uppercase font-medium">
+            Virginia Beach · EST. 2012
+          </span>
+          <a
+            href="mailto:careers@haskerrealtygroup.com"
+            className="hidden sm:inline-flex items-center gap-2 text-white/60 hover:text-white text-[11px] tracking-wider transition-colors duration-200"
+          >
+            <Mail size={12} />
+            careers@haskerrealtygroup.com
+          </a>
+        </div>
+
+        <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 pb-20 lg:pb-28 w-full">
+          {/* Eyebrow */}
+          <div className="flex items-center gap-3 mb-8">
+            <span className="w-8 h-px bg-brand" />
+            <span className="text-brand text-[10px] font-bold tracking-[0.4em] uppercase">Now Hiring</span>
+          </div>
+
+          <h1 className="font-serif text-6xl sm:text-7xl lg:text-8xl xl:text-[6.5rem] font-bold text-white leading-[0.95] tracking-tight mb-8 max-w-4xl">
+            Help Families Find&nbsp;a Place to Call&nbsp;Home
           </h1>
-          <p className="text-blue-100 text-lg lg:text-xl max-w-xl leading-relaxed mb-10">
-            We&apos;re a Virginia Beach real estate team on a mission — affordable homes, honest prices,
-            real people. If that&apos;s the work you want to do, we want to hear from you.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <a
-              href="#open-roles"
-              className="inline-flex items-center justify-center gap-2 bg-brand px-8 py-4 text-white text-sm font-semibold rounded-sm hover:bg-brand/90 transition-colors"
-            >
-              View Open Roles <ArrowRight size={15} />
-            </a>
-            <a
-              href="mailto:careers@haskerrealtygroup.com"
-              className="inline-flex items-center justify-center gap-2 border border-white/30 px-8 py-4 text-white text-sm font-medium rounded-sm hover:bg-white/10 hover:border-white/60 transition-colors"
-            >
-              <Mail size={15} /> careers@haskerrealtygroup.com
-            </a>
+
+          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8">
+            <p className="text-white/60 text-base lg:text-lg max-w-md leading-relaxed">
+              Affordable homes, honest prices, real people. If that&apos;s the work you want to do, we want to hear from you.
+            </p>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <a
+                href="#open-roles"
+                className="inline-flex items-center gap-3 bg-brand text-white text-sm font-semibold px-8 py-4 hover:bg-brand/90 transition-colors duration-200 cursor-pointer"
+              >
+                View Open Roles
+                <ArrowRight size={15} />
+              </a>
+              <a
+                href="mailto:careers@haskerrealtygroup.com"
+                className="inline-flex items-center gap-2 text-white/60 hover:text-white text-sm transition-colors duration-200 sm:hidden"
+              >
+                <Mail size={14} />
+                careers@haskerrealtygroup.com
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {/* Stats — anchored to hero bottom, spanning its full width */}
+        <div className="relative z-10 border-t border-white/10 bg-white/5 backdrop-blur-sm">
+          <div className="max-w-7xl mx-auto px-6 lg:px-8">
+            <div className="grid grid-cols-3 divide-x divide-white/10">
+              {[
+                { value: "2,000+", label: "Families Housed" },
+                { value: "12+", label: "Cities Served" },
+                { value: "Since 2012", label: "Building Trust" },
+              ].map((s) => (
+                <div key={s.label} className="px-4 sm:px-8 py-6 text-center">
+                  <p className="font-serif text-2xl lg:text-3xl font-bold text-white">{s.value}</p>
+                  <p className="text-[11px] text-white/40 mt-1 tracking-widest uppercase">{s.label}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ── STATS BAR ─────────────────────────────────────────────────────── */}
-      <div className="bg-brand">
-        <div className="max-w-4xl mx-auto px-6">
-          <div className="grid grid-cols-3 divide-x divide-white/20 text-white text-center">
-            {[
-              { value: "2,000+", label: "Families Housed" },
-              { value: "12+", label: "Cities Served" },
-              { value: "Since 2012", label: "Building Trust" },
-            ].map((s) => (
-              <div key={s.label} className="px-4 py-6">
-                <p className="font-serif text-2xl lg:text-3xl font-bold">{s.value}</p>
-                <p className="text-xs text-blue-100 mt-1 tracking-wide">{s.label}</p>
-              </div>
-            ))}
+      {/* ── OUR VALUES — editorial typographic treatment ─────────────────── */}
+      <section className="max-w-7xl mx-auto px-6 lg:px-8 py-24 lg:py-36">
+        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 mb-16 lg:mb-20 pb-10 border-b border-neutral-100">
+          <div>
+            <p className="text-brand text-[10px] font-bold tracking-[0.4em] uppercase mb-4">Why Join Us</p>
+            <h2 className="font-serif text-4xl lg:text-5xl xl:text-6xl font-bold text-brand-dark leading-tight max-w-lg">
+              Work That Actually Matters
+            </h2>
           </div>
-        </div>
-      </div>
-
-      {/* ── OUR VALUES ────────────────────────────────────────────────────── */}
-      <section className="max-w-7xl mx-auto px-6 lg:px-8 py-24 lg:py-32">
-        <div className="max-w-xl mb-16">
-          <p className="text-brand text-xs font-semibold tracking-[0.35em] uppercase mb-4">Why Join Us</p>
-          <h2 className="font-serif text-4xl lg:text-5xl font-bold text-brand-dark leading-tight">
-            Work That Actually Matters
-          </h2>
-          <p className="text-neutral-500 mt-5 text-base leading-relaxed">
-            Housing is one of the most fundamental human needs. Every home we help someone find
-            is a family with stability, safety, and a foundation to build from.
+          <p className="text-neutral-500 text-sm leading-relaxed max-w-sm lg:text-right">
+            Housing is one of the most fundamental human needs. Every home we help someone find is a family with stability, safety, and a foundation to build from.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10">
+        {/* Values — no icon boxes, pure editorial numbered rows */}
+        <div className="space-y-0">
           {values.map((v, i) => (
             <div
               key={v.title}
-              className="group"
-              style={{ animationDelay: `${i * 80}ms` }}
+              className="group grid grid-cols-[4rem_1fr] lg:grid-cols-[6rem_1fr_2fr] gap-6 lg:gap-12 py-8 lg:py-10 border-b border-neutral-100 hover:bg-neutral-50/50 transition-colors duration-300 -mx-3 px-3 cursor-default"
             >
-              <div className="w-14 h-14 rounded-sm bg-brand/8 border border-brand/15 flex items-center justify-center mb-5 group-hover:bg-brand group-hover:border-brand transition-colors duration-300">
-                <v.icon size={22} className="text-brand group-hover:text-white transition-colors duration-300" />
-              </div>
-              <h3 className="font-serif text-xl font-bold text-brand-dark mb-3">{v.title}</h3>
-              <p className="text-sm text-neutral-600 leading-relaxed">{v.description}</p>
+              <span className="font-serif text-3xl lg:text-4xl font-bold text-neutral-200 group-hover:text-brand/30 transition-colors duration-300 leading-none pt-1 select-none">
+                {v.num}
+              </span>
+              <h3 className="font-serif text-xl lg:text-2xl font-bold text-brand-dark leading-snug self-start pt-0.5">
+                {v.title}
+              </h3>
+              <p className="text-sm text-neutral-500 leading-relaxed hidden lg:block self-start pt-1">
+                {v.description}
+              </p>
+              <p className="text-sm text-neutral-500 leading-relaxed col-span-2 lg:hidden">
+                {v.description}
+              </p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* ── LIFE AT HASKER — image gallery strip ─────────────────────────── */}
-      <section className="bg-neutral-50 border-y border-neutral-100 py-16 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 mb-10">
-          <p className="text-brand text-xs font-semibold tracking-[0.35em] uppercase mb-3">Life at Hasker</p>
-          <h2 className="font-serif text-3xl lg:text-4xl font-bold text-brand-dark">A Team You&apos;ll Be Proud to Be Part Of</h2>
-        </div>
-        <div className="flex gap-4 px-6 lg:px-8 overflow-x-auto pb-2 scrollbar-hide">
-          {lifeImages.map((img, i) => (
-            <div key={i} className="relative flex-shrink-0 w-[320px] lg:w-[420px] aspect-[4/3] rounded-sm overflow-hidden bg-neutral-200">
-              <Image
-                src={img.src}
-                alt={img.alt}
-                fill
-                className="object-cover hover:scale-105 transition-transform duration-700"
-                sizes="420px"
-              />
+      {/* ── LIFE AT HASKER — asymmetric image grid ───────────────────────── */}
+      <section className="bg-neutral-950 py-20 lg:py-28 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 mb-12">
+          <div className="flex items-end justify-between">
+            <div>
+              <p className="text-brand text-[10px] font-bold tracking-[0.4em] uppercase mb-3">Life at Hasker</p>
+              <h2 className="font-serif text-3xl lg:text-4xl font-bold text-white leading-tight">
+                A Team You&apos;ll Be Proud<br />to Be Part Of
+              </h2>
             </div>
-          ))}
-          {/* Warm lifestyle real estate image */}
-          <div className="relative flex-shrink-0 w-[320px] lg:w-[420px] aspect-[4/3] rounded-sm overflow-hidden bg-neutral-200">
+            <a
+              href="#open-roles"
+              className="hidden sm:inline-flex items-center gap-2 text-white/40 hover:text-white text-xs tracking-wider transition-colors duration-200 cursor-pointer"
+            >
+              See all roles <ArrowUpRight size={13} />
+            </a>
+          </div>
+        </div>
+
+        {/* Asymmetric scrollable strip */}
+        <div className="flex gap-3 px-6 lg:px-8 overflow-x-auto pb-2 scrollbar-hide items-end">
+          <div className="relative flex-shrink-0 w-[280px] lg:w-[360px] aspect-[3/4] overflow-hidden bg-neutral-800">
+            <Image
+              src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=800&q=80"
+              alt="Team collaboration at Hasker & Co."
+              fill className="object-cover hover:scale-105 transition-transform duration-700"
+              sizes="360px"
+            />
+          </div>
+          <div className="relative flex-shrink-0 w-[420px] lg:w-[560px] aspect-[16/9] overflow-hidden bg-neutral-800 mb-8">
+            <Image
+              src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=1000&q=80"
+              alt="Modern office workspace"
+              fill className="object-cover hover:scale-105 transition-transform duration-700"
+              sizes="560px"
+            />
+            {/* Caption overlay */}
+            <div className="absolute bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-black/70 to-transparent">
+              <p className="text-white/90 text-xs font-medium tracking-wide">Virginia Beach HQ</p>
+            </div>
+          </div>
+          <div className="relative flex-shrink-0 w-[260px] lg:w-[320px] aspect-[4/5] overflow-hidden bg-neutral-800">
+            <Image
+              src="https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=800&q=80"
+              alt="Professional real estate team"
+              fill className="object-cover hover:scale-105 transition-transform duration-700"
+              sizes="320px"
+            />
+          </div>
+          <div className="relative flex-shrink-0 w-[320px] lg:w-[420px] aspect-[4/3] overflow-hidden bg-neutral-800 mb-12">
             <Image
               src="https://images.unsplash.com/photo-1560184897-ae75f418493e?w=800&q=80"
               alt="Happy family in their new home"
-              fill
-              className="object-cover hover:scale-105 transition-transform duration-700"
+              fill className="object-cover hover:scale-105 transition-transform duration-700"
               sizes="420px"
             />
+            <div className="absolute bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-black/70 to-transparent">
+              <p className="text-white/90 text-xs font-medium tracking-wide">Making it home</p>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ── BENEFITS — split layout ───────────────────────────────────────── */}
-      <section className="max-w-7xl mx-auto px-6 lg:px-8 py-24 lg:py-32">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
-          {/* Image */}
-          <div className="relative aspect-[4/3] rounded-sm overflow-hidden bg-neutral-100 order-2 lg:order-1">
-            <Image
-              src="https://images.unsplash.com/photo-1551836022-deb4988cc6c0?w=1000&q=80"
-              alt="Welcoming office environment at Hasker & Co."
-              fill
-              className="object-cover"
-              sizes="(max-width: 1024px) 100vw, 50vw"
-            />
-            {/* Award badge overlay */}
-            <div className="absolute bottom-6 left-6 bg-white/95 backdrop-blur-sm rounded-sm px-5 py-4 shadow-xl">
-              <div className="flex items-center gap-3">
-                <Award size={20} className="text-brand" />
-                <div>
-                  <p className="text-xs font-bold text-brand-dark">Top Workplace</p>
-                  <p className="text-xs text-neutral-500">Hampton Roads 2024</p>
-                </div>
+      {/* ── BENEFITS — large text list, no boxes ─────────────────────────── */}
+      <section className="max-w-7xl mx-auto px-6 lg:px-8 py-24 lg:py-36">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-28 items-start">
+          {/* Left: sticky label + image */}
+          <div className="lg:sticky lg:top-28">
+            <p className="text-brand text-[10px] font-bold tracking-[0.4em] uppercase mb-5">Compensation & Perks</p>
+            <h2 className="font-serif text-4xl lg:text-5xl font-bold text-brand-dark leading-tight mb-10">
+              We Invest in the People Who Invest in Others
+            </h2>
+            <div className="relative aspect-[4/3] overflow-hidden bg-neutral-100">
+              <Image
+                src="https://images.unsplash.com/photo-1551836022-deb4988cc6c0?w=1000&q=80"
+                alt="Welcoming office environment at Hasker & Co."
+                fill className="object-cover"
+                sizes="(max-width: 1024px) 100vw, 50vw"
+              />
+              {/* Award strip at bottom */}
+              <div className="absolute bottom-0 left-0 right-0 bg-brand text-white px-6 py-4 flex items-center justify-between">
+                <p className="text-xs font-bold tracking-wide">Top Workplace · Hampton Roads</p>
+                <p className="text-xs text-white/70 font-medium">2024</p>
               </div>
             </div>
           </div>
 
-          {/* Content */}
-          <div className="order-1 lg:order-2">
-            <p className="text-brand text-xs font-semibold tracking-[0.35em] uppercase mb-4">Compensation & Perks</p>
-            <h2 className="font-serif text-4xl lg:text-5xl font-bold text-brand-dark leading-tight mb-8">
-              We Invest in the People Who Invest in Others
-            </h2>
-            <ul className="space-y-4">
-              {benefits.map((benefit) => (
-                <li key={benefit} className="flex items-start gap-3.5">
-                  <div className="w-5 h-5 rounded-full bg-brand/10 flex items-center justify-center shrink-0 mt-0.5">
-                    <CheckCircle size={12} className="text-brand" />
-                  </div>
-                  <p className="text-neutral-700 text-sm leading-relaxed">{benefit}</p>
+          {/* Right: benefits as large line items */}
+          <div className="pt-0 lg:pt-16">
+            <ul className="space-y-0">
+              {benefits.map((benefit, i) => (
+                <li
+                  key={benefit}
+                  className="flex items-start gap-5 py-5 border-b border-neutral-100 group"
+                >
+                  <span className="text-[10px] font-bold text-neutral-300 group-hover:text-brand transition-colors duration-200 shrink-0 w-5 pt-0.5 select-none">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <p className="text-sm lg:text-base text-neutral-700 leading-relaxed group-hover:text-brand-dark transition-colors duration-200">
+                    {benefit}
+                  </p>
                 </li>
               ))}
             </ul>
@@ -390,76 +454,77 @@ export default function CareersPage() {
       </section>
 
       {/* ── OPEN ROLES ────────────────────────────────────────────────────── */}
-      <section id="open-roles" className="bg-neutral-50 border-y border-neutral-100">
+      <section id="open-roles" className="bg-neutral-950">
         <div className="max-w-5xl mx-auto px-6 lg:px-8 py-24 lg:py-32">
-          <div className="mb-16">
-            <p className="text-brand text-xs font-semibold tracking-[0.35em] uppercase mb-4">Now Hiring</p>
-            <h2 className="font-serif text-4xl lg:text-5xl font-bold text-brand-dark leading-tight">Open Positions</h2>
-            <p className="text-neutral-500 mt-5 max-w-xl text-sm leading-relaxed">
-              All roles are based in Virginia Beach, VA unless noted as hybrid or remote.
-              Equal opportunity employer committed to a diverse, inclusive team.
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-16 pb-10 border-b border-white/10">
+            <div>
+              <p className="text-brand text-[10px] font-bold tracking-[0.4em] uppercase mb-4">Now Hiring</p>
+              <h2 className="font-serif text-4xl lg:text-5xl font-bold text-white leading-tight">
+                Open Positions
+              </h2>
+            </div>
+            <p className="text-white/30 text-xs leading-relaxed max-w-xs sm:text-right">
+              Virginia Beach, VA · Equal opportunity employer committed to a diverse, inclusive team.
             </p>
           </div>
 
-          <div className="space-y-4">
-            {openRoles.map((role) => (
+          <div className="space-y-0">
+            {openRoles.map((role, i) => (
               <details
                 key={role.id}
-                className="group border border-neutral-200 rounded-sm bg-white overflow-hidden hover:border-brand/40 transition-colors duration-200"
+                className="group border-b border-white/10 overflow-hidden"
               >
-                <summary className="flex items-start justify-between gap-6 px-7 py-6 cursor-pointer list-none hover:bg-neutral-50/50 transition-colors">
+                <summary className="flex items-center justify-between gap-6 py-7 cursor-pointer list-none hover:bg-white/3 transition-colors -mx-6 px-6">
                   <div className="flex-1 min-w-0">
-                    <div className="flex flex-wrap items-center gap-2.5 mb-2">
-                      <span className="text-[9px] font-bold tracking-[0.15em] uppercase bg-brand/10 text-brand px-3 py-1 rounded-sm">
+                    <div className="flex flex-wrap items-center gap-3 mb-2">
+                      <span className="text-[9px] font-bold tracking-[0.2em] uppercase text-brand border border-brand/30 px-2.5 py-0.5">
                         {role.department}
                       </span>
-                      <span className="text-[10px] font-medium text-neutral-400 tracking-wide">{role.type}</span>
+                      <span className="hidden sm:inline text-[10px] text-white/30 tracking-wide">{role.type}</span>
                     </div>
-                    <h3 className="font-serif text-xl font-bold text-brand-dark group-open:text-brand transition-colors leading-snug">
+                    <h3 className="font-serif text-lg lg:text-xl font-bold text-white group-open:text-brand transition-colors leading-snug">
                       {role.title}
                     </h3>
-                    <div className="flex items-center gap-1.5 mt-2 text-xs text-neutral-400">
-                      <MapPin size={11} />
+                    <div className="flex items-center gap-1.5 mt-1.5 text-[11px] text-white/30">
+                      <MapPin size={10} />
                       {role.location}
                     </div>
                   </div>
-                  <div className="shrink-0 w-8 h-8 rounded-full border border-neutral-200 flex items-center justify-center mt-1 group-open:border-brand group-open:bg-brand transition-colors duration-200">
-                    <svg
-                      width="12" height="12" viewBox="0 0 12 12" fill="none"
-                      className="text-neutral-400 group-open:text-white group-open:rotate-180 transition-all duration-200"
-                    >
-                      <path d="M2 4.5l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+
+                  {/* Plus / minus toggle */}
+                  <div className="shrink-0 w-9 h-9 border border-white/15 flex items-center justify-center group-open:border-brand group-open:bg-brand transition-colors duration-200">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="text-white/40 group-open:text-white transition-colors duration-200">
+                      <path d="M6 1v10M1 6h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="group-open:opacity-0 transition-opacity duration-200" />
+                      <path d="M1 6h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="opacity-0 group-open:opacity-100 transition-opacity duration-200" />
                     </svg>
                   </div>
                 </summary>
 
-                <div className="px-7 pb-8 pt-1 border-t border-neutral-100">
-                  <p className="text-sm text-neutral-600 leading-relaxed mb-8 mt-4 max-w-2xl">{role.description}</p>
+                <div className="pt-2 pb-10 -mx-6 px-6 border-t border-white/5">
+                  <p className="text-sm text-white/50 leading-relaxed mb-10 mt-6 max-w-2xl">{role.description}</p>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mb-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mb-10">
                     <div>
-                      <h4 className="text-[10px] font-bold tracking-[0.15em] uppercase text-brand-dark mb-4 flex items-center gap-2">
-                        <span className="w-4 h-0.5 bg-brand inline-block" />
+                      <h4 className="text-[9px] font-bold tracking-[0.3em] uppercase text-brand mb-5">
                         What You Bring
                       </h4>
-                      <ul className="space-y-2.5">
+                      <ul className="space-y-3">
                         {role.requirements.map((req) => (
-                          <li key={req} className="flex items-start gap-2.5 text-sm text-neutral-600">
-                            <div className="w-1.5 h-1.5 rounded-full bg-brand shrink-0 mt-1.5" />
+                          <li key={req} className="flex items-start gap-3 text-sm text-white/50">
+                            <span className="w-px h-4 bg-brand/40 shrink-0 mt-0.5" />
                             {req}
                           </li>
                         ))}
                       </ul>
                     </div>
                     <div>
-                      <h4 className="text-[10px] font-bold tracking-[0.15em] uppercase text-brand-dark mb-4 flex items-center gap-2">
-                        <span className="w-4 h-0.5 bg-brand inline-block" />
+                      <h4 className="text-[9px] font-bold tracking-[0.3em] uppercase text-brand mb-5">
                         What You Get
                       </h4>
-                      <ul className="space-y-2.5">
+                      <ul className="space-y-3">
                         {role.benefits.map((b) => (
-                          <li key={b} className="flex items-start gap-2.5 text-sm text-neutral-600">
-                            <div className="w-1.5 h-1.5 rounded-full bg-brand shrink-0 mt-1.5" />
+                          <li key={b} className="flex items-start gap-3 text-sm text-white/50">
+                            <span className="w-px h-4 bg-brand/40 shrink-0 mt-0.5" />
                             {b}
                           </li>
                         ))}
@@ -476,24 +541,23 @@ export default function CareersPage() {
       </section>
 
       {/* ── HOW TO APPLY ──────────────────────────────────────────────────── */}
-      <section className="max-w-7xl mx-auto px-6 lg:px-8 py-24 lg:py-32">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+      <section className="max-w-7xl mx-auto px-6 lg:px-8 py-24 lg:py-36">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
           <div>
-            <p className="text-brand text-xs font-semibold tracking-[0.35em] uppercase mb-4">Simple Process</p>
+            <p className="text-brand text-[10px] font-bold tracking-[0.4em] uppercase mb-5">Simple Process</p>
             <h2 className="font-serif text-4xl lg:text-5xl font-bold text-brand-dark leading-tight mb-6">
               Three Steps to Joining Us
             </h2>
-            <p className="text-neutral-500 text-sm leading-relaxed mb-12">
-              No portals, no 12-page forms. Send your resume and a short note about why you want
-              to work with us — that&apos;s it. We keep hiring human.
+            <p className="text-neutral-400 text-sm leading-relaxed mb-16 max-w-sm">
+              No portals, no 12-page forms. Send your resume and a short note about why you want to work with us — that&apos;s it. We keep hiring human.
             </p>
 
-            <div className="space-y-10">
+            <div className="space-y-0">
               {[
                 {
                   step: "01",
                   title: "Fill In the Form",
-                  desc: "Open any role below, hit Apply, and fill in a short form — name, contact, a few role-specific questions, and a brief note. No cover letter required.",
+                  desc: "Open any role, hit Apply, fill in a short form — name, contact, a few questions, and a brief note. No cover letter required.",
                 },
                 {
                   step: "02",
@@ -503,13 +567,15 @@ export default function CareersPage() {
                 {
                   step: "03",
                   title: "Interview & Offer",
-                  desc: "One or two interviews (depending on role) and a decision within the same week. We don't make you wait.",
+                  desc: "One or two interviews and a decision within the same week. We don't make you wait.",
                 },
               ].map((s) => (
-                <div key={s.step} className="flex items-start gap-6">
-                  <span className="font-serif text-5xl font-bold text-brand/15 leading-none shrink-0 w-14">{s.step}</span>
+                <div key={s.step} className="flex items-start gap-8 py-8 border-b border-neutral-100 group">
+                  <span className="font-serif text-4xl lg:text-5xl font-bold text-neutral-100 group-hover:text-brand/20 transition-colors duration-300 leading-none shrink-0 w-14 select-none">
+                    {s.step}
+                  </span>
                   <div className="pt-1">
-                    <h3 className="font-serif text-lg font-bold text-brand-dark mb-1.5">{s.title}</h3>
+                    <h3 className="font-serif text-lg font-bold text-brand-dark mb-2">{s.title}</h3>
                     <p className="text-sm text-neutral-500 leading-relaxed">{s.desc}</p>
                   </div>
                 </div>
@@ -517,57 +583,64 @@ export default function CareersPage() {
             </div>
           </div>
 
-          {/* CTA card */}
-          <div className="relative rounded-sm overflow-hidden bg-brand-dark text-white p-10 lg:p-12">
-            {/* Background image */}
+          {/* CTA card — dark, full-bleed */}
+          <div className="relative overflow-hidden bg-brand-dark text-white lg:sticky lg:top-28">
             <div className="absolute inset-0">
               <Image
                 src="https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=1000&q=80"
                 alt="Welcoming home exterior"
-                fill
-                className="object-cover opacity-20"
+                fill className="object-cover opacity-15"
                 sizes="(max-width: 1024px) 100vw, 50vw"
               />
             </div>
-            <div className="relative z-10">
-              <p className="text-blue-200 text-xs font-semibold tracking-[0.35em] uppercase mb-4">Ready?</p>
+            {/* Diagonal accent line */}
+            <div className="absolute top-0 right-0 w-32 h-32 overflow-hidden">
+              <div className="absolute top-5 right-5 w-20 h-px bg-brand rotate-45 origin-right" />
+              <div className="absolute top-9 right-5 w-14 h-px bg-brand/50 rotate-45 origin-right" />
+            </div>
+            <div className="relative z-10 p-10 lg:p-12">
+              <p className="text-brand text-[10px] font-bold tracking-[0.4em] uppercase mb-5">Ready?</p>
               <h3 className="font-serif text-3xl lg:text-4xl font-bold mb-5 leading-tight">
                 Let&apos;s Build Something Together
               </h3>
-              <p className="text-blue-100 text-sm leading-relaxed mb-8">
+              <p className="text-white/50 text-sm leading-relaxed mb-10">
                 Whether you&apos;re a seasoned real estate professional or just starting out, we&apos;d love
-                to have a conversation. Send us your resume — no cover letter required.
+                a conversation. Send us your resume — no cover letter required.
               </p>
               <a
                 href="mailto:careers@haskerrealtygroup.com"
-                className="inline-flex items-center gap-2.5 bg-brand text-white text-sm font-semibold px-7 py-4 rounded-sm hover:bg-brand/90 transition-colors"
+                className="inline-flex items-center gap-3 bg-brand text-white text-sm font-semibold px-7 py-4 hover:bg-brand/90 transition-colors duration-200 cursor-pointer"
               >
-                <Mail size={15} />
+                <Mail size={14} />
                 careers@haskerrealtygroup.com
               </a>
 
-              <div className="mt-10 pt-8 border-t border-white/15 flex items-center gap-3 text-sm text-blue-200">
-                <MapPin size={14} className="text-brand shrink-0" />
-                213 Bob Ln, Virginia Beach, VA 23454
-              </div>
-              <div className="flex items-center gap-3 mt-3 text-sm text-blue-200">
-                <Clock size={14} className="text-brand shrink-0" />
-                Mon – Fri, 9 AM – 6 PM EST
+              <div className="mt-12 pt-8 border-t border-white/10 space-y-3">
+                <div className="flex items-center gap-3 text-sm text-white/30">
+                  <MapPin size={12} className="text-brand shrink-0" />
+                  213 Bob Ln, Virginia Beach, VA 23454
+                </div>
+                <div className="flex items-center gap-3 text-sm text-white/30">
+                  <Clock size={12} className="text-brand shrink-0" />
+                  Mon – Fri, 9 AM – 6 PM EST
+                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── DON'T SEE A FIT ───────────────────────────────────────────────── */}
-      <section className="border-t border-neutral-100">
-        <div className="max-w-3xl mx-auto px-6 lg:px-8 py-20">
-          <div className="text-center mb-10">
-            <h2 className="font-serif text-3xl font-bold text-brand-dark mb-4">Don&apos;t See the Right Role?</h2>
-            <p className="text-neutral-500 text-sm leading-relaxed max-w-lg mx-auto">
+      {/* ── DON'T SEE A FIT — full-width strip ───────────────────────────── */}
+      <section className="border-t border-neutral-100 bg-neutral-50">
+        <div className="max-w-3xl mx-auto px-6 lg:px-8 py-20 lg:py-28">
+          <div className="text-center mb-12">
+            <p className="text-brand text-[10px] font-bold tracking-[0.4em] uppercase mb-5">Open Application</p>
+            <h2 className="font-serif text-3xl lg:text-4xl font-bold text-brand-dark mb-5 leading-tight">
+              Don&apos;t See the Right Role?
+            </h2>
+            <p className="text-neutral-500 text-sm leading-relaxed max-w-md mx-auto">
               If you&apos;re passionate about affordable housing and want to be part of our team,
-              send a general application. We keep strong candidates on file and reach out when new
-              roles open.
+              send a general application. We keep strong candidates on file and reach out when new roles open.
             </p>
           </div>
           <CareerApplicationForm roleId="general" roleTitle="General Application" />

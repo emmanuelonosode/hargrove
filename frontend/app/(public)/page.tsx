@@ -33,13 +33,6 @@ export const metadata = {
   alternates: { canonical: "https://haskerrealtygroup.com" },
 };
 
-// Static marketing stats (non-dynamic values remain honest copy)
-const marketingStats = [
-  { icon: Users,        label: "Families Housed", value: "2,000+", sublabel: "and counting" },
-  { icon: CheckCircle,  label: "Cities Covered",  value: "12+",   sublabel: "and growing" },
-  { icon: Clock,        label: "Response Time",   value: "24hr",  sublabel: "application review" },
-];
-
 const howItWorks = [
   {
     step: "01",
@@ -224,7 +217,7 @@ export default async function HomePage() {
     fetchHomepageProperties(),
     fetchAgents(),
     fetchPosts({ is_featured: true }),
-    fetchProperties(), // all published — for total count
+    fetchProperties(),
   ]);
 
   const featuredProperties =
@@ -247,8 +240,6 @@ export default async function HomePage() {
 
       {/* ─── HERO ──────────────────────────────────────────────── */}
       <section className="relative min-h-[100svh] flex items-center overflow-hidden">
-
-        {/* ── Background image ── */}
         <div className="absolute inset-0">
           <Image
             src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=1920&q=90"
@@ -267,11 +258,8 @@ export default async function HomePage() {
           />
         </div>
 
-        {/* ── Content — centered single column ── */}
         <div className="relative z-10 w-full px-5 sm:px-8 pt-24 pb-14 sm:pt-28 sm:pb-20">
           <div className="max-w-4xl mx-auto flex flex-col items-center text-center">
-
-            {/* Eyebrow pill */}
             <div
               className="hero-animate inline-flex items-center gap-2.5 mb-8
                          bg-white/10 backdrop-blur-sm border border-white/20
@@ -284,7 +272,6 @@ export default async function HomePage() {
               </span>
             </div>
 
-            {/* Headline */}
             <h1
               className="hero-animate text-white font-black leading-[1.08] mb-6
                          text-[2.5rem] sm:text-5xl md:text-6xl lg:text-[4.5rem] xl:text-[5rem]"
@@ -294,7 +281,6 @@ export default async function HomePage() {
               Within Your Budget.
             </h1>
 
-            {/* Subtitle */}
             <p
               className="hero-animate text-white/90 text-base sm:text-lg leading-relaxed mb-10 max-w-xl"
               style={{ animationDelay: "180ms" }}
@@ -303,7 +289,6 @@ export default async function HomePage() {
               No hidden fees. Decisions in 24 hours.
             </p>
 
-            {/* Search bar — WHITE, max contrast, undeniable CTA */}
             <div
               className="hero-animate w-full max-w-3xl"
               style={{ animationDelay: "270ms" }}
@@ -311,7 +296,6 @@ export default async function HomePage() {
               <SearchBar className="shadow-2xl shadow-black/30" />
             </div>
 
-            {/* City quick-filters */}
             <div
               className="hero-animate flex flex-wrap justify-center items-center gap-2 mt-5"
               style={{ animationDelay: "360ms" }}
@@ -324,24 +308,16 @@ export default async function HomePage() {
                 <Link
                   key={city}
                   href={`/properties?q=${city}`}
-                  className="
-                    text-[11px] text-white/80 hover:text-white
-                    border border-white/30 hover:border-white/70
-                    px-3 py-2 rounded-full
-                    transition-[color,border-color] duration-200 cursor-pointer
-                  "
+                  className="text-[11px] text-white/80 hover:text-white border border-white/30 hover:border-white/70 px-3 py-2 rounded-full transition-[color,border-color] duration-200 cursor-pointer"
                 >
                   {city}
                 </Link>
               ))}
             </div>
-
           </div>
         </div>
 
-        {/* ── Scroll indicator — centered bottom ── */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20
-                        flex flex-col items-center gap-2 text-white/30">
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2 text-white/30">
           <span className="text-[9px] tracking-[0.28em] uppercase">Scroll</span>
           <div className="w-0.5 h-7 rounded-full bg-gradient-to-b from-white/40 to-transparent" />
         </div>
@@ -359,7 +335,6 @@ export default async function HomePage() {
         >
           {[0, 1].map((copy) => (
             <div key={copy} className="flex items-center gap-x-10 pr-10 shrink-0" aria-hidden={copy === 1}>
-
               <div className="flex items-center gap-3 shrink-0">
                 <div className="flex items-center gap-0.5">
                   {[1,2,3,4,5].map((i) => (
@@ -371,9 +346,7 @@ export default async function HomePage() {
                 <span className="text-[11px] font-bold text-neutral-800">4.9 Excellent</span>
                 <span className="text-[10px] text-neutral-400">2,400+ reviews · Trustpilot</span>
               </div>
-
               <div className="h-5 w-px bg-neutral-200 shrink-0" />
-
               <div className="flex items-center gap-2 shrink-0">
                 <div className="w-6 h-6 rounded bg-[#003087] flex items-center justify-center shrink-0">
                   <span className="text-white font-black text-[9px] leading-none">BBB</span>
@@ -381,9 +354,7 @@ export default async function HomePage() {
                 <span className="text-[11px] font-bold text-neutral-800">A+ Accredited</span>
                 <span className="text-[10px] text-neutral-400">Better Business Bureau</span>
               </div>
-
               <div className="h-5 w-px bg-neutral-200 shrink-0" />
-
               <div className="flex items-center gap-2 shrink-0">
                 <svg className="w-4 h-4 text-brand shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.955 11.955 0 013 10c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.75h-.152c-3.196 0-6.1-1.249-8.25-3.286z"/>
@@ -391,9 +362,7 @@ export default async function HomePage() {
                 <span className="text-[11px] font-bold text-neutral-800">Licensed &amp; Insured</span>
                 <span className="text-[10px] text-neutral-400">All 6 states · Since 2012</span>
               </div>
-
               <div className="h-5 w-px bg-neutral-200 shrink-0" />
-
               <div className="flex items-center gap-2 shrink-0">
                 <svg className="w-4 h-4 text-brand shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
@@ -401,9 +370,7 @@ export default async function HomePage() {
                 <span className="text-[11px] font-bold text-neutral-800">Equal Housing</span>
                 <span className="text-[10px] text-neutral-400">Fair Housing Act compliant</span>
               </div>
-
               <div className="h-5 w-px bg-neutral-200 shrink-0" />
-
               <div className="flex items-center gap-2 shrink-0">
                 <svg className="w-4 h-4 text-brand shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-2 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
@@ -411,9 +378,7 @@ export default async function HomePage() {
                 <span className="text-[11px] font-bold text-neutral-800">NAR Member</span>
                 <span className="text-[10px] text-neutral-400">National Association of Realtors</span>
               </div>
-
               <div className="h-5 w-px bg-neutral-200 shrink-0" />
-
               <div className="flex items-center gap-2 shrink-0">
                 <svg className="w-4 h-4 text-brand shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -421,9 +386,7 @@ export default async function HomePage() {
                 <span className="text-[11px] font-bold text-neutral-800">24hr Decisions</span>
                 <span className="text-[10px] text-neutral-400">Fast application review</span>
               </div>
-
               <div className="h-5 w-px bg-neutral-200 shrink-0" />
-
               <div className="flex items-center gap-2 shrink-0">
                 <svg className="w-4 h-4 text-brand shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -431,30 +394,31 @@ export default async function HomePage() {
                 <span className="text-[11px] font-bold text-neutral-800">2,000+ Families Housed</span>
                 <span className="text-[10px] text-neutral-400">Across 12+ cities</span>
               </div>
-
             </div>
           ))}
         </div>
       </section>
 
-      {/* ─── STATS BAR ─────────────────────────────────────────── */}
-      <section className="bg-brand text-white py-10 lg:py-14">
+      {/* ─── STATS BAR — editorial numbers, no icons ───────────── */}
+      <section className="bg-brand-dark text-white">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-8 lg:gap-8">
-            <div className="flex flex-col items-center text-center">
-              <Home size={20} className="text-blue-200 mb-3" />
-              <span className="font-sans text-3xl font-bold text-white">
-                {totalProperties != null ? `${totalProperties}` : "—"}
-              </span>
-              <span className="text-sm font-medium text-white/80 mt-0.5">Properties</span>
-              <span className="text-xs text-blue-200/80 mt-0.5">available now</span>
-            </div>
-            {marketingStats.map(({ icon: Icon, label, value, sublabel }) => (
-              <div key={label} className="flex flex-col items-center text-center">
-                <Icon size={20} className="text-blue-200 mb-3" />
-                <span className="font-sans text-3xl font-bold text-white">{value}</span>
-                <span className="text-sm font-medium text-white/80 mt-0.5">{label}</span>
-                <span className="text-xs text-blue-200/80 mt-0.5">{sublabel}</span>
+          <div className="grid grid-cols-2 lg:grid-cols-4 divide-x divide-white/10">
+            {[
+              {
+                value: totalProperties != null ? String(totalProperties) : "—",
+                label: "Properties",
+                sub: "available now",
+              },
+              { value: "2,000+", label: "Families Housed",   sub: "and counting"         },
+              { value: "12+",    label: "Cities Covered",    sub: "and growing"           },
+              { value: "24hr",   label: "Response Time",     sub: "application review"    },
+            ].map((s, i) => (
+              <div key={s.label} className="flex flex-col gap-1 px-6 py-8 lg:py-10 border-b border-white/10 lg:border-b-0 even:border-l even:border-white/10 lg:even:border-l-0">
+                <span className="font-serif text-[2.5rem] lg:text-[3rem] font-bold text-white leading-none tracking-tight">
+                  {s.value}
+                </span>
+                <span className="text-sm font-semibold text-white/80 mt-0.5">{s.label}</span>
+                <span className="text-xs text-white/35 tracking-wide">{s.sub}</span>
               </div>
             ))}
           </div>
@@ -469,7 +433,7 @@ export default async function HomePage() {
               <p className="text-brand text-xs font-semibold tracking-[0.3em] uppercase mb-3">
                 Move-In Ready
               </p>
-              <h2 className="font-sans text-4xl font-bold text-brand-dark">Homes Available Now</h2>
+              <h2 className="font-serif text-4xl font-bold text-brand-dark">Homes Available Now</h2>
               <p className="text-neutral-500 mt-2 text-sm">Affordable rentals &amp; homes for sale, updated daily and priced honestly.</p>
             </div>
             <Button variant="outline" asChild>
@@ -501,7 +465,7 @@ export default async function HomePage() {
             <p className="text-brand text-xs font-semibold tracking-[0.3em] uppercase mb-3">
               Explore Markets
             </p>
-            <h2 className="font-sans text-4xl font-bold text-brand-dark">
+            <h2 className="font-serif text-4xl font-bold text-brand-dark">
               Rentals by City
             </h2>
           </div>
@@ -512,7 +476,7 @@ export default async function HomePage() {
                 <Link
                   key={c.slug}
                   href={`/rentals/${c.slug}`}
-                  className="group relative aspect-[4/3] rounded-sm overflow-hidden bg-neutral-100"
+                  className="group relative aspect-[4/3] rounded-sm overflow-hidden bg-neutral-100 cursor-pointer"
                 >
                   <Image
                     src={c.heroImage}
@@ -533,32 +497,34 @@ export default async function HomePage() {
       </section>
 
       {/* ─── HOW IT WORKS ──────────────────────────────────────── */}
-      <section className="py-16 lg:py-24 bg-brand-light">
+      <section className="py-16 lg:py-24 bg-brand-dark text-white">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="text-center mb-14">
+          <div className="text-center mb-16">
             <p className="text-brand text-xs font-semibold tracking-[0.3em] uppercase mb-3">
               Simple Process
             </p>
-            <h2 className="font-sans text-4xl font-bold text-brand-dark">How It Works</h2>
-            <p className="text-neutral-500 mt-3 max-w-xl mx-auto">
+            <h2 className="font-serif text-4xl font-bold text-white">How It Works</h2>
+            <p className="text-white/50 mt-3 max-w-xl mx-auto text-sm">
               From search to move-in, we&apos;ve made renting as simple and stress-free as possible.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {howItWorks.map((item) => (
-              <div key={item.step} className="flex flex-col">
-                <span className="font-sans text-5xl font-black text-brand/20 mb-4 leading-none">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-0">
+            {howItWorks.map((item, i) => (
+              <div key={item.step} className="relative flex flex-col p-6 lg:p-8 border-b border-white/10 sm:border-b-0 sm:border-r last:border-r-0 border-white/10">
+                {/* Step connector dot on desktop */}
+                <div className="hidden lg:block absolute top-8 right-0 w-px h-8 bg-white/10" />
+                <span className="font-serif text-[3.5rem] font-bold text-white/10 leading-none mb-5 select-none">
                   {item.step}
                 </span>
-                <h3 className="font-semibold text-brand-dark text-base mb-2">{item.title}</h3>
-                <p className="text-sm text-neutral-500 leading-relaxed">{item.desc}</p>
+                <h3 className="font-semibold text-white text-base mb-2 leading-snug">{item.title}</h3>
+                <p className="text-sm text-white/40 leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>
 
           <div className="text-center mt-12">
-            <Button variant="primary" asChild>
+            <Button variant="accent" asChild>
               <Link href="/properties">Browse Available Rentals</Link>
             </Button>
           </div>
@@ -566,7 +532,7 @@ export default async function HomePage() {
       </section>
 
       {/* ─── WHY HASKER & CO. ──────────────────────────────────── */}
-      <section className="py-16 lg:py-24 bg-brand-light">
+      <section className="py-16 lg:py-24 bg-white">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div>
@@ -627,7 +593,7 @@ export default async function HomePage() {
               </div>
             </div>
 
-            <div className="relative pb-10 lg:pb-0">
+            <div className="relative">
               <div className="relative aspect-[4/5] rounded-sm overflow-hidden">
                 <Image
                   src="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&q=80"
@@ -636,23 +602,29 @@ export default async function HomePage() {
                   className="object-cover"
                   sizes="(max-width: 1024px) 100vw, 50vw"
                 />
+                {/* Subtle vignette */}
+                <div className="absolute inset-0 bg-gradient-to-t from-brand-dark/30 to-transparent" />
               </div>
-              {/* Stat card — absolute on desktop, inline push on mobile */}
-              <div className="absolute bottom-0 left-3 lg:-bottom-6 lg:-left-6 bg-white border border-neutral-100 shadow-xl p-4 lg:p-5 rounded-sm max-w-[200px] lg:max-w-[210px]">
-                <p className="font-sans text-3xl font-bold text-brand-dark">2,000+</p>
-                <p className="text-xs text-neutral-500 leading-snug mt-1">
+
+              {/* Floating stat card — refined positioning */}
+              <div className="absolute -bottom-6 -left-4 lg:-left-8 bg-white border border-neutral-100 shadow-2xl p-5 lg:p-6 rounded-sm max-w-[190px]">
+                <p className="font-serif text-3xl font-bold text-brand-dark leading-none">2,000+</p>
+                <p className="text-xs text-neutral-500 leading-snug mt-2">
                   Families successfully housed since 2012
                 </p>
               </div>
-              <div className="absolute -top-3 -right-3 lg:-top-4 lg:-right-4 bg-brand text-white p-3 lg:p-4 rounded-sm">
-                <CheckCircle size={28} />
+
+              {/* Est. tag — top right, clean strip */}
+              <div className="absolute -top-4 -right-4 lg:-top-5 lg:-right-5 bg-brand text-white px-4 py-2 rounded-sm">
+                <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-white/70">Est.</p>
+                <p className="font-serif text-lg font-bold leading-none">2012</p>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ─── TECHNOLOGY EDGE / FOUNDER CREDENTIALS ─────────────── */}
+      {/* ─── TECHNOLOGY EDGE ───────────────────────────────────── */}
       <section className="py-16 lg:py-24 bg-brand-dark text-white">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-14 items-center">
@@ -663,13 +635,13 @@ export default async function HomePage() {
               <h2 className="font-serif text-4xl lg:text-5xl font-bold leading-tight mb-6">
                 Built on Real Systems Expertise
               </h2>
-              <p className="text-blue-100 leading-relaxed mb-4">
+              <p className="text-white/60 leading-relaxed mb-4">
                 Hasker &amp; Co. Realty Group is led by an Information Systems specialist trained in
                 database architecture, information security, and AI-driven workflows. That academic
                 foundation shapes how we protect your data, match you to properties precisely, and
                 move faster than traditional agencies.
               </p>
-              <p className="text-blue-200 text-sm leading-relaxed">
+              <p className="text-white/40 text-sm leading-relaxed">
                 Our technology infrastructure is built to the standards of academic Information Systems
                 study at the university level — not retrofitted from off-the-shelf tools.
               </p>
@@ -689,9 +661,10 @@ export default async function HomePage() {
                   desc: "We use intelligent workflows to match applicants to available homes faster than manual review.",
                 },
               ].map((item) => (
-                <div key={item.title} className="bg-white/5 border border-white/10 rounded-sm p-5">
+                <div key={item.title} className="bg-white/5 border border-white/10 rounded-sm p-5 hover:bg-white/8 transition-colors duration-200">
+                  <div className="w-1 h-5 bg-brand rounded-full mb-4" />
                   <h3 className="font-semibold text-white text-sm mb-2">{item.title}</h3>
-                  <p className="text-blue-200 text-xs leading-relaxed">{item.desc}</p>
+                  <p className="text-white/40 text-xs leading-relaxed">{item.desc}</p>
                 </div>
               ))}
             </div>
@@ -706,22 +679,22 @@ export default async function HomePage() {
             <p className="text-brand text-xs font-semibold tracking-[0.3em] uppercase mb-3">
               Our People
             </p>
-            <h2 className="font-sans text-4xl font-bold text-brand-dark">Meet Our Rental Team</h2>
-            <p className="text-neutral-500 mt-3 max-w-xl mx-auto">
+            <h2 className="font-serif text-4xl font-bold text-brand-dark">Meet Our Rental Team</h2>
+            <p className="text-neutral-500 mt-3 max-w-xl mx-auto text-sm">
               Real people who know the local rental market and are genuinely committed to helping
               you find the right home.
             </p>
           </div>
 
           {teamAgents.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
               {teamAgents.map((agent) => (
                 <Link
                   key={agent.id}
                   href={`/agents/${agent.id}`}
-                  className="group bg-white rounded-sm overflow-hidden border border-neutral-100 hover:shadow-xl transition-shadow duration-300"
+                  className="group bg-white rounded-sm overflow-hidden border border-neutral-100 hover:border-brand/30 hover:shadow-xl transition-all duration-300 cursor-pointer"
                 >
-                  <div className="relative aspect-[4/3] sm:aspect-[3/4] overflow-hidden bg-brand-muted">
+                  <div className="relative aspect-[4/3] sm:aspect-[3/4] overflow-hidden bg-brand-light">
                     {agent.avatar_url ? (
                       <Image
                         src={agent.avatar_url}
@@ -737,28 +710,28 @@ export default async function HomePage() {
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-brand-dark/80 to-transparent" />
                     <div className="absolute bottom-4 left-4 text-white">
-                      <p className="font-sans text-xl font-bold">{agent.full_name}</p>
+                      <p className="font-serif text-xl font-bold">{agent.full_name}</p>
                       {agent.agent_profile?.specialties?.[0] && (
                         <p className="text-sm text-blue-200">{agent.agent_profile.specialties[0]}</p>
                       )}
                     </div>
                   </div>
-                  <div className="p-5">
+                  <div className="p-5 border-t border-neutral-50">
                     <div className="grid grid-cols-3 gap-3 text-center">
                       <div>
-                        <p className="font-sans text-lg font-bold text-brand-dark">
+                        <p className="font-serif text-lg font-bold text-brand-dark">
                           {agent.agent_profile?.years_experience ?? "—"}yr
                         </p>
                         <p className="text-xs text-neutral-400">Experience</p>
                       </div>
                       <div>
-                        <p className="font-sans text-lg font-bold text-brand-dark">
+                        <p className="font-serif text-lg font-bold text-brand-dark">
                           {agent.active_listings}
                         </p>
                         <p className="text-xs text-neutral-400">Listings</p>
                       </div>
                       <div>
-                        <p className="font-sans text-lg font-bold text-brand-dark">
+                        <p className="font-serif text-lg font-bold text-brand-dark">
                           {agent.agent_profile?.total_sales
                             ? formatPrice(agent.agent_profile.total_sales, { compact: true })
                             : "—"}
@@ -792,25 +765,22 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ─── HAPPY FAMILIES ────────────────────────────────────── */}
+      {/* ─── TESTIMONIALS ──────────────────────────────────────── */}
       <section id="testimonials" className="py-16 lg:py-24 bg-brand-dark">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
-
-          {/* Header */}
           <div className="text-center mb-14">
-            <p className="text-blue-300 text-xs font-semibold tracking-[0.3em] uppercase mb-3">
+            <p className="text-brand text-xs font-semibold tracking-[0.3em] uppercase mb-3">
               Real Stories
             </p>
-            <h2 className="font-sans text-4xl font-bold text-white">
+            <h2 className="font-serif text-4xl font-bold text-white">
               Real Families. Affordable Homes.
             </h2>
-            <p className="text-blue-100/70 mt-3 max-w-lg mx-auto">
+            <p className="text-white/50 mt-3 max-w-lg mx-auto text-sm">
               Over 2,000 families have found their home through Hasker &amp; Co.
               Here are a few of their stories.
             </p>
           </div>
 
-          {/* Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
               {
@@ -835,11 +805,7 @@ export default async function HomePage() {
                 quote: "Relocating with three kids is no joke. Hasker & Co. handled everything remotely — virtual tour, digital lease, the works. We pulled up to our new home and it was exactly as advertised.",
               },
             ].map((story) => (
-              <div
-                key={story.name}
-                className="group bg-white rounded-sm overflow-hidden flex flex-col"
-              >
-                {/* Photo */}
+              <div key={story.name} className="group bg-white rounded-sm overflow-hidden flex flex-col">
                 <div className="relative aspect-[4/3] overflow-hidden shrink-0">
                   <Image
                     src={story.image}
@@ -855,25 +821,18 @@ export default async function HomePage() {
                     </span>
                   </div>
                 </div>
-
-                {/* Body */}
                 <div className="p-6 flex flex-col flex-1">
-                  {/* Stars */}
                   <div className="flex gap-0.5 mb-4">
                     {[1,2,3,4,5].map((i) => (
                       <Star key={i} size={13} className="fill-amber-400 text-amber-400" />
                     ))}
                   </div>
-
-                  {/* Quote */}
                   <div className="relative flex-1">
                     <span className="absolute -top-3 -left-1 text-6xl leading-none text-brand/15 font-serif select-none">&ldquo;</span>
                     <p className="text-sm text-neutral-600 leading-relaxed pl-4 pt-1">
                       {story.quote}
                     </p>
                   </div>
-
-                  {/* Attribution */}
                   <div className="mt-5 pt-4 border-t border-neutral-100 flex items-center justify-between">
                     <div>
                       <p className="font-semibold text-brand-dark text-sm">{story.name}</p>
@@ -891,9 +850,8 @@ export default async function HomePage() {
             ))}
           </div>
 
-          {/* CTA */}
           <div className="text-center mt-12">
-            <p className="text-blue-100/60 text-sm mb-6">
+            <p className="text-white/40 text-sm mb-6">
               Join over 2,000 families who found their affordable home with Hasker &amp; Co.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -907,48 +865,75 @@ export default async function HomePage() {
               </Button>
             </div>
           </div>
-
         </div>
       </section>
 
       {/* ─── LEAD MAGNETS ──────────────────────────────────────── */}
       <section className="py-16 lg:py-24 bg-white">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            <div className="bg-brand-light border border-brand-muted rounded-sm p-7 lg:p-10">
-              <p className="text-brand text-xs font-semibold tracking-[0.3em] uppercase mb-4">
-                Ready to Move?
-              </p>
-              <h2 className="font-sans text-3xl font-bold text-brand-dark mb-4">
-                Apply for a
-                <br />
-                Rental Today
-              </h2>
-              <p className="text-neutral-600 text-sm leading-relaxed mb-6">
-                Our online rental application is quick and paperless. Most applicants receive a
-                decision within 24 hours. No unnecessary delays.
-              </p>
-              <Button variant="primary" asChild>
-                <Link href="/apply">Start Your Application</Link>
-              </Button>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Apply CTA — image background */}
+            <div className="relative overflow-hidden rounded-sm">
+              <div className="absolute inset-0">
+                <Image
+                  src="https://images.unsplash.com/photo-1560184897-ae75f418493e?w=1000&q=80"
+                  alt="Home exterior"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                />
+                <div className="absolute inset-0 bg-brand/90" />
+              </div>
+              <div className="relative z-10 p-8 lg:p-12">
+                <p className="text-white/60 text-xs font-semibold tracking-[0.3em] uppercase mb-4">
+                  Ready to Move?
+                </p>
+                <h2 className="font-serif text-3xl lg:text-4xl font-bold text-white mb-4 leading-tight">
+                  Apply for a<br />Rental Today
+                </h2>
+                <p className="text-white/70 text-sm leading-relaxed mb-8">
+                  Our online rental application is quick and paperless. Most applicants receive a
+                  decision within 24 hours. No unnecessary delays.
+                </p>
+                <Link
+                  href="/apply"
+                  className="inline-flex items-center gap-2 bg-white text-brand text-sm font-bold px-7 py-4 hover:bg-brand-light transition-colors duration-200 cursor-pointer"
+                >
+                  Start Your Application <ArrowRight size={14} />
+                </Link>
+              </div>
             </div>
 
-            <div className="bg-brand-dark rounded-sm p-7 lg:p-10 text-white">
-              <p className="text-blue-300 text-xs font-semibold tracking-[0.3em] uppercase mb-4">
-                Free Resource
-              </p>
-              <h2 className="font-sans text-3xl font-bold mb-4">
-                First-Time
-                <br />
-                Renter&apos;s Guide
-              </h2>
-              <p className="text-blue-100 text-sm leading-relaxed mb-6">
-                Everything you need to know before signing a lease: what to inspect, what to
-                negotiate, and red flags to watch out for. Written by our rental experts.
-              </p>
-              <Button variant="accent" asChild>
-                <Link href="/blog">Read the Guide</Link>
-              </Button>
+            {/* Guide CTA — dark with image */}
+            <div className="relative overflow-hidden rounded-sm">
+              <div className="absolute inset-0">
+                <Image
+                  src="https://images.unsplash.com/photo-1484154218962-a197022b5858?w=1000&q=80"
+                  alt="Interior"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                />
+                <div className="absolute inset-0 bg-brand-dark/92" />
+              </div>
+              <div className="relative z-10 p-8 lg:p-12">
+                <p className="text-white/40 text-xs font-semibold tracking-[0.3em] uppercase mb-4">
+                  Free Resource
+                </p>
+                <h2 className="font-serif text-3xl lg:text-4xl font-bold text-white mb-4 leading-tight">
+                  First-Time<br />Renter&apos;s Guide
+                </h2>
+                <p className="text-white/50 text-sm leading-relaxed mb-8">
+                  Everything you need to know before signing a lease: what to inspect, what to
+                  negotiate, and red flags to watch out for. Written by our rental experts.
+                </p>
+                <Link
+                  href="/blog"
+                  className="inline-flex items-center gap-2 bg-brand text-white text-sm font-bold px-7 py-4 hover:bg-brand-hover transition-colors duration-200 cursor-pointer"
+                >
+                  Read the Guide <ArrowRight size={14} />
+                </Link>
+              </div>
             </div>
           </div>
         </div>
@@ -962,7 +947,7 @@ export default async function HomePage() {
               <p className="text-brand text-xs font-semibold tracking-[0.3em] uppercase mb-3">
                 Renter Resources
               </p>
-              <h2 className="font-sans text-4xl font-bold text-brand-dark">Helpful Guides</h2>
+              <h2 className="font-serif text-4xl font-bold text-brand-dark">Helpful Guides</h2>
             </div>
             <Button variant="outline" asChild>
               <Link href="/blog" className="flex items-center gap-2">
@@ -977,7 +962,7 @@ export default async function HomePage() {
                 <Link
                   key={post.slug}
                   href={`/blog/${post.slug}`}
-                  className="group bg-white border border-neutral-100 rounded-sm overflow-hidden hover:shadow-xl transition-shadow duration-300"
+                  className="group bg-white border border-neutral-100 rounded-sm overflow-hidden hover:shadow-xl hover:border-brand/20 transition-all duration-300 cursor-pointer"
                 >
                   <div className="relative aspect-[16/9] overflow-hidden bg-brand-light">
                     <Image
@@ -992,7 +977,7 @@ export default async function HomePage() {
                     <span className="text-brand text-xs font-semibold tracking-widest uppercase">
                       {post.category_display}
                     </span>
-                    <h3 className="font-sans text-lg font-semibold text-brand-dark mt-2 mb-3 line-clamp-2 group-hover:text-brand transition-colors leading-snug">
+                    <h3 className="font-serif text-lg font-bold text-brand-dark mt-2 mb-3 line-clamp-2 group-hover:text-brand transition-colors duration-200 leading-snug">
                       {post.title}
                     </h3>
                     <p className="text-sm text-neutral-500 leading-relaxed line-clamp-2">
@@ -1029,7 +1014,7 @@ export default async function HomePage() {
           <div className="absolute inset-0 bg-brand-dark/85" />
         </div>
         <div className="relative z-10 text-center text-white max-w-3xl mx-auto px-6">
-          <p className="text-blue-300 text-xs font-semibold tracking-[0.4em] uppercase mb-5">
+          <p className="text-brand text-xs font-semibold tracking-[0.4em] uppercase mb-5">
             Your Next Home Is Waiting
           </p>
           <h2 className="font-serif text-4xl lg:text-5xl font-bold mb-6 leading-tight">
@@ -1037,7 +1022,7 @@ export default async function HomePage() {
             <br />
             Is Waiting for You.
           </h2>
-          <p className="text-blue-100 text-lg leading-relaxed mb-10">
+          <p className="text-white/60 text-lg leading-relaxed mb-10">
             Browse homes right now or reach out to our team. We respond fast,
             keep pricing honest, and work hard to get your family into a home you love.
           </p>
