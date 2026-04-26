@@ -213,10 +213,11 @@ const BREADCRUMB_HOME = {
 };
 
 export default async function HomePage() {
-  const [featuredRaw, agents, blogData, totalCountRaw] = await Promise.allSettled([
+  const [featuredRaw, agents, blogFeatured, blogLatest, totalCountRaw] = await Promise.allSettled([
     fetchHomepageProperties(),
     fetchAgents(),
     fetchPosts({ is_featured: true }),
+    fetchPosts(),
     fetchProperties(),
   ]);
 
@@ -224,8 +225,10 @@ export default async function HomePage() {
     featuredRaw.status === "fulfilled" ? featuredRaw.value.slice(0, 3).map(toPropertyCardShape) : [];
   const teamAgents =
     agents.status === "fulfilled" ? agents.value.slice(0, 3) : [];
-  const blogPosts =
-    blogData.status === "fulfilled" ? blogData.value.results.slice(0, 3) : [];
+  // Use featured posts if any are marked, otherwise fall back to latest published
+  const featuredPostResults = blogFeatured.status === "fulfilled" ? blogFeatured.value.results : [];
+  const latestPostResults   = blogLatest.status  === "fulfilled" ? blogLatest.value.results   : [];
+  const blogPosts = (featuredPostResults.length > 0 ? featuredPostResults : latestPostResults).slice(0, 3);
   const totalProperties =
     totalCountRaw.status === "fulfilled" ? totalCountRaw.value.count : null;
 

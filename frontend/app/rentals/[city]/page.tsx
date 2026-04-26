@@ -12,7 +12,7 @@ import { PropertyCard } from "@/components/public/PropertyCard";
 import { Button } from "@/components/ui/Button";
 import { CityLeadCapture } from "@/components/public/CityLeadCapture";
 
-export const revalidate = 3600;
+export const revalidate = 300;
 
 /* ── Static Params ──────────────────────────────────────────────────── */
 
