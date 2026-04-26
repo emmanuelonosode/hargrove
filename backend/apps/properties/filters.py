@@ -47,13 +47,16 @@ class PropertyFilter(django_filters.FilterSet):
 
     def sort_filter(self, queryset, name, value):
         sort_map = {
-            "price_asc": "price",
-            "price_desc": "-price",
-            "newest": "-created_at",
-            "oldest": "created_at",
-            "beds_asc": "bedrooms",
-            "beds_desc": "-bedrooms",
-            "sqft_desc": "-sqft",
+            "price_asc":  ["price"],
+            "price_desc": ["-price"],
+            "newest":     ["-created_at"],
+            "oldest":     ["created_at"],
+            "beds_asc":   ["bedrooms"],
+            "beds_desc":  ["-bedrooms"],
+            "sqft_desc":  ["-sqft"],
+            # Diverse: interleaves properties across cities and bedroom counts
+            # so no single estate/suburb dominates the default browse page.
+            "diverse":    ["city", "state", "-bedrooms", "price"],
         }
-        order = sort_map.get(value, "-created_at")
-        return queryset.order_by(order)
+        order = sort_map.get(value, ["-created_at"])
+        return queryset.order_by(*order)

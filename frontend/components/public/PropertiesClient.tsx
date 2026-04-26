@@ -47,6 +47,7 @@ const BEDS_OPTIONS = [
 ];
 
 const SORT_OPTIONS = [
+  { label: "Best Match",   value: "diverse" },
   { label: "Newest",       value: "newest" },
   { label: "Price: Low",   value: "price_asc" },
   { label: "Price: High",  value: "price_desc" },

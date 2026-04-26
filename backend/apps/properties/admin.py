@@ -37,11 +37,11 @@ class PropertyAdmin(ModelAdmin):
     list_display = [
         "title", "type", "listing_type", "status_badge",
         "price_display", "city", "state", "condition",
-        "is_featured", "is_published", "created_at",
+        "homepage_featured", "is_featured", "is_published", "created_at",
     ]
     list_filter = [
         "type", "listing_type", "status", "condition",
-        "is_featured", "is_published", "state",
+        "homepage_featured", "is_featured", "is_published", "state",
     ]
     search_fields = [
         "title", "address", "city", "neighborhood", "zip_code",
@@ -51,7 +51,11 @@ class PropertyAdmin(ModelAdmin):
     readonly_fields = ["slug", "created_at", "updated_at"]
     date_hierarchy = "created_at"
     inlines = [PropertyImageInline, PropertyAmenityInline]
-    actions = ["publish_properties", "unpublish_properties", "mark_featured", "unmark_featured"]
+    actions = [
+        "publish_properties", "unpublish_properties",
+        "mark_featured", "unmark_featured",
+        "add_to_homepage", "remove_from_homepage",
+    ]
 
     fieldsets = (
         ("Listing Info", {
@@ -86,7 +90,12 @@ class PropertyAdmin(ModelAdmin):
             ),
         }),
         ("Visibility", {
-            "fields": ("is_featured", "is_published"),
+            "fields": ("is_published", "is_featured", "homepage_featured"),
+            "description": (
+                "is_published: makes the property visible on the site. "
+                "is_featured: shows the 'Featured' badge on property cards. "
+                "homepage_featured: shows this property in the 'Available Now' section on the homepage (max 6)."
+            ),
         }),
         ("Timestamps", {
             "fields": ("created_at", "updated_at"),
@@ -132,3 +141,13 @@ class PropertyAdmin(ModelAdmin):
     def unmark_featured(self, request, queryset):
         updated = queryset.update(is_featured=False)
         self.message_user(request, f"{updated} properties removed from featured.")
+
+    @admin.action(description="Add to homepage 'Available Now'")
+    def add_to_homepage(self, request, queryset):
+        updated = queryset.update(homepage_featured=True)
+        self.message_user(request, f"{updated} properties added to the homepage.")
+
+    @admin.action(description="Remove from homepage 'Available Now'")
+    def remove_from_homepage(self, request, queryset):
+        updated = queryset.update(homepage_featured=False)
+        self.message_user(request, f"{updated} properties removed from the homepage.")

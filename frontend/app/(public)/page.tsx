@@ -4,7 +4,7 @@ import { ArrowRight, Star, Home, Users, Clock, CheckCircle, MapPin } from "lucid
 import { SearchBar } from "@/components/public/SearchBar";
 import { PropertyCard } from "@/components/public/PropertyCard";
 import { Button } from "@/components/ui/Button";
-import { fetchFeaturedProperties, fetchProperties, toPropertyCardShape } from "@/lib/properties";
+import { fetchHomepageProperties, fetchProperties, toPropertyCardShape } from "@/lib/properties";
 import { fetchAgents } from "@/lib/agents";
 import { fetchPosts } from "@/lib/blog";
 import { formatPrice } from "@/lib/utils";
@@ -221,7 +221,7 @@ const BREADCRUMB_HOME = {
 
 export default async function HomePage() {
   const [featuredRaw, agents, blogData, totalCountRaw] = await Promise.allSettled([
-    fetchFeaturedProperties(),
+    fetchHomepageProperties(),
     fetchAgents(),
     fetchPosts({ is_featured: true }),
     fetchProperties(), // all published — for total count

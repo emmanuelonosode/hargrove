@@ -38,13 +38,16 @@ export default async function PropertiesPage({ searchParams }: PageProps) {
   let total = 0;
 
   try {
+    // When no sort is specified by the user, use "diverse" so properties from
+    // the same street/estate don't cluster together on the default browse page.
+    const effectiveSort = sort ?? "diverse";
     const data = await fetchProperties({
       listing_type: listingType,
       q,
       beds,
       min_price: minPrice,
       max_price: maxPrice,
-      sort,
+      sort: effectiveSort,
       page_size: String(PAGE_SIZE),
       page: String(currentPage),
     });
@@ -79,7 +82,7 @@ export default async function PropertiesPage({ searchParams }: PageProps) {
           initialMinPrice={minPrice}
           initialMaxPrice={maxPrice}
           initialListingType={listingType}
-          initialSort={sort ?? "newest"}
+          initialSort={sort ?? "diverse"}
         />
       </Suspense>
     </main>

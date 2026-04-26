@@ -77,6 +77,10 @@ class Property(models.Model):
 
     # Flags
     is_featured = models.BooleanField(default=False)
+    homepage_featured = models.BooleanField(
+        default=False,
+        help_text='Show in the "Available Now" section on the homepage. Independent of the Featured badge.',
+    )
     is_published = models.BooleanField(default=False)
 
     # Relations

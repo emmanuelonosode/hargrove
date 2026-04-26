@@ -153,6 +153,25 @@ export async function fetchFeaturedProperties(): Promise<PropertyListItemAPI[]> 
   }
 }
 
+/**
+ * Fetches properties hand-picked by the admin for the homepage "Available Now" section.
+ * Uses homepage_featured=True; falls back to is_featured if none are set.
+ */
+export async function fetchHomepageProperties(): Promise<PropertyListItemAPI[]> {
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/properties/homepage/`, {
+      next: { revalidate: 300 },
+    });
+    if (!res.ok) return [];
+    const data: PropertyListItemAPI[] | PaginatedProperties = await res.json();
+    if (Array.isArray(data)) return data;
+    return (data as PaginatedProperties).results ?? [];
+  } catch (err) {
+    console.error("fetchHomepageProperties failed:", err);
+    return [];
+  }
+}
+
 export async function fetchPropertyBySlug(slug: string): Promise<PropertyDetailAPI> {
   const res = await fetch(`${API_BASE}/api/v1/properties/${slug}/`, {
     next: { revalidate: 300 },

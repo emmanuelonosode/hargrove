@@ -96,6 +96,35 @@ class FeaturedPropertiesView(generics.ListAPIView):
     )
 
 
+class HomepagePropertiesView(generics.ListAPIView):
+    """
+    GET /api/v1/properties/homepage/
+    Returns up to 6 properties hand-picked by the admin (homepage_featured=True).
+    Falls back to is_featured if no homepage_featured properties are set.
+    """
+    serializer_class = PropertyListSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def get_queryset(self):
+        qs = (
+            Property.objects
+            .filter(homepage_featured=True, is_published=True, status="available")
+            .select_related("agent")
+            .prefetch_related("images")
+            .order_by("-created_at")[:6]
+        )
+        if qs.count() == 0:
+            # Fallback: use is_featured so the homepage never shows empty
+            qs = (
+                Property.objects
+                .filter(is_featured=True, is_published=True, status="available")
+                .select_related("agent")
+                .prefetch_related("images")
+                .order_by("-created_at")[:6]
+            )
+        return qs
+
+
 class AgentListingsView(generics.ListAPIView):
     """GET /api/v1/agents/{agent_id}/listings/ — public agent listings."""
     serializer_class = PropertyListSerializer
