@@ -10,6 +10,7 @@ import { CITIES, getAllCitySlugs, getCityBySlug, type CityData } from "@/lib/cit
 import { fetchProperties, toPropertyCardShape } from "@/lib/properties";
 import { PropertyCard } from "@/components/public/PropertyCard";
 import { Button } from "@/components/ui/Button";
+import { CityLeadCapture } from "@/components/public/CityLeadCapture";
 
 export const revalidate = 3600;
 
@@ -317,6 +318,20 @@ export default async function CityRentalsPage(
               </Link>
             </Button>
           </div>
+        </div>
+      </section>
+
+      {/* ── LEAD CAPTURE ─────────────────────────────────────────── */}
+      <section className="bg-[#0B1F3A] py-16 lg:py-20 px-6">
+        <div className="max-w-xl mx-auto text-center">
+          <p className="text-brand text-xs font-semibold tracking-[0.2em] uppercase mb-3">Be First</p>
+          <h2 className="font-serif text-3xl lg:text-4xl font-bold text-white mb-4">
+            New {city.name} listings drop weekly
+          </h2>
+          <p className="text-blue-200 text-sm leading-relaxed mb-8 max-w-sm mx-auto">
+            Leave your details and we&apos;ll notify you the moment a home matching your needs becomes available — before it goes public.
+          </p>
+          <CityLeadCapture cityName={city.name} />
         </div>
       </section>
 

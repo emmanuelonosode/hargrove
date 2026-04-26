@@ -469,7 +469,12 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
 
                   {(property.listing_type === "for-rent" || property.listing_type === "for-lease") && (
                     <Button variant="accent" className="w-full mb-3" asChild>
-                      <Link href={`/apply?property=${property.slug}`}>Apply Now</Link>
+                      <Link href={`/apply?property=${property.slug}`}>Apply Now — 10 Min</Link>
+                    </Button>
+                  )}
+                  {property.listing_type === "for-sale" && (
+                    <Button variant="accent" className="w-full mb-3" asChild>
+                      <Link href={`/contact?property=${property.slug}&inquiry=purchase`}>Request Purchase Info</Link>
                     </Button>
                   )}
                   <a
@@ -572,6 +577,14 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
                 className="shrink-0 h-11 px-5 bg-brand text-white text-sm font-semibold rounded-lg flex items-center hover:opacity-90 transition-opacity"
               >
                 Apply
+              </Link>
+            )}
+            {property.listing_type === "for-sale" && (
+              <Link
+                href={`/contact?property=${property.slug}&inquiry=purchase`}
+                className="shrink-0 h-11 px-5 bg-brand text-white text-sm font-semibold rounded-lg flex items-center hover:opacity-90 transition-opacity"
+              >
+                Inquire
               </Link>
             )}
           </div>
