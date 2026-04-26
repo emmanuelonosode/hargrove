@@ -210,7 +210,7 @@ export default async function HomePage() {
     totalCountRaw.status === "fulfilled" ? totalCountRaw.value.count : null;
 
   return (
-    <>
+    <main>
       {/* JSON-LD structured data */}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(LOCAL_BUSINESS_SCHEMA) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(WEBSITE_SCHEMA) }} />
@@ -1024,6 +1024,6 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
-    </>
+    </main>
   );
 }

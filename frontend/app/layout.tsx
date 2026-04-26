@@ -46,14 +46,22 @@ export const metadata: Metadata = {
     "fast rental approval",
     "family homes for rent",
   ],
-  authors: [{ name: "Hasker & Co. Realty Group" }],
+  authors: [{ name: "Hasker & Co. Realty Group", url: "https://haskerrealtygroup.com" }],
   creator: "Hasker & Co. Realty Group",
+  publisher: "Hasker & Co. Realty Group",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
   metadataBase: new URL("https://haskerrealtygroup.com"),
   openGraph: {
     type: "website",
     locale: "en_US",
     url: "https://haskerrealtygroup.com",
     siteName: "Hasker & Co. Realty Group",
+    title: "Hasker & Co. Realty Group | Affordable Rental Homes & Apartments",
+    description: "Discover quality, affordable rental homes and apartments with no hidden fees and fast approvals.",
     images: [
       {
         url: "https://haskerrealtygroup.com/og-image.jpg",
@@ -69,6 +77,7 @@ export const metadata: Metadata = {
     description:
       "Find affordable rental apartments and homes across Atlanta, Charlotte, Houston, Dallas, Nashville & more. No hidden fees, fast approvals.",
     images: ["https://haskerrealtygroup.com/og-image.jpg"],
+    creator: "@haskerrealty",
   },
   icons: {
     icon: [
@@ -80,11 +89,71 @@ export const metadata: Metadata = {
   robots: {
     index: true,
     follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
   },
   other: {
     "llms-txt": "https://haskerrealtygroup.com/llms.txt",
     "llms-full-txt": "https://haskerrealtygroup.com/llms-full.txt",
   },
+};
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "RealEstateAgent",
+  "name": "Hasker & Co. Realty Group",
+  "image": "https://haskerrealtygroup.com/logo/logo.png",
+  "logo": "https://haskerrealtygroup.com/logo/logo.png",
+  "url": "https://haskerrealtygroup.com",
+  "telephone": "+15550000000",
+  "email": "info@haskerrealtygroup.com",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "213 Bob Ln",
+    "addressLocality": "Virginia Beach",
+    "addressRegion": "VA",
+    "postalCode": "23454",
+    "addressCountry": "US"
+  },
+  "areaServed": [
+    {"@type": "City", "name": "Atlanta"},
+    {"@type": "City", "name": "Charlotte"},
+    {"@type": "City", "name": "Houston"},
+    {"@type": "City", "name": "Dallas"},
+    {"@type": "City", "name": "Nashville"}
+  ],
+  "priceRange": "$$",
+  "makesOffer": [
+    {
+      "@type": "Offer",
+      "itemOffered": {
+        "@type": "Service",
+        "name": "Affordable Home Rentals",
+        "description": "Providing quality, affordable rental homes and apartments with fast approvals and no hidden fees."
+      }
+    },
+    {
+      "@type": "Offer",
+      "itemOffered": {
+        "@type": "Service",
+        "name": "Property Management",
+        "description": "Professional property management services ensuring tenant satisfaction and property upkeep."
+      }
+    },
+    {
+      "@type": "Offer",
+      "itemOffered": {
+        "@type": "Service",
+        "name": "Relocation Assistance",
+        "description": "Helping families and individuals relocate seamlessly to new cities."
+      }
+    }
+  ]
 };
 
 export default function RootLayout({
@@ -94,6 +163,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${dmSans.variable} ${playfairDisplay.variable} h-full scroll-smooth`}>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </head>
       <body className="min-h-full flex flex-col antialiased">
         <AuthProvider>{children}</AuthProvider>
       </body>
