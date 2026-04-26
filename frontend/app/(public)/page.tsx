@@ -892,11 +892,11 @@ export default async function HomePage() {
               <p className="text-brand text-xs font-semibold tracking-[0.3em] uppercase mb-4">
                 Ready to Move?
               </p>
-              <h3 className="font-sans text-3xl font-bold text-brand-dark mb-4">
+              <h2 className="font-sans text-3xl font-bold text-brand-dark mb-4">
                 Apply for a
                 <br />
                 Rental Today
-              </h3>
+              </h2>
               <p className="text-neutral-600 text-sm leading-relaxed mb-6">
                 Our online rental application is quick and paperless. Most applicants receive a
                 decision within 24 hours. No unnecessary delays.
@@ -910,11 +910,11 @@ export default async function HomePage() {
               <p className="text-blue-300 text-xs font-semibold tracking-[0.3em] uppercase mb-4">
                 Free Resource
               </p>
-              <h3 className="font-sans text-3xl font-bold mb-4">
+              <h2 className="font-sans text-3xl font-bold mb-4">
                 First-Time
                 <br />
                 Renter&apos;s Guide
-              </h3>
+              </h2>
               <p className="text-blue-100 text-sm leading-relaxed mb-6">
                 Everything you need to know before signing a lease: what to inspect, what to
                 negotiate, and red flags to watch out for. Written by our rental experts.
