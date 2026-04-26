@@ -1,5 +1,6 @@
+import Image from "next/image";
 import Link from "next/link";
-import { Mail, MapPin, Clock, TrendingUp, Heart, Users, CheckCircle, ArrowRight } from "lucide-react";
+import { Mail, MapPin, Clock, TrendingUp, Heart, Users, CheckCircle, ArrowRight, Award } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -169,6 +170,12 @@ const benefits = [
   "Monthly team lunches and quarterly outings",
 ];
 
+const lifeImages = [
+  { src: "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=800&q=80", alt: "Team collaboration at Hasker & Co." },
+  { src: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80", alt: "Modern office workspace" },
+  { src: "https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=800&q=80", alt: "Professional real estate team" },
+];
+
 // JSON-LD: BreadcrumbList
 const breadcrumb = {
   "@context": "https://schema.org",
@@ -218,239 +225,357 @@ export default function CareersPage() {
         <script key={i} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jp) }} />
       ))}
 
-      {/* Hero */}
-      <section className="bg-brand-dark pt-16 pb-16 px-6 text-white text-center">
-        <p className="text-blue-300 text-xs font-semibold tracking-[0.4em] uppercase mb-4">
-          Join the Team
-        </p>
-        <h1 className="font-serif text-4xl lg:text-5xl font-bold mb-5 max-w-2xl mx-auto leading-tight">
-          Help Families Find a Place to Call Home
-        </h1>
-        <p className="text-blue-100 max-w-2xl mx-auto text-base leading-relaxed">
-          At Hasker &amp; Co. Realty Group, we believe affordable housing isn&apos;t just a product —
-          it&apos;s a mission. We&apos;re a Virginia Beach-based team of real estate professionals who get up
-          every day to connect real families with quality, honest-priced homes. If that sounds like
-          the work you want to do, read on.
-        </p>
-        <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
-          <a
-            href="#open-roles"
-            className="inline-flex items-center gap-2 bg-brand px-6 py-3 text-white text-sm font-semibold rounded-sm hover:bg-brand/90 transition-colors"
-          >
-            View Open Roles <ArrowRight size={15} />
-          </a>
-          <a
-            href="mailto:careers@haskerrealtygroup.com"
-            className="inline-flex items-center gap-2 border border-white/30 px-6 py-3 text-white text-sm font-medium rounded-sm hover:border-white/60 transition-colors"
-          >
-            <Mail size={15} /> careers@haskerrealtygroup.com
-          </a>
+      {/* ── HERO ─────────────────────────────────────────────────────────── */}
+      <section className="relative min-h-[600px] lg:min-h-[680px] flex items-end overflow-hidden">
+        <Image
+          src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=1600&q=80"
+          alt="Hasker & Co. Realty Group team at work"
+          fill
+          priority
+          className="object-cover object-center"
+          sizes="100vw"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-brand-dark via-brand-dark/75 to-brand-dark/30" />
+
+        <div className="relative z-10 w-full max-w-7xl mx-auto px-6 lg:px-8 pb-16 pt-32">
+          <p className="text-brand text-xs font-semibold tracking-[0.35em] uppercase mb-4">
+            Now Hiring · Virginia Beach, VA
+          </p>
+          <h1 className="font-serif text-5xl lg:text-6xl xl:text-7xl font-bold text-white leading-[1.05] mb-6 max-w-3xl">
+            Help Families Find&nbsp;a Place to Call Home
+          </h1>
+          <p className="text-blue-100 text-lg lg:text-xl max-w-xl leading-relaxed mb-10">
+            We&apos;re a Virginia Beach real estate team on a mission — affordable homes, honest prices,
+            real people. If that&apos;s the work you want to do, we want to hear from you.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4">
+            <a
+              href="#open-roles"
+              className="inline-flex items-center justify-center gap-2 bg-brand px-8 py-4 text-white text-sm font-semibold rounded-sm hover:bg-brand/90 transition-colors"
+            >
+              View Open Roles <ArrowRight size={15} />
+            </a>
+            <a
+              href="mailto:careers@haskerrealtygroup.com"
+              className="inline-flex items-center justify-center gap-2 border border-white/30 px-8 py-4 text-white text-sm font-medium rounded-sm hover:bg-white/10 hover:border-white/60 transition-colors"
+            >
+              <Mail size={15} /> careers@haskerrealtygroup.com
+            </a>
+          </div>
         </div>
       </section>
 
-      {/* Stats bar */}
-      <div className="bg-brand border-b border-brand/80">
-        <div className="max-w-4xl mx-auto px-6 py-5 grid grid-cols-3 divide-x divide-white/20 text-white text-center">
-          {[
-            { value: "2,000+", label: "Families Housed" },
-            { value: "12+", label: "Cities Served" },
-            { value: "2012", label: "Founded" },
-          ].map((s) => (
-            <div key={s.label} className="px-4">
-              <p className="font-serif text-2xl font-bold">{s.value}</p>
-              <p className="text-xs text-blue-100 mt-0.5">{s.label}</p>
-            </div>
-          ))}
+      {/* ── STATS BAR ─────────────────────────────────────────────────────── */}
+      <div className="bg-brand">
+        <div className="max-w-4xl mx-auto px-6">
+          <div className="grid grid-cols-3 divide-x divide-white/20 text-white text-center">
+            {[
+              { value: "2,000+", label: "Families Housed" },
+              { value: "12+", label: "Cities Served" },
+              { value: "Since 2012", label: "Building Trust" },
+            ].map((s) => (
+              <div key={s.label} className="px-4 py-6">
+                <p className="font-serif text-2xl lg:text-3xl font-bold">{s.value}</p>
+                <p className="text-xs text-blue-100 mt-1 tracking-wide">{s.label}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Our Values */}
-      <section className="max-w-7xl mx-auto px-6 lg:px-8 py-20">
-        <div className="text-center mb-14">
-          <p className="text-brand text-xs font-semibold tracking-[0.3em] uppercase mb-3">Why Join Us</p>
-          <h2 className="font-serif text-3xl lg:text-4xl font-bold text-brand-dark">What We Stand For</h2>
+      {/* ── OUR VALUES ────────────────────────────────────────────────────── */}
+      <section className="max-w-7xl mx-auto px-6 lg:px-8 py-24 lg:py-32">
+        <div className="max-w-xl mb-16">
+          <p className="text-brand text-xs font-semibold tracking-[0.35em] uppercase mb-4">Why Join Us</p>
+          <h2 className="font-serif text-4xl lg:text-5xl font-bold text-brand-dark leading-tight">
+            Work That Actually Matters
+          </h2>
+          <p className="text-neutral-500 mt-5 text-base leading-relaxed">
+            Housing is one of the most fundamental human needs. Every home we help someone find
+            is a family with stability, safety, and a foundation to build from.
+          </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {values.map((v) => (
-            <div key={v.title} className="text-center">
-              <div className="w-12 h-12 rounded-full bg-brand/10 flex items-center justify-center mx-auto mb-4">
-                <v.icon size={22} className="text-brand" />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10">
+          {values.map((v, i) => (
+            <div
+              key={v.title}
+              className="group"
+              style={{ animationDelay: `${i * 80}ms` }}
+            >
+              <div className="w-14 h-14 rounded-sm bg-brand/8 border border-brand/15 flex items-center justify-center mb-5 group-hover:bg-brand group-hover:border-brand transition-colors duration-300">
+                <v.icon size={22} className="text-brand group-hover:text-white transition-colors duration-300" />
               </div>
-              <h3 className="font-serif text-lg font-bold text-brand-dark mb-2">{v.title}</h3>
+              <h3 className="font-serif text-xl font-bold text-brand-dark mb-3">{v.title}</h3>
               <p className="text-sm text-neutral-600 leading-relaxed">{v.description}</p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* Benefits */}
-      <section className="bg-brand-dark text-white py-20 px-6">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-12">
-            <p className="text-blue-300 text-xs font-semibold tracking-[0.3em] uppercase mb-3">Compensation & Perks</p>
-            <h2 className="font-serif text-3xl lg:text-4xl font-bold">What We Offer</h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {benefits.map((benefit) => (
-              <div key={benefit} className="flex items-start gap-3">
-                <CheckCircle size={16} className="text-brand mt-0.5 shrink-0" />
-                <p className="text-blue-100 text-sm leading-relaxed">{benefit}</p>
-              </div>
-            ))}
-          </div>
+      {/* ── LIFE AT HASKER — image gallery strip ─────────────────────────── */}
+      <section className="bg-neutral-50 border-y border-neutral-100 py-16 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 mb-10">
+          <p className="text-brand text-xs font-semibold tracking-[0.35em] uppercase mb-3">Life at Hasker</p>
+          <h2 className="font-serif text-3xl lg:text-4xl font-bold text-brand-dark">A Team You&apos;ll Be Proud to Be Part Of</h2>
         </div>
-      </section>
-
-      {/* Open Roles */}
-      <section id="open-roles" className="max-w-5xl mx-auto px-6 lg:px-8 py-20">
-        <div className="text-center mb-14">
-          <p className="text-brand text-xs font-semibold tracking-[0.3em] uppercase mb-3">Now Hiring</p>
-          <h2 className="font-serif text-3xl lg:text-4xl font-bold text-brand-dark">Open Positions</h2>
-          <p className="text-neutral-500 mt-3 max-w-xl mx-auto text-sm">
-            All roles are based in Virginia Beach, VA unless noted as hybrid or remote.
-            We&apos;re an equal opportunity employer committed to building a diverse team.
-          </p>
-        </div>
-
-        <div className="space-y-6">
-          {openRoles.map((role) => (
-            <details
-              key={role.id}
-              className="group border border-neutral-200 rounded-sm bg-white overflow-hidden"
-            >
-              <summary className="flex items-start justify-between gap-4 px-7 py-6 cursor-pointer list-none hover:bg-neutral-50 transition-colors">
-                <div className="flex-1">
-                  <div className="flex flex-wrap items-center gap-3 mb-1">
-                    <span className="text-[10px] font-semibold tracking-widest uppercase bg-brand/10 text-brand px-2.5 py-1 rounded-sm">
-                      {role.department}
-                    </span>
-                    <span className="text-[10px] font-medium text-neutral-400">{role.type}</span>
-                  </div>
-                  <h3 className="font-serif text-xl font-bold text-brand-dark group-open:text-brand transition-colors">
-                    {role.title}
-                  </h3>
-                  <div className="flex items-center gap-1 mt-1.5 text-xs text-neutral-400">
-                    <MapPin size={12} />
-                    {role.location}
-                  </div>
-                </div>
-                <span className="shrink-0 mt-1 text-neutral-400 group-open:rotate-180 transition-transform duration-200">
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path d="M3 6l5 5 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </span>
-              </summary>
-
-              <div className="px-7 pb-7 pt-2 border-t border-neutral-100">
-                <p className="text-sm text-neutral-600 leading-relaxed mb-6">{role.description}</p>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                  <div>
-                    <h4 className="text-xs font-semibold tracking-widest uppercase text-brand-dark mb-3">
-                      What You Bring
-                    </h4>
-                    <ul className="space-y-2">
-                      {role.requirements.map((req) => (
-                        <li key={req} className="flex items-start gap-2 text-sm text-neutral-600">
-                          <CheckCircle size={13} className="text-brand mt-0.5 shrink-0" />
-                          {req}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-semibold tracking-widest uppercase text-brand-dark mb-3">
-                      What You Get
-                    </h4>
-                    <ul className="space-y-2">
-                      {role.benefits.map((b) => (
-                        <li key={b} className="flex items-start gap-2 text-sm text-neutral-600">
-                          <CheckCircle size={13} className="text-brand mt-0.5 shrink-0" />
-                          {b}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-
-                <a
-                  href={`mailto:careers@haskerrealtygroup.com?subject=Application: ${encodeURIComponent(role.title)}`}
-                  className="inline-flex items-center gap-2 bg-brand-dark text-white text-sm font-semibold px-6 py-3 rounded-sm hover:bg-brand transition-colors"
-                >
-                  Apply for This Role <ArrowRight size={14} />
-                </a>
-              </div>
-            </details>
+        <div className="flex gap-4 px-6 lg:px-8 overflow-x-auto pb-2 scrollbar-hide">
+          {lifeImages.map((img, i) => (
+            <div key={i} className="relative flex-shrink-0 w-[320px] lg:w-[420px] aspect-[4/3] rounded-sm overflow-hidden bg-neutral-200">
+              <Image
+                src={img.src}
+                alt={img.alt}
+                fill
+                className="object-cover hover:scale-105 transition-transform duration-700"
+                sizes="420px"
+              />
+            </div>
           ))}
+          {/* Warm lifestyle real estate image */}
+          <div className="relative flex-shrink-0 w-[320px] lg:w-[420px] aspect-[4/3] rounded-sm overflow-hidden bg-neutral-200">
+            <Image
+              src="https://images.unsplash.com/photo-1560184897-ae75f418493e?w=800&q=80"
+              alt="Happy family in their new home"
+              fill
+              className="object-cover hover:scale-105 transition-transform duration-700"
+              sizes="420px"
+            />
+          </div>
         </div>
       </section>
 
-      {/* How to Apply */}
-      <section className="bg-neutral-50 border-y border-neutral-100 py-20 px-6">
-        <div className="max-w-3xl mx-auto text-center">
-          <p className="text-brand text-xs font-semibold tracking-[0.3em] uppercase mb-3">Simple Process</p>
-          <h2 className="font-serif text-3xl font-bold text-brand-dark mb-5">How to Apply</h2>
-          <p className="text-neutral-600 text-sm leading-relaxed mb-10">
-            We keep hiring simple. No portals, no 12-page applications. Send your resume and a short
-            note about why you want to work with us — that&apos;s it.
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-10">
-            {[
-              { step: "01", title: "Send Your Resume", desc: "Email your resume and a brief note to careers@haskerrealtygroup.com. Put the role title in the subject line." },
-              { step: "02", title: "Intro Call", desc: "We'll schedule a 20-minute phone call to learn about you and answer your questions." },
-              { step: "03", title: "Interview & Offer", desc: "One or two interviews (depending on role) and a same-week decision. We don't make you wait." },
-            ].map((s) => (
-              <div key={s.step} className="text-left">
-                <span className="font-serif text-4xl font-bold text-brand/20">{s.step}</span>
-                <h3 className="font-serif text-base font-bold text-brand-dark mt-1 mb-2">{s.title}</h3>
-                <p className="text-xs text-neutral-500 leading-relaxed">{s.desc}</p>
+      {/* ── BENEFITS — split layout ───────────────────────────────────────── */}
+      <section className="max-w-7xl mx-auto px-6 lg:px-8 py-24 lg:py-32">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
+          {/* Image */}
+          <div className="relative aspect-[4/3] rounded-sm overflow-hidden bg-neutral-100 order-2 lg:order-1">
+            <Image
+              src="https://images.unsplash.com/photo-1551836022-deb4988cc6c0?w=1000&q=80"
+              alt="Welcoming office environment at Hasker & Co."
+              fill
+              className="object-cover"
+              sizes="(max-width: 1024px) 100vw, 50vw"
+            />
+            {/* Award badge overlay */}
+            <div className="absolute bottom-6 left-6 bg-white/95 backdrop-blur-sm rounded-sm px-5 py-4 shadow-xl">
+              <div className="flex items-center gap-3">
+                <Award size={20} className="text-brand" />
+                <div>
+                  <p className="text-xs font-bold text-brand-dark">Top Workplace</p>
+                  <p className="text-xs text-neutral-500">Hampton Roads 2024</p>
+                </div>
               </div>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="order-1 lg:order-2">
+            <p className="text-brand text-xs font-semibold tracking-[0.35em] uppercase mb-4">Compensation & Perks</p>
+            <h2 className="font-serif text-4xl lg:text-5xl font-bold text-brand-dark leading-tight mb-8">
+              We Invest in the People Who Invest in Others
+            </h2>
+            <ul className="space-y-4">
+              {benefits.map((benefit) => (
+                <li key={benefit} className="flex items-start gap-3.5">
+                  <div className="w-5 h-5 rounded-full bg-brand/10 flex items-center justify-center shrink-0 mt-0.5">
+                    <CheckCircle size={12} className="text-brand" />
+                  </div>
+                  <p className="text-neutral-700 text-sm leading-relaxed">{benefit}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      {/* ── OPEN ROLES ────────────────────────────────────────────────────── */}
+      <section id="open-roles" className="bg-neutral-50 border-y border-neutral-100">
+        <div className="max-w-5xl mx-auto px-6 lg:px-8 py-24 lg:py-32">
+          <div className="mb-16">
+            <p className="text-brand text-xs font-semibold tracking-[0.35em] uppercase mb-4">Now Hiring</p>
+            <h2 className="font-serif text-4xl lg:text-5xl font-bold text-brand-dark leading-tight">Open Positions</h2>
+            <p className="text-neutral-500 mt-5 max-w-xl text-sm leading-relaxed">
+              All roles are based in Virginia Beach, VA unless noted as hybrid or remote.
+              Equal opportunity employer committed to a diverse, inclusive team.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            {openRoles.map((role) => (
+              <details
+                key={role.id}
+                className="group border border-neutral-200 rounded-sm bg-white overflow-hidden hover:border-brand/40 transition-colors duration-200"
+              >
+                <summary className="flex items-start justify-between gap-6 px-7 py-6 cursor-pointer list-none hover:bg-neutral-50/50 transition-colors">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2.5 mb-2">
+                      <span className="text-[9px] font-bold tracking-[0.15em] uppercase bg-brand/10 text-brand px-3 py-1 rounded-sm">
+                        {role.department}
+                      </span>
+                      <span className="text-[10px] font-medium text-neutral-400 tracking-wide">{role.type}</span>
+                    </div>
+                    <h3 className="font-serif text-xl font-bold text-brand-dark group-open:text-brand transition-colors leading-snug">
+                      {role.title}
+                    </h3>
+                    <div className="flex items-center gap-1.5 mt-2 text-xs text-neutral-400">
+                      <MapPin size={11} />
+                      {role.location}
+                    </div>
+                  </div>
+                  <div className="shrink-0 w-8 h-8 rounded-full border border-neutral-200 flex items-center justify-center mt-1 group-open:border-brand group-open:bg-brand transition-colors duration-200">
+                    <svg
+                      width="12" height="12" viewBox="0 0 12 12" fill="none"
+                      className="text-neutral-400 group-open:text-white group-open:rotate-180 transition-all duration-200"
+                    >
+                      <path d="M2 4.5l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </div>
+                </summary>
+
+                <div className="px-7 pb-8 pt-1 border-t border-neutral-100">
+                  <p className="text-sm text-neutral-600 leading-relaxed mb-8 mt-4 max-w-2xl">{role.description}</p>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mb-8">
+                    <div>
+                      <h4 className="text-[10px] font-bold tracking-[0.15em] uppercase text-brand-dark mb-4 flex items-center gap-2">
+                        <span className="w-4 h-0.5 bg-brand inline-block" />
+                        What You Bring
+                      </h4>
+                      <ul className="space-y-2.5">
+                        {role.requirements.map((req) => (
+                          <li key={req} className="flex items-start gap-2.5 text-sm text-neutral-600">
+                            <div className="w-1.5 h-1.5 rounded-full bg-brand shrink-0 mt-1.5" />
+                            {req}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div>
+                      <h4 className="text-[10px] font-bold tracking-[0.15em] uppercase text-brand-dark mb-4 flex items-center gap-2">
+                        <span className="w-4 h-0.5 bg-brand inline-block" />
+                        What You Get
+                      </h4>
+                      <ul className="space-y-2.5">
+                        {role.benefits.map((b) => (
+                          <li key={b} className="flex items-start gap-2.5 text-sm text-neutral-600">
+                            <div className="w-1.5 h-1.5 rounded-full bg-brand shrink-0 mt-1.5" />
+                            {b}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+
+                  <a
+                    href={`mailto:careers@haskerrealtygroup.com?subject=Application: ${encodeURIComponent(role.title)}`}
+                    className="inline-flex items-center gap-2 bg-brand-dark text-white text-sm font-semibold px-7 py-3.5 rounded-sm hover:bg-brand transition-colors duration-200"
+                  >
+                    Apply for This Role <ArrowRight size={14} />
+                  </a>
+                </div>
+              </details>
             ))}
           </div>
-          <a
-            href="mailto:careers@haskerrealtygroup.com"
-            className="inline-flex items-center gap-2 bg-brand-dark text-white text-sm font-semibold px-8 py-4 rounded-sm hover:bg-brand transition-colors"
-          >
-            <Mail size={15} /> careers@haskerrealtygroup.com
-          </a>
         </div>
       </section>
 
-      {/* Location */}
-      <section className="max-w-5xl mx-auto px-6 lg:px-8 py-16 flex flex-col md:flex-row gap-10 items-center">
-        <div className="flex-1">
-          <p className="text-brand text-xs font-semibold tracking-[0.3em] uppercase mb-3">Where We Work</p>
-          <h2 className="font-serif text-2xl lg:text-3xl font-bold text-brand-dark mb-4">
-            Virginia Beach, VA
-          </h2>
-          <p className="text-neutral-600 text-sm leading-relaxed mb-4">
-            Our main office is located at 213 Bob Ln, Virginia Beach, VA 23454 — right in the heart
-            of Hampton Roads. Whether you&apos;re local or considering a move to Virginia Beach, you&apos;ll
-            find a great quality of life here: beaches, good schools, and a thriving real estate
-            market.
-          </p>
-          <div className="flex items-start gap-2 text-sm text-neutral-500">
-            <MapPin size={14} className="text-brand mt-0.5 shrink-0" />
-            213 Bob Ln, Virginia Beach, VA 23454
+      {/* ── HOW TO APPLY ──────────────────────────────────────────────────── */}
+      <section className="max-w-7xl mx-auto px-6 lg:px-8 py-24 lg:py-32">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <div>
+            <p className="text-brand text-xs font-semibold tracking-[0.35em] uppercase mb-4">Simple Process</p>
+            <h2 className="font-serif text-4xl lg:text-5xl font-bold text-brand-dark leading-tight mb-6">
+              Three Steps to Joining Us
+            </h2>
+            <p className="text-neutral-500 text-sm leading-relaxed mb-12">
+              No portals, no 12-page forms. Send your resume and a short note about why you want
+              to work with us — that&apos;s it. We keep hiring human.
+            </p>
+
+            <div className="space-y-10">
+              {[
+                {
+                  step: "01",
+                  title: "Send Your Resume",
+                  desc: "Email your resume and a brief note to careers@haskerrealtygroup.com. Put the role title in the subject line.",
+                },
+                {
+                  step: "02",
+                  title: "Intro Call",
+                  desc: "We'll schedule a 20-minute call to learn about you, answer your questions, and tell you more about the role and culture.",
+                },
+                {
+                  step: "03",
+                  title: "Interview & Offer",
+                  desc: "One or two interviews (depending on role) and a decision within the same week. We don't make you wait.",
+                },
+              ].map((s) => (
+                <div key={s.step} className="flex items-start gap-6">
+                  <span className="font-serif text-5xl font-bold text-brand/15 leading-none shrink-0 w-14">{s.step}</span>
+                  <div className="pt-1">
+                    <h3 className="font-serif text-lg font-bold text-brand-dark mb-1.5">{s.title}</h3>
+                    <p className="text-sm text-neutral-500 leading-relaxed">{s.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="flex items-center gap-2 text-sm text-neutral-500 mt-2">
-            <Clock size={14} className="text-brand shrink-0" />
-            Monday – Friday, 9 AM – 6 PM EST
+
+          {/* CTA card */}
+          <div className="relative rounded-sm overflow-hidden bg-brand-dark text-white p-10 lg:p-12">
+            {/* Background image */}
+            <div className="absolute inset-0">
+              <Image
+                src="https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=1000&q=80"
+                alt="Welcoming home exterior"
+                fill
+                className="object-cover opacity-20"
+                sizes="(max-width: 1024px) 100vw, 50vw"
+              />
+            </div>
+            <div className="relative z-10">
+              <p className="text-blue-200 text-xs font-semibold tracking-[0.35em] uppercase mb-4">Ready?</p>
+              <h3 className="font-serif text-3xl lg:text-4xl font-bold mb-5 leading-tight">
+                Let&apos;s Build Something Together
+              </h3>
+              <p className="text-blue-100 text-sm leading-relaxed mb-8">
+                Whether you&apos;re a seasoned real estate professional or just starting out, we&apos;d love
+                to have a conversation. Send us your resume — no cover letter required.
+              </p>
+              <a
+                href="mailto:careers@haskerrealtygroup.com"
+                className="inline-flex items-center gap-2.5 bg-brand text-white text-sm font-semibold px-7 py-4 rounded-sm hover:bg-brand/90 transition-colors"
+              >
+                <Mail size={15} />
+                careers@haskerrealtygroup.com
+              </a>
+
+              <div className="mt-10 pt-8 border-t border-white/15 flex items-center gap-3 text-sm text-blue-200">
+                <MapPin size={14} className="text-brand shrink-0" />
+                213 Bob Ln, Virginia Beach, VA 23454
+              </div>
+              <div className="flex items-center gap-3 mt-3 text-sm text-blue-200">
+                <Clock size={14} className="text-brand shrink-0" />
+                Mon – Fri, 9 AM – 6 PM EST
+              </div>
+            </div>
           </div>
         </div>
-        <div className="flex-1 bg-brand-dark rounded-sm p-8 text-white text-center">
-          <p className="text-blue-200 text-xs font-semibold tracking-widest uppercase mb-3">Don&apos;t See a Fit?</p>
-          <h3 className="font-serif text-xl font-bold mb-3">Send a General Application</h3>
-          <p className="text-blue-100 text-sm leading-relaxed mb-6">
-            If you&apos;re passionate about affordable housing and want to join our team but don&apos;t see
-            the right opening, we&apos;d still love to hear from you. Send your resume and tell us what
-            you&apos;re looking for.
+      </section>
+
+      {/* ── DON'T SEE A FIT ───────────────────────────────────────────────── */}
+      <section className="border-t border-neutral-100">
+        <div className="max-w-4xl mx-auto px-6 lg:px-8 py-20 text-center">
+          <h2 className="font-serif text-3xl font-bold text-brand-dark mb-4">Don&apos;t See the Right Role?</h2>
+          <p className="text-neutral-500 text-sm leading-relaxed max-w-lg mx-auto mb-8">
+            If you&apos;re passionate about affordable housing and want to be part of our team, send a
+            general application. We keep strong resumes on file and reach out when new roles open.
           </p>
           <a
             href="mailto:careers@haskerrealtygroup.com?subject=General Application"
-            className="inline-flex items-center gap-2 bg-brand text-white text-sm font-semibold px-6 py-3 rounded-sm hover:bg-brand/80 transition-colors"
+            className="inline-flex items-center gap-2 border border-brand-dark text-brand-dark text-sm font-semibold px-8 py-4 rounded-sm hover:bg-brand-dark hover:text-white transition-colors duration-200"
           >
-            <Mail size={14} /> Get in Touch
+            <Mail size={15} /> Send a General Application
           </a>
         </div>
       </section>

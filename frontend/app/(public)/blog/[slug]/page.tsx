@@ -15,13 +15,14 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
+  const decodedSlug = decodeURIComponent(slug);
   try {
-    const post = await fetchPostBySlug(slug);
+    const post = await fetchPostBySlug(decodedSlug);
     return {
       title: `${post.title} | Hasker & Co. Realty Group`,
       description: post.excerpt,
-      alternates: { canonical: `https://haskerrealtygroup.com/blog/${slug}` },
-      openGraph: { title: `${post.title} | Hasker & Co. Realty Group`, description: post.excerpt, type: "article", url: `https://haskerrealtygroup.com/blog/${slug}` },
+      alternates: { canonical: `https://haskerrealtygroup.com/blog/${decodedSlug}` },
+      openGraph: { title: `${post.title} | Hasker & Co. Realty Group`, description: post.excerpt, type: "article", url: `https://haskerrealtygroup.com/blog/${decodedSlug}` },
     };
   } catch {
     return {};
@@ -39,10 +40,11 @@ function formatDate(iso: string | null): string {
 
 export default async function BlogPostPage({ params }: Props) {
   const { slug } = await params;
+  const decodedSlug = decodeURIComponent(slug);
 
   let post: BlogPost;
   try {
-    post = await fetchPostBySlug(slug);
+    post = await fetchPostBySlug(decodedSlug);
   } catch (err: unknown) {
     const status = (err as { status?: number }).status;
     if (status === 404) notFound();
@@ -53,19 +55,19 @@ export default async function BlogPostPage({ params }: Props) {
   let related: BlogPost[] = [];
   try {
     const data = await fetchPosts({ category: post.category });
-    related = data.results.filter((p) => p.slug !== slug).slice(0, 3);
+    related = data.results.filter((p) => p.slug !== decodedSlug).slice(0, 3);
   } catch {
     // fine if it fails
   }
 
-  const breadcrumb = { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Home", item: "https://haskerrealtygroup.com" }, { "@type": "ListItem", position: 2, name: "Renter's Guide", item: "https://haskerrealtygroup.com/blog" }, { "@type": "ListItem", position: 3, name: post.title, item: `https://haskerrealtygroup.com/blog/${slug}` }] };
+  const breadcrumb = { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Home", item: "https://haskerrealtygroup.com" }, { "@type": "ListItem", position: 2, name: "Renter's Guide", item: "https://haskerrealtygroup.com/blog" }, { "@type": "ListItem", position: 3, name: post.title, item: `https://haskerrealtygroup.com/blog/${decodedSlug}` }] };
 
   const articleSchema = {
     "@context": "https://schema.org",
     "@type": "Article",
     headline: post.title,
     description: post.excerpt,
-    url: `https://haskerrealtygroup.com/blog/${slug}`,
+    url: `https://haskerrealtygroup.com/blog/${decodedSlug}`,
     ...(post.featured_image_url && { image: post.featured_image_url }),
     datePublished: post.published_at ?? undefined,
     dateModified: post.updated_at ?? post.published_at ?? undefined,
@@ -82,7 +84,7 @@ export default async function BlogPostPage({ params }: Props) {
     },
     mainEntityOfPage: {
       "@type": "WebPage",
-      "@id": `https://haskerrealtygroup.com/blog/${slug}`,
+      "@id": `https://haskerrealtygroup.com/blog/${decodedSlug}`,
     },
     wordCount: post.content ? post.content.split(/\s+/).length : undefined,
     articleSection: post.category_display,

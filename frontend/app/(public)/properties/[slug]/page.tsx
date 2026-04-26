@@ -35,16 +35,17 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   try {
     const { slug } = await params;
-    const property = await fetchPropertyBySlug(slug);
+    const decodedSlug = decodeURIComponent(slug);
+    const property = await fetchPropertyBySlug(decodedSlug);
     return {
       title: `${property.title} | Hasker & Co. Realty Group`,
       description: property.description?.slice(0, 160) ?? "",
-      alternates: { canonical: `https://haskerrealtygroup.com/properties/${slug}` },
+      alternates: { canonical: `https://haskerrealtygroup.com/properties/${decodedSlug}` },
       openGraph: {
         title: `${property.title} | Hasker & Co. Realty Group`,
         description: property.description?.slice(0, 160) ?? "",
         type: "website",
-        url: `https://haskerrealtygroup.com/properties/${slug}`,
+        url: `https://haskerrealtygroup.com/properties/${decodedSlug}`,
         images: property.images?.[0]?.image_url ? [property.images[0].image_url] : [],
       },
     };
@@ -55,10 +56,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function PropertyDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
+  const decodedSlug = decodeURIComponent(slug);
 
   let property;
   try {
-    property = await fetchPropertyBySlug(slug);
+    property = await fetchPropertyBySlug(decodedSlug);
   } catch {
     notFound();
   }
@@ -138,7 +140,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: "https://haskerrealtygroup.com" },
       { "@type": "ListItem", position: 2, name: "Properties", item: "https://haskerrealtygroup.com/properties" },
-      { "@type": "ListItem", position: 3, name: property.title, item: `https://haskerrealtygroup.com/properties/${slug}` },
+      { "@type": "ListItem", position: 3, name: property.title, item: `https://haskerrealtygroup.com/properties/${decodedSlug}` },
     ],
   };
 
