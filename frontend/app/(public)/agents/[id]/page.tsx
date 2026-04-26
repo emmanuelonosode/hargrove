@@ -26,9 +26,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return {
       title: `${agent.full_name} — Hasker & Co. Realty Group`,
       description: agent.agent_profile?.bio?.slice(0, 160) ?? `Rental specialist at Hasker & Co. Realty Group.`,
+      alternates: { canonical: `https://haskerrealtygroup.com/agents/${id}` },
+      openGraph: {
+        title: `${agent.full_name} — Hasker & Co. Realty Group`,
+        description: agent.agent_profile?.bio?.slice(0, 160) ?? `Rental specialist at Hasker & Co. Realty Group.`,
+        type: "profile",
+        url: `https://haskerrealtygroup.com/agents/${id}`,
+      },
     };
   } catch {
-    return {};
+    return { robots: { index: false } };
   }
 }
 

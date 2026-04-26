@@ -281,17 +281,30 @@ export default async function CityRentalsPage(
               ))}
             </div>
           ) : (
-            <div className="text-center py-16 border border-dashed border-neutral-200 rounded-sm">
-              <Home size={40} className="mx-auto text-neutral-300 mb-4" />
-              <h3 className="font-serif text-xl font-semibold text-brand-dark mb-2">
-                New listings coming soon
-              </h3>
-              <p className="text-neutral-500 text-sm max-w-md mx-auto mb-6">
-                We&apos;re actively adding affordable homes in {city.name}. Check back soon or browse all available properties.
-              </p>
-              <Button variant="accent" asChild>
-                <Link href="/properties">Browse All Properties</Link>
-              </Button>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 border border-neutral-100 rounded-sm overflow-hidden">
+              <div className="relative aspect-[4/3] lg:aspect-auto min-h-[260px] bg-neutral-100">
+                <Image
+                  src="https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=900&q=80"
+                  alt={`Affordable home in ${city.name}`}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                />
+                <div className="absolute inset-0 bg-brand-dark/35" />
+              </div>
+              <div className="bg-white p-10 lg:p-12 flex flex-col justify-center">
+                <Home size={32} className="text-brand mb-5" />
+                <h3 className="font-serif text-2xl font-bold text-brand-dark mb-3">
+                  New {city.name} listings coming soon
+                </h3>
+                <p className="text-neutral-500 text-sm leading-relaxed mb-8">
+                  We&apos;re actively expanding our inventory in {city.name}. Check back soon, or browse all
+                  our currently available properties across 12+ cities.
+                </p>
+                <Button variant="accent" asChild className="self-start">
+                  <Link href="/properties">Browse All Properties <ArrowRight size={14} /></Link>
+                </Button>
+              </div>
             </div>
           )}
 
@@ -307,37 +320,108 @@ export default async function CityRentalsPage(
         </div>
       </section>
 
-      {/* ── SEO CONTENT BLOCK ────────────────────────────────────── */}
-      <section className="bg-brand-light border-t border-brand-muted">
-        <div className="max-w-4xl mx-auto px-6 lg:px-8 py-16 lg:py-20">
-          <p className="text-brand text-xs font-semibold tracking-[0.2em] uppercase mb-3">Market Guide</p>
-          <h2 className="font-serif text-3xl lg:text-4xl font-bold text-brand-dark mb-8">
-            Renting in {city.name}
-          </h2>
-          <div className="prose prose-neutral max-w-none prose-headings:font-serif prose-headings:text-brand-dark prose-p:text-neutral-600 prose-p:leading-relaxed">
-            {city.seoContent.split("\n\n").map((paragraph, i) => (
-              <p key={i}>{paragraph}</p>
-            ))}
-          </div>
-
-          {/* Inline CTA */}
-          <div className="mt-12 bg-brand-dark rounded-sm p-8 lg:p-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+      {/* ── SEO CONTENT BLOCK — split layout ─────────────────────── */}
+      <section className="bg-white border-t border-neutral-100">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 py-20 lg:py-28">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-14 lg:gap-20 items-start">
+            {/* Text */}
             <div>
-              <h3 className="font-serif text-xl lg:text-2xl font-bold text-white mb-2">
-                Ready to find your home in {city.name}?
-              </h3>
-              <p className="text-blue-200 text-sm leading-relaxed max-w-lg">
-                Apply online in under 10 minutes. We review every application within 24 hours — no hidden fees, no runaround.
-              </p>
+              <p className="text-brand text-xs font-semibold tracking-[0.3em] uppercase mb-4">Market Guide</p>
+              <h2 className="font-serif text-4xl lg:text-5xl font-bold text-brand-dark leading-tight mb-8">
+                Renting in {city.name}
+              </h2>
+              <div className="space-y-5">
+                {city.seoContent.split("\n\n").map((paragraph, i) => (
+                  <p key={i} className="text-neutral-600 text-sm leading-relaxed">{paragraph}</p>
+                ))}
+              </div>
+
+              {/* CTA inline */}
+              <div className="mt-10 flex flex-col sm:flex-row gap-3">
+                <Button variant="accent" asChild>
+                  <Link href="/apply">Apply in 10 Minutes</Link>
+                </Button>
+                <Button variant="outline-blue" asChild>
+                  <Link href={`/properties?q=${encodeURIComponent(city.name)}`}>
+                    Browse {city.name} Listings
+                  </Link>
+                </Button>
+              </div>
             </div>
-            <div className="flex gap-3 shrink-0">
-              <Button variant="accent" asChild>
-                <Link href="/apply">Apply Now</Link>
-              </Button>
-              <Button variant="outline-white" asChild>
-                <Link href="/contact">Contact Us</Link>
-              </Button>
+
+            {/* Image + trust card */}
+            <div className="space-y-5">
+              <div className="relative aspect-[4/3] rounded-sm overflow-hidden bg-neutral-100">
+                <Image
+                  src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=900&q=80"
+                  alt={`Affordable home interior — ${city.name}`}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                />
+              </div>
+              {/* Trust card */}
+              <div className="border border-neutral-100 rounded-sm bg-neutral-50 p-6 grid grid-cols-3 gap-4 text-center">
+                <div>
+                  <p className="font-serif text-xl font-bold text-brand-dark">{city.avgRent}</p>
+                  <p className="text-[10px] text-neutral-500 uppercase tracking-wide mt-0.5">Avg. Monthly Rent</p>
+                </div>
+                <div>
+                  <p className="font-serif text-xl font-bold text-brand-dark">24 hr</p>
+                  <p className="text-[10px] text-neutral-500 uppercase tracking-wide mt-0.5">Application Decision</p>
+                </div>
+                <div>
+                  <p className="font-serif text-xl font-bold text-brand-dark">$0</p>
+                  <p className="text-[10px] text-neutral-500 uppercase tracking-wide mt-0.5">Hidden Fees</p>
+                </div>
+              </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── VISIBLE FAQ ──────────────────────────────────────────── */}
+      <section className="bg-brand-dark text-white py-20 lg:py-24 px-6">
+        <div className="max-w-3xl mx-auto">
+          <div className="mb-12">
+            <p className="text-blue-300 text-xs font-semibold tracking-[0.3em] uppercase mb-4">Common Questions</p>
+            <h2 className="font-serif text-4xl font-bold leading-tight">
+              Renting in {city.name} — FAQ
+            </h2>
+          </div>
+          <div className="space-y-3">
+            {[
+              {
+                q: `How much does it cost to rent a home in ${city.name}?`,
+                a: `The average rent in ${city.name} starts around ${city.avgRent}/month. Hasker & Co. Realty Group offers affordable rentals with no hidden fees and transparent pricing on every listing.`,
+              },
+              {
+                q: `How do I apply for a rental in ${city.name}?`,
+                a: `Apply online at haskerrealtygroup.com/apply in under 10 minutes. We review every application within 24 hours. No paper forms, no runaround.`,
+              },
+              {
+                q: `Does Hasker & Co. have pet-friendly rentals in ${city.name}?`,
+                a: `Yes. Several of our ${city.name} listings are pet-friendly. Pet policies are disclosed upfront on every listing so you never waste time on a home that won't accept your pet.`,
+              },
+              {
+                q: `Are there any hidden fees when renting through Hasker & Co. in ${city.name}?`,
+                a: `No. The price listed is the price you pay. Standard upfront costs are a security deposit (typically 1–2 months rent) and the first month's rent. All fees are shown before you apply.`,
+              },
+            ].map((faq) => (
+              <details key={faq.q} className="group border border-white/10 rounded-sm overflow-hidden bg-white/5 hover:bg-white/8 transition-colors">
+                <summary className="flex items-center justify-between gap-4 px-6 py-5 cursor-pointer list-none hover:bg-white/5 transition-colors">
+                  <span className="font-medium text-sm text-white leading-snug">{faq.q}</span>
+                  <div className="shrink-0 w-7 h-7 rounded-full border border-white/20 flex items-center justify-center group-open:border-brand group-open:bg-brand transition-colors duration-200">
+                    <svg width="11" height="11" viewBox="0 0 11 11" fill="none" className="text-blue-300 group-open:text-white group-open:rotate-180 transition-all duration-200">
+                      <path d="M1.5 4L5.5 8L9.5 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </div>
+                </summary>
+                <div className="px-6 pb-5 pt-2 border-t border-white/10">
+                  <p className="text-blue-100 text-sm leading-relaxed">{faq.a}</p>
+                </div>
+              </details>
+            ))}
           </div>
         </div>
       </section>
