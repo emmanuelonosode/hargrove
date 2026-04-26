@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Mail, MapPin, Clock, TrendingUp, Heart, Users, CheckCircle, ArrowRight, Award } from "lucide-react";
 import type { Metadata } from "next";
+import { CareerApplicationForm } from "@/components/public/CareerApplicationForm";
 
 export const metadata: Metadata = {
   title: "Careers at Hasker & Co. Realty Group | Join Our Team",
@@ -466,12 +467,7 @@ export default function CareersPage() {
                     </div>
                   </div>
 
-                  <a
-                    href={`mailto:careers@haskerrealtygroup.com?subject=Application: ${encodeURIComponent(role.title)}`}
-                    className="inline-flex items-center gap-2 bg-brand-dark text-white text-sm font-semibold px-7 py-3.5 rounded-sm hover:bg-brand transition-colors duration-200"
-                  >
-                    Apply for This Role <ArrowRight size={14} />
-                  </a>
+                  <CareerApplicationForm roleId={role.id} roleTitle={role.title} />
                 </div>
               </details>
             ))}
@@ -496,8 +492,8 @@ export default function CareersPage() {
               {[
                 {
                   step: "01",
-                  title: "Send Your Resume",
-                  desc: "Email your resume and a brief note to careers@haskerrealtygroup.com. Put the role title in the subject line.",
+                  title: "Fill In the Form",
+                  desc: "Open any role below, hit Apply, and fill in a short form — name, contact, a few role-specific questions, and a brief note. No cover letter required.",
                 },
                 {
                   step: "02",
@@ -565,18 +561,16 @@ export default function CareersPage() {
 
       {/* ── DON'T SEE A FIT ───────────────────────────────────────────────── */}
       <section className="border-t border-neutral-100">
-        <div className="max-w-4xl mx-auto px-6 lg:px-8 py-20 text-center">
-          <h2 className="font-serif text-3xl font-bold text-brand-dark mb-4">Don&apos;t See the Right Role?</h2>
-          <p className="text-neutral-500 text-sm leading-relaxed max-w-lg mx-auto mb-8">
-            If you&apos;re passionate about affordable housing and want to be part of our team, send a
-            general application. We keep strong resumes on file and reach out when new roles open.
-          </p>
-          <a
-            href="mailto:careers@haskerrealtygroup.com?subject=General Application"
-            className="inline-flex items-center gap-2 border border-brand-dark text-brand-dark text-sm font-semibold px-8 py-4 rounded-sm hover:bg-brand-dark hover:text-white transition-colors duration-200"
-          >
-            <Mail size={15} /> Send a General Application
-          </a>
+        <div className="max-w-3xl mx-auto px-6 lg:px-8 py-20">
+          <div className="text-center mb-10">
+            <h2 className="font-serif text-3xl font-bold text-brand-dark mb-4">Don&apos;t See the Right Role?</h2>
+            <p className="text-neutral-500 text-sm leading-relaxed max-w-lg mx-auto">
+              If you&apos;re passionate about affordable housing and want to be part of our team,
+              send a general application. We keep strong candidates on file and reach out when new
+              roles open.
+            </p>
+          </div>
+          <CareerApplicationForm roleId="general" roleTitle="General Application" />
         </div>
       </section>
     </main>

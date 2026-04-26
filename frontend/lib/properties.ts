@@ -168,13 +168,13 @@ export async function fetchPropertyBySlug(slug: string): Promise<PropertyDetailA
 
 export async function fetchAllPropertySlugs(): Promise<string[]> {
   try {
-    const url = new URL(`${API_BASE}/api/v1/properties/`);
-    url.searchParams.set("is_published", "true");
-    url.searchParams.set("page_size", "500");
-    const res = await fetch(url.toString(), { next: { revalidate: 3600 } });
+    // Reuse the dedicated sitemap endpoint which returns ALL slugs without the 200-row page cap
+    const res = await fetch(`${API_BASE}/api/v1/properties/sitemap/`, {
+      next: { revalidate: 3600 },
+    });
     if (!res.ok) return [];
-    const data: PaginatedProperties = await res.json();
-    return data.results.map((p) => p.slug);
+    const data: { slug: string; updated_at: string }[] = await res.json();
+    return data.map((p) => p.slug);
   } catch (err) {
     console.error("fetchAllPropertySlugs failed:", err);
     return [];
@@ -184,16 +184,13 @@ export async function fetchAllPropertySlugs(): Promise<string[]> {
 /** For sitemap.ts: returns slug + lastModified for all published properties. */
 export async function fetchPropertiesForSitemap(): Promise<{ slug: string; lastModified: string }[]> {
   try {
-    const url = new URL(`${API_BASE}/api/v1/properties/`);
-    url.searchParams.set("is_published", "true");
-    url.searchParams.set("page_size", "1000");
-    const res = await fetch(url.toString(), { next: { revalidate: 3600 } });
+    // Dedicated endpoint — returns ALL published slugs with no pagination cap
+    const res = await fetch(`${API_BASE}/api/v1/properties/sitemap/`, {
+      next: { revalidate: 3600 },
+    });
     if (!res.ok) return [];
-    const data: PaginatedProperties = await res.json();
-    return data.results.map((p) => ({
-      slug: p.slug,
-      lastModified: p.created_at,
-    }));
+    const data: { slug: string; updated_at: string }[] = await res.json();
+    return data.map((p) => ({ slug: p.slug, lastModified: p.updated_at }));
   } catch {
     return [];
   }

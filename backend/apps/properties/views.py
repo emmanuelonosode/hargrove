@@ -133,6 +133,23 @@ class MapPinsView(generics.GenericAPIView):
         return Response(list(qs))
 
 
+@api_view(["GET"])
+@permission_classes([permissions.AllowAny])
+def property_sitemap(request):
+    """
+    GET /api/v1/properties/sitemap/
+    Returns slug + updated_at for every published property — no pagination.
+    Used exclusively by the Next.js sitemap generator.
+    """
+    qs = (
+        Property.objects
+        .filter(is_published=True)
+        .values("slug", "updated_at")
+        .order_by("slug")
+    )
+    return Response(list(qs))
+
+
 @api_view(["POST"])
 @permission_classes([permissions.AllowAny])
 def property_inquiry(request, slug):

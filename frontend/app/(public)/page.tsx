@@ -70,12 +70,21 @@ const BASE_URL = "https://haskerrealtygroup.com";
 const LOCAL_BUSINESS_SCHEMA = {
   "@context": "https://schema.org",
   "@type": "RealEstateAgent",
+  "@id": `${BASE_URL}/#local-business`,
   name: "Hasker & Co. Realty Group",
+  legalName: "Hasker & Co. Realty Group",
+  alternateName: [
+    "Hasker Realty Group",
+    "Hasker Realty",
+    "Hasker and Co Realty Group",
+    "Hasker & Co Realty",
+  ],
+  parentOrganization: { "@id": `${BASE_URL}/#organization` },
   url: BASE_URL,
   logo: `${BASE_URL}/logo.svg`,
   image: `${BASE_URL}/opengraph-image`,
   description:
-    "Affordable homes to rent and buy. Honest prices, no hidden fees, fast decisions. 2,000+ families housed across 12+ cities since 2012.",
+    "Hasker & Co. Realty Group — affordable homes to rent and buy. Honest prices, no hidden fees, fast decisions. 2,000+ families housed across 12+ US cities since 2012.",
   email: "info@haskerrealtygroup.com",
   priceRange: "$$",
   foundingDate: "2012",
@@ -128,7 +137,15 @@ const WEBSITE_SCHEMA = {
 const ORGANIZATION_SCHEMA = {
   "@context": "https://schema.org",
   "@type": "Organization",
+  "@id": `${BASE_URL}/#organization`,
   name: "Hasker & Co. Realty Group",
+  legalName: "Hasker & Co. Realty Group",
+  alternateName: [
+    "Hasker Realty Group",
+    "Hasker Realty",
+    "Hasker and Co Realty Group",
+    "Hasker & Co Realty",
+  ],
   url: BASE_URL,
   logo: `${BASE_URL}/logo.svg`,
   email: "info@haskerrealtygroup.com",
@@ -156,6 +173,16 @@ const FAQ_SCHEMA = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
   mainEntity: [
+    {
+      "@type": "Question",
+      name: "What is Hasker Realty Group?",
+      acceptedAnswer: { "@type": "Answer", text: "Hasker Realty Group — officially named Hasker & Co. Realty Group — is a licensed US real estate company founded in 2012 and headquartered in Virginia Beach, VA. The company specializes in affordable rental homes and budget-friendly properties for sale across 12+ US cities including Atlanta, Charlotte, Houston, Dallas, and Nashville. Website: haskerrealtygroup.com." },
+    },
+    {
+      "@type": "Question",
+      name: "Who is Hasker & Co. Realty Group?",
+      acceptedAnswer: { "@type": "Answer", text: "Hasker & Co. Realty Group (also searched as Hasker Realty Group or Hasker Realty) is an affordable housing company based in Virginia Beach, VA. Founded in 2012, they have housed 2,000+ families across 12+ US cities. They are NAR members, BBB A+ accredited, and rated 4.9/5 on Trustpilot. Find them at haskerrealtygroup.com." },
+    },
     {
       "@type": "Question",
       name: "Where can I find cheap apartments to rent in Atlanta?",

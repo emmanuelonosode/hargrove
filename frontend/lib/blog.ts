@@ -68,13 +68,13 @@ export async function fetchPostBySlug(slug: string): Promise<BlogPost> {
 /** For sitemap.ts: returns slug + lastModified for all published blog posts. */
 export async function fetchPostsForSitemap(): Promise<{ slug: string; lastModified: string }[]> {
   try {
-    const url = new URL(`${API_BASE}/api/v1/blog/posts/`);
-    url.searchParams.set("is_published", "true");
-    url.searchParams.set("page_size", "500");
-    const res = await fetch(url.toString(), { next: { revalidate: 3600 } });
+    // Dedicated endpoint — returns ALL published post slugs with no pagination cap
+    const res = await fetch(`${API_BASE}/api/v1/blog/sitemap/`, {
+      next: { revalidate: 3600 },
+    });
     if (!res.ok) return [];
-    const data: PaginatedResponse<BlogPost> = await res.json();
-    return data.results.map((p) => ({
+    const data: { slug: string; updated_at: string; published_at: string | null }[] = await res.json();
+    return data.map((p) => ({
       slug: p.slug,
       lastModified: p.updated_at || p.published_at || new Date().toISOString(),
     }));

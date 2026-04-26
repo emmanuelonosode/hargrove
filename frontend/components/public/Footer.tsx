@@ -37,14 +37,15 @@ const footerLinks = {
     { label: "Submit Application",    href: "/apply" },
     { label: "Schedule a Viewing",    href: "/contact" },
     { label: "Renter's Guide",        href: "/blog" },
-    { label: "Relocation Help",       href: "/contact?service=relocate" },
+    { label: "City Rental Guides",    href: "/properties" },
     { label: "Pet-Friendly Homes",    href: "/properties?q=pet" },
   ],
   Company: [
     { label: "Our Team",            href: "/agents" },
-    { label: "Tenant Stories",      href: "/#testimonials" },
+    { label: "Blog & Guides",       href: "/blog" },
     { label: "Contact Us",          href: "/contact" },
-    { label: "Careers",             href: "/contact?inquiry=careers" },
+    { label: "Careers",             href: "/careers" },
+    { label: "Privacy Policy",      href: "/privacy" },
   ],
 };
 

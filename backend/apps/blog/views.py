@@ -1,4 +1,6 @@
 from rest_framework import generics, permissions
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 
@@ -36,3 +38,20 @@ class PostDetailView(generics.RetrieveAPIView):
             .filter(is_published=True)
             .select_related("author", "author__agent_profile")
         )
+
+
+@api_view(["GET"])
+@permission_classes([permissions.AllowAny])
+def blog_sitemap(request):
+    """
+    GET /api/v1/blog/sitemap/
+    Returns slug + updated_at for every published post — no pagination.
+    Used exclusively by the Next.js sitemap generator.
+    """
+    qs = (
+        Post.objects
+        .filter(is_published=True)
+        .values("slug", "updated_at", "published_at")
+        .order_by("slug")
+    )
+    return Response(list(qs))
