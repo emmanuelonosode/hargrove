@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Mail, MapPin } from "lucide-react";
+import { HaskerLogo } from "@/components/ui/HaskerLogo";
 
 
 function InstagramIcon() {
@@ -56,14 +57,8 @@ export function Footer() {
           {/* Brand */}
           <div className="lg:col-span-2">
             <div className="mb-6">
-              <Link href="/" className="inline-block">
-                <Image
-                  src="/logo/logo.png"
-                  alt="Hasker & Co. Realty Group"
-                  width={160}
-                  height={40}
-                  className="h-8 w-auto opacity-90 hover:opacity-100 transition-opacity"
-                />
+              <Link href="/" className="inline-block opacity-90 hover:opacity-100 transition-opacity">
+                <HaskerLogo variant="on-dark" height={32} />
               </Link>
             </div>
             <p className="text-neutral-400 text-sm leading-relaxed max-w-xs">

@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { HaskerLogo } from "@/components/ui/HaskerLogo";
 import { Menu, X, Phone, User, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
@@ -64,16 +64,9 @@ export function Navbar() {
         <nav className="max-w-7xl mx-auto px-6 lg:px-8 flex items-center justify-between h-20">
           {/* Logo */}
           <Link href="/" className="flex items-center shrink-0">
-            <Image
-              src="/logo/logo.png"
-              alt="Hasker & Co. Realty Group"
-              width={160}
-              height={40}
-              priority
-              className={cn(
-                "h-8 w-auto transition-all duration-300",
-                isHeroPage && !scrolled ? "opacity-90" : ""
-              )}
+            <HaskerLogo
+              variant={isHeroPage && !scrolled ? "on-dark" : "on-white"}
+              height={32}
             />
           </Link>
 
