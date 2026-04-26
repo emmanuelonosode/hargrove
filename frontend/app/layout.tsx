@@ -62,21 +62,12 @@ export const metadata: Metadata = {
     siteName: "Hasker & Co. Realty Group",
     title: "Hasker & Co. Realty Group | Affordable Rental Homes & Apartments",
     description: "Discover quality, affordable rental homes and apartments with no hidden fees and fast approvals.",
-    images: [
-      {
-        url: "https://haskerrealtygroup.com/og-image.jpg",
-        width: 1200,
-        height: 630,
-        alt: "Hasker & Co. Realty Group — Affordable Homes to Rent & Buy",
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Hasker & Co. Realty Group | Affordable Rental Homes & Apartments",
     description:
       "Find affordable rental apartments and homes across Atlanta, Charlotte, Houston, Dallas, Nashville & more. No hidden fees, fast approvals.",
-    images: ["https://haskerrealtygroup.com/og-image.jpg"],
     creator: "@haskerrealty",
   },
   icons: {

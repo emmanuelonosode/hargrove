@@ -73,7 +73,7 @@ const LOCAL_BUSINESS_SCHEMA = {
   name: "Hasker & Co. Realty Group",
   url: BASE_URL,
   logo: `${BASE_URL}/logo.svg`,
-  image: `${BASE_URL}/og-image.jpg`,
+  image: `${BASE_URL}/opengraph-image`,
   description:
     "Affordable homes to rent and buy. Honest prices, no hidden fees, fast decisions. 2,000+ families housed across 12+ cities since 2012.",
   email: "info@haskerrealtygroup.com",

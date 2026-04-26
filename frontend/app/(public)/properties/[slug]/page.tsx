@@ -46,7 +46,6 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         description: property.description?.slice(0, 160) ?? "",
         type: "website",
         url: `https://haskerrealtygroup.com/properties/${decodedSlug}`,
-        images: property.images?.[0]?.image_url ? [property.images[0].image_url] : [],
       },
     };
   } catch {
