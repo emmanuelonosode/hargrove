@@ -10,11 +10,10 @@ const BASE_URL = "https://haskerrealtygroup.com";
 export const revalidate = 43200;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  // Fetch all dynamic data in parallel — individual failures return []
   const [properties, posts, agents] = await Promise.all([
-    fetchPropertiesForSitemap().catch(() => []),
-    fetchPostsForSitemap().catch(() => []),
-    fetchAgents().catch(() => []),
+    fetchPropertiesForSitemap(),
+    fetchPostsForSitemap(),
+    fetchAgents(),
   ]);
 
   // ── Static pages ───────────────────────────────────────────────────────────

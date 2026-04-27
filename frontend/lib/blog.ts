@@ -65,20 +65,15 @@ export async function fetchPostBySlug(slug: string): Promise<BlogPost> {
   return res.json();
 }
 
-/** For sitemap.ts: returns slug + lastModified for all published blog posts. */
+/** For sitemap.ts: returns slug + lastModified for all published blog posts. Throws on failure so sitemap.ts returns a 500 (Googlebot retries) instead of an empty list (Googlebot deindexes). */
 export async function fetchPostsForSitemap(): Promise<{ slug: string; lastModified: string }[]> {
-  try {
-    // Dedicated endpoint — returns ALL published post slugs with no pagination cap
-    const res = await fetch(`${API_BASE}/api/v1/blog/sitemap/`, {
-      next: { revalidate: 3600 },
-    });
-    if (!res.ok) return [];
-    const data: { slug: string; updated_at: string; published_at: string | null }[] = await res.json();
-    return data.map((p) => ({
-      slug: p.slug,
-      lastModified: p.updated_at || p.published_at || new Date().toISOString(),
-    }));
-  } catch {
-    return [];
-  }
+  const res = await fetch(`${API_BASE}/api/v1/blog/sitemap/`, {
+    next: { revalidate: 3600 },
+  });
+  if (!res.ok) throw new Error(`Blog sitemap fetch failed: ${res.status}`);
+  const data: { slug: string; updated_at: string; published_at: string | null }[] = await res.json();
+  return data.map((p) => ({
+    slug: p.slug,
+    lastModified: p.updated_at || p.published_at || new Date().toISOString(),
+  }));
 }

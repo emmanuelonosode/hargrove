@@ -43,7 +43,7 @@ class PublicAgentSerializer(serializers.ModelSerializer):
         ]
 
     def get_active_listings(self, obj):
-        return obj.listings.filter(is_published=True, status="AVAILABLE").count()
+        return obj.listings.filter(is_published=True, status="available").count()
 
     def get_avatar_url(self, obj):
         # Prefer the agent profile photo; fall back to the user account avatar

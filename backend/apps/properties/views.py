@@ -167,12 +167,13 @@ class MapPinsView(generics.GenericAPIView):
 def property_sitemap(request):
     """
     GET /api/v1/properties/sitemap/
-    Returns slug + updated_at for every published property — no pagination.
+    Returns slug + updated_at for active properties only — no pagination.
+    Excludes sold/rented/off-market to avoid wasting Google's crawl budget on dead pages.
     Used exclusively by the Next.js sitemap generator.
     """
     qs = (
         Property.objects
-        .filter(is_published=True)
+        .filter(is_published=True, status__in=["available", "under-contract"])
         .values("slug", "updated_at")
         .order_by("slug")
     )

@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: `${post.title} | Hasker & Co. Realty Group`,
       description: post.excerpt,
       alternates: { canonical: `https://haskerrealtygroup.com/blog/${decodedSlug}` },
-      openGraph: { title: `${post.title} | Hasker & Co. Realty Group`, description: post.excerpt, type: "article", url: `https://haskerrealtygroup.com/blog/${decodedSlug}` },
+      openGraph: { title: `${post.title} | Hasker & Co. Realty Group`, description: post.excerpt, type: "article", url: `https://haskerrealtygroup.com/blog/${decodedSlug}`, images: post.featured_image_url ? [{ url: post.featured_image_url }] : [] },
     };
   } catch {
     return {};

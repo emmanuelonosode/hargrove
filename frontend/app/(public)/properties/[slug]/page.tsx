@@ -11,7 +11,7 @@ import {
   Flame, ShowerHead, Wifi, Fence,
   type LucideIcon,
 } from "lucide-react";
-import { fetchPropertyBySlug, fetchAllPropertySlugs, fetchProperties, toPropertyCardShape } from "@/lib/properties";
+import { fetchPropertyBySlug, fetchProperties, toPropertyCardShape } from "@/lib/properties";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { PropertyInquiryForm } from "@/components/public/PropertyInquiryForm";
@@ -28,8 +28,8 @@ export const revalidate = 300;
 const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1200&q=80";
 
 export async function generateStaticParams() {
-  const slugs = await fetchAllPropertySlugs();
-  return slugs.map((slug) => ({ slug }));
+  // Return empty — pages are built on-demand via ISR (dynamicParams = true by default)
+  return [];
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
