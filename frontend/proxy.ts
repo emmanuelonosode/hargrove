@@ -34,7 +34,14 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(url, { status: 301 });
   }
 
-  return NextResponse.next();
+  const response = NextResponse.next();
+
+  // Portal pages: authoritative noindex via HTTP header (layout is "use client" so metadata export isn't possible)
+  if (pathname.startsWith("/portal")) {
+    response.headers.set("X-Robots-Tag", "noindex, nofollow");
+  }
+
+  return response;
 }
 
 export const config = {
