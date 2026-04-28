@@ -247,6 +247,90 @@ def send_invoice_email(self, invoice_id: int):
         raise self.retry(exc=exc)
 
 
+# ---------------------------------------------------------------------------
+# Careers / Job Applications
+# ---------------------------------------------------------------------------
+
+@shared_task(bind=True, max_retries=3, default_retry_delay=60)
+def send_job_application_notification(self, application_id: int):
+    """
+    1. Send confirmation email to the applicant.
+    2. Send an alert with full details to careers@ and all active managers.
+    """
+    try:
+        from apps.careers.models import JobApplication
+        from apps.accounts.models import CustomUser, Role
+
+        app = JobApplication.objects.get(pk=application_id)
+        from_header, connection = _get_email_sender()
+
+        # 1. Confirmation to applicant
+        confirmation_body = render_to_string(
+            "notifications/job_application_confirmation.html", {"app": app}
+        )
+        msg_confirm = EmailMessage(
+            subject=f"Application received — {app.role_title} | Hasker & Co. Realty Group",
+            body=confirmation_body,
+            from_email=from_header,
+            to=[app.email],
+            connection=connection,
+        )
+        msg_confirm.content_subtype = "html"
+        msg_confirm.send()
+
+        # 2. Alert to hiring team (active managers + careers@ inbox)
+        manager_emails = list(
+            CustomUser.objects.filter(role=Role.MANAGER, is_active=True)
+            .values_list("email", flat=True)
+        )
+        staff_recipients = list(set(manager_emails + ["careers@haskerrealtygroup.com"]))
+
+        alert_body = render_to_string(
+            "notifications/job_application_staff_alert.html", {"app": app}
+        )
+        msg_alert = EmailMessage(
+            subject=f"New Job Application: {app.full_name} — {app.role_title}",
+            body=alert_body,
+            from_email=from_header,
+            to=staff_recipients,
+            connection=connection,
+        )
+        msg_alert.content_subtype = "html"
+        msg_alert.send()
+
+        return f"Job application notifications sent for application {application_id}"
+
+    except Exception as exc:
+        raise self.retry(exc=exc)
+
+
+@shared_task(bind=True, max_retries=3, default_retry_delay=60)
+def send_job_rejection_email(self, application_id: int):
+    """Send a polite rejection email to an applicant."""
+    try:
+        from apps.careers.models import JobApplication
+
+        app = JobApplication.objects.get(pk=application_id)
+        from_header, connection = _get_email_sender()
+
+        subject = f"Re: Your application for {app.role_title} — Hasker & Co. Realty Group"
+        body = render_to_string(
+            "notifications/job_application_rejection.html", {"app": app}
+        )
+        msg = EmailMessage(
+            subject=subject,
+            body=body,
+            from_email=from_header,
+            to=[app.email],
+            connection=connection,
+        )
+        msg.content_subtype = "html"
+        msg.send()
+        return f"Rejection email sent to {app.email}"
+
+    except Exception as exc:
+        raise self.retry(exc=exc)
+
 def _payment_recipient(payment):
     """
     Resolve a payment to (email, full_name) across all three payment contexts:

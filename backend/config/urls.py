@@ -29,6 +29,9 @@ urlpatterns = [
     # Blog (public)
     path("api/v1/blog/", include("apps.blog.urls")),
 
+    # Careers — job applications (public submit, staff read)
+    path("api/v1/careers/", include("apps.careers.urls")),
+
     # Tenant-facing
     path("api/v1/documents/", include("apps.documents.urls")),
     path("api/v1/maintenance/", include("apps.maintenance.urls")),
