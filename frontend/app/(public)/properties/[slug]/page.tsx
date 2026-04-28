@@ -27,6 +27,14 @@ export const revalidate = 300;
 
 const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1200&q=80";
 
+// Inject Cloudinary resize transformation so Google receives a 1200×630 image
+function toOgImageUrl(url: string): string {
+  if (url.includes("res.cloudinary.com") && url.includes("/upload/")) {
+    return url.replace("/upload/", "/upload/c_fill,w_1200,h_630,f_jpg,q_auto/");
+  }
+  return url;
+}
+
 export async function generateStaticParams() {
   // Return empty — pages are built on-demand via ISR (dynamicParams = true by default)
   return [];
@@ -38,7 +46,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     const decodedSlug = decodeURIComponent(slug);
     const property = await fetchPropertyBySlug(decodedSlug);
     return {
-      title: `${property.title} | Hasker & Co. Realty Group`,
+      title: `${property.title.length > 32 ? property.title.slice(0, 29) + "..." : property.title} | Hasker & Co. Realty Group`,
       description: property.description?.slice(0, 160) ?? "",
       alternates: { canonical: `https://haskerrealtygroup.com/properties/${decodedSlug}` },
       openGraph: {
@@ -46,6 +54,17 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         description: property.description?.slice(0, 160) ?? "",
         type: "website",
         url: `https://haskerrealtygroup.com/properties/${decodedSlug}`,
+        images: property.images?.[0]?.image_url
+          ? [{ url: toOgImageUrl(property.images[0].image_url), width: 1200, height: 630, alt: property.title }]
+          : [{ url: FALLBACK_IMAGE, width: 1200, height: 630, alt: "Affordable rental home" }],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: `${property.title} | Hasker & Co. Realty Group`,
+        description: property.description?.slice(0, 160) ?? "",
+        images: property.images?.[0]?.image_url
+          ? [toOgImageUrl(property.images[0].image_url)]
+          : [FALLBACK_IMAGE],
       },
     };
   } catch {
@@ -150,8 +169,14 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
     description: property.description ?? "",
     url: `https://haskerrealtygroup.com/properties/${property.slug}`,
     image: images.length > 0
-      ? images.map((i) => i.image_url)
-      : [FALLBACK_IMAGE],
+      ? images.map((img) => ({
+          "@type": "ImageObject",
+          url: toOgImageUrl(img.image_url ?? FALLBACK_IMAGE),
+          width: 1200,
+          height: 630,
+          caption: img.caption ?? property.title,
+        }))
+      : [{ "@type": "ImageObject", url: FALLBACK_IMAGE, width: 1200, height: 630 }],
     numberOfRooms: property.bedrooms,
     numberOfBathroomsTotal: property.bathrooms,
     floorSize: { "@type": "QuantitativeValue", value: property.sqft, unitCode: "FTK" },

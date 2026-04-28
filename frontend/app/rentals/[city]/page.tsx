@@ -29,7 +29,7 @@ export async function generateMetadata(
   const city = getCityBySlug(slug);
   if (!city) return { title: "City Not Found" };
 
-  const title = `Affordable Homes & Apartments for Rent in ${city.name}, ${city.stateCode} | Hasker & Co.`;
+  const title = `Rentals in ${city.name}, ${city.stateCode} | Hasker & Co. Realty Group`;
   const description = `Browse comfortable, budget-friendly homes and apartments for rent in ${city.name}, ${city.state}. No hidden fees, 24-hour application decisions. Find your next home today.`;
   const url = `https://haskerrealtygroup.com/rentals/${slug}`;
 

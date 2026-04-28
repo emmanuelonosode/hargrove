@@ -165,7 +165,24 @@ const jsonLd = {
         "https://www.instagram.com/haskerrealty",
         "https://www.linkedin.com/company/haskerrealty",
         "https://twitter.com/haskerrealty",
-        "https://www.facebook.com/haskerrealty"
+        "https://www.facebook.com/haskerrealty",
+        "https://haskerrealtygroup.com"
+      ],
+      "slogan": "Quality Homes. Honest Prices. No Surprises.",
+      "numberOfEmployees": { "@type": "QuantitativeValue", "minValue": 10, "maxValue": 50 },
+      "award": [
+        "BBB A+ Accredited Business",
+        "NAR Member — National Association of Realtors",
+        "Equal Housing Opportunity Provider",
+        "Trustpilot 4.9/5 — 2,400+ Reviews"
+      ],
+      "hasCredential": [
+        { "@type": "EducationalOccupationalCredential", "name": "Licensed Real Estate Broker — Virginia", "credentialCategory": "license" },
+        { "@type": "EducationalOccupationalCredential", "name": "Licensed Real Estate Broker — Georgia", "credentialCategory": "license" },
+        { "@type": "EducationalOccupationalCredential", "name": "Licensed Real Estate Broker — Texas", "credentialCategory": "license" },
+        { "@type": "EducationalOccupationalCredential", "name": "Licensed Real Estate Broker — North Carolina", "credentialCategory": "license" },
+        { "@type": "EducationalOccupationalCredential", "name": "Licensed Real Estate Broker — Tennessee", "credentialCategory": "license" },
+        { "@type": "EducationalOccupationalCredential", "name": "Licensed Real Estate Broker — Arizona", "credentialCategory": "license" }
       ],
       "knowsAbout": [
         "Residential Real Estate",
@@ -212,7 +229,8 @@ const jsonLd = {
       "@id": "https://haskerrealtygroup.com/#website",
       "url": "https://haskerrealtygroup.com",
       "name": "Hasker & Co. Realty Group",
-      "alternateName": "Hasker Realty Group",
+      "alternateName": ["Hasker Realty Group", "Hasker Realty", "Hasker and Co Realty Group"],
+      "description": "Official website of Hasker & Co. Realty Group — affordable rental homes and properties for sale across 12+ US cities. Founded 2012. No hidden fees.",
       "publisher": { "@id": "https://haskerrealtygroup.com/#organization" },
       "potentialAction": {
         "@type": "SearchAction",
@@ -221,6 +239,10 @@ const jsonLd = {
           "urlTemplate": "https://haskerrealtygroup.com/properties?q={search_term_string}"
         },
         "query-input": "required name=search_term_string"
+      },
+      "speakable": {
+        "@type": "SpeakableSpecification",
+        "cssSelector": ["h1", "h2", ".speakable"]
       }
     }
   ]

@@ -82,7 +82,7 @@ export function PropertyImageGallery({ images, title, fallback }: Props) {
           >
             <Image
               src={img.image_url ?? fallback}
-              alt={img.caption ?? `Photo ${i + 2}`}
+              alt={img.caption ?? `${title} photo ${i + 2}`}
               fill className="object-cover group-hover:scale-105 transition-transform duration-300"
               sizes="25vw" unoptimized
             />
@@ -246,7 +246,7 @@ export function PropertyImageGallery({ images, title, fallback }: Props) {
                 >
                   <Image
                     src={img.image_url ?? fallback}
-                    alt={`Thumbnail ${i + 1}`}
+                    alt={img.caption ?? `${title} photo ${i + 1}`}
                     fill className="object-cover"
                     sizes="56px" unoptimized
                   />

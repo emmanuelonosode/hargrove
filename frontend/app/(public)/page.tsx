@@ -11,9 +11,9 @@ import { formatPrice } from "@/lib/utils";
 import { CITIES } from "@/lib/cities";
 
 export const metadata = {
-  title: "Affordable Homes to Rent & Buy | Hasker & Co. Realty Group",
+  title: "Hasker & Co. Realty Group | Affordable Homes to Rent & Buy",
   description:
-    "Find your affordable home with Hasker & Co. Realty Group. Cheap rentals and homes for sale in Atlanta, Charlotte, Houston, Dallas, Nashville and Phoenix. No hidden fees. Decisions in 24 hrs.",
+    "Hasker & Co. Realty Group — find affordable homes to rent and buy across Atlanta, Charlotte, Houston, Dallas, Nashville and Phoenix. No hidden fees. Decisions in 24 hrs.",
   keywords: [
     "affordable homes for rent",
     "cheap apartments near me",
@@ -25,10 +25,18 @@ export const metadata = {
     "homes for sale affordable",
   ],
   openGraph: {
-    title: "Affordable Homes to Rent & Buy | Hasker & Co. Realty Group",
-    description: "Quality homes at honest prices. No hidden fees. Fast approvals. 12+ cities.",
+    title: "Hasker & Co. Realty Group | Affordable Homes to Rent & Buy",
+    description: "Hasker & Co. Realty Group — quality homes at honest prices. No hidden fees. Fast approvals. 12+ cities.",
     type: "website",
     url: "https://haskerrealtygroup.com",
+    images: [{ url: "https://haskerrealtygroup.com/opengraph-image", width: 1200, height: 630, alt: "Hasker & Co. Realty Group — Affordable Homes" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Hasker & Co. Realty Group | Affordable Homes to Rent & Buy",
+    description: "Hasker & Co. Realty Group — quality homes at honest prices. No hidden fees. Fast approvals. 12+ cities.",
+    images: ["https://haskerrealtygroup.com/opengraph-image"],
+    creator: "@haskerrealty",
   },
   alternates: { canonical: "https://haskerrealtygroup.com" },
 };
@@ -104,11 +112,12 @@ const LOCAL_BUSINESS_SCHEMA = {
     "Austin, TX", "Miami, FL", "Denver, CO", "Seattle, WA",
     "Las Vegas, NV", "Tampa, FL", "Raleigh, NC", "Orlando, FL",
     "San Antonio, TX", "Jacksonville, FL", "Philadelphia, PA",
-    "Austin, TX", "Denver, CO", "Tampa, FL", "Raleigh, NC",
   ],
   sameAs: [
     "https://www.instagram.com/haskerrealty",
     "https://www.linkedin.com/company/haskerrealty",
+    "https://twitter.com/haskerrealty",
+    "https://www.facebook.com/haskerrealty",
   ],
 };
 
@@ -159,6 +168,8 @@ const ORGANIZATION_SCHEMA = {
   sameAs: [
     "https://www.instagram.com/haskerrealty",
     "https://www.linkedin.com/company/haskerrealty",
+    "https://twitter.com/haskerrealty",
+    "https://www.facebook.com/haskerrealty",
   ],
 };
 

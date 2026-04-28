@@ -69,7 +69,8 @@ function SplitScreenLogin() {
 
   return (
     <div className="fixed inset-0 z-50 flex h-screen w-full bg-white overflow-hidden font-sans">
-      
+      <h1 className="sr-only">Sign In | Hasker &amp; Co. Realty Group</h1>
+
       {/* Dynamic Keyframes for Marquee */}
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes scrollLeft {

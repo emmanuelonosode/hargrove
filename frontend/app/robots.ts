@@ -4,6 +4,13 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
       {
+        // Googlebot-Image crawls property photos for Google Images / search thumbnails
+        // Explicitly allow it before the wildcard rule so /*?* doesn't inadvertently block image CDN redirects
+        userAgent: "Googlebot-Image",
+        allow: "/",
+        disallow: [],
+      },
+      {
         userAgent: "*",
         allow: "/",
         // Use prefix-match paths (no trailing slash needed — robots.txt /portal/ matches /portal and /portal/*)

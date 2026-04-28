@@ -68,6 +68,7 @@ export default async function PropertiesPage({ searchParams }: PageProps) {
 
   return (
     <main>
+      <h1 className="sr-only">Affordable Homes &amp; Apartments for Rent | Hasker &amp; Co. Realty Group</h1>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }}
