@@ -10,11 +10,19 @@ const BASE_URL = "https://haskerrealtygroup.com";
 export const revalidate = 43200;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [properties, posts, agents] = await Promise.all([
+  const [propertiesResult, postsResult, agentsResult] = await Promise.allSettled([
     fetchPropertiesForSitemap(),
     fetchPostsForSitemap(),
     fetchAgents(),
   ]);
+
+  const properties = propertiesResult.status === "fulfilled" ? propertiesResult.value : [];
+  const posts      = postsResult.status      === "fulfilled" ? postsResult.value      : [];
+  const agents     = agentsResult.status     === "fulfilled" ? agentsResult.value     : [];
+
+  if (propertiesResult.status === "rejected") console.warn("sitemap: properties fetch failed —", propertiesResult.reason);
+  if (postsResult.status      === "rejected") console.warn("sitemap: blog fetch failed —",       postsResult.reason);
+  if (agentsResult.status     === "rejected") console.warn("sitemap: agents fetch failed —",     agentsResult.reason);
 
   // ── Static pages ───────────────────────────────────────────────────────────
   const staticPages: MetadataRoute.Sitemap = [
