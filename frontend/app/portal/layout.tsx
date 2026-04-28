@@ -4,19 +4,16 @@ import { useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, CreditCard, FileText, Wrench, User, LogOut, Home } from "lucide-react";
+import { LayoutDashboard, CreditCard, FileText, Wrench, User, LogOut, Home, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 
-const navItems = [
+const BASE_NAV = [
   { label: "My Profile",   href: "/portal/profile",   icon: LayoutDashboard },
   { label: "Payments",    href: "/portal/payments",    icon: CreditCard },
   { label: "Maintenance", href: "/portal/maintenance", icon: Wrench },
   { label: "Documents",   href: "/portal/documents",   icon: FileText },
 ];
-
-// Mobile bottom bar only shows 4 items (Profile lives in sidebar user chip)
-const mobileNavItems = navItems.slice(0, 4);
 
 export default function PortalLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -29,6 +26,14 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
       router.replace(`/login?next=${next}`);
     }
   }, [user, isLoading, router, pathname]);
+
+  const isHiringManager = user?.role === "MANAGER" || user?.role === "ADMIN";
+  const navItems = isHiringManager
+    ? [...BASE_NAV, { label: "Hiring", href: "/portal/hiring", icon: Users }]
+    : BASE_NAV;
+
+  // Mobile bottom bar: tenant items only (4 max) + sign out
+  const mobileNavItems = BASE_NAV.slice(0, 4);
 
   if (isLoading || !user) {
     return (

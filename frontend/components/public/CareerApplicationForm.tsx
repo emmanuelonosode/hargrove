@@ -13,6 +13,15 @@ interface RoleField {
 }
 
 const roleExtraFields: Record<string, RoleField[]> = {
+  "remote-listing-specialist": [
+    {
+      name: "remote_experience",
+      label: "Years of Remote Work Experience",
+      type: "select",
+      required: true,
+      options: ["Less than 1 year", "1–2 years", "3–5 years", "5+ years"],
+    },
+  ],
   "real-estate-agent": [
     {
       name: "license_status",
@@ -98,40 +107,25 @@ export function CareerApplicationForm({ roleId, roleTitle }: Props) {
     const linkedin = fd.get("linkedin") as string;
     const message = fd.get("message") as string;
 
-    // Build extra field lines for the message body
-    const extraLines = extraFields
-      .map((f) => {
-        const val = fd.get(f.name) as string;
-        return val ? `${f.label}: ${val}` : null;
-      })
-      .filter(Boolean)
-      .join("\n");
-
-    const fullMessage = [
-      `=== CAREER APPLICATION ===`,
-      `Position: ${roleTitle}`,
-      extraLines,
-      linkedin ? `LinkedIn / Portfolio: ${linkedin}` : null,
-      ``,
-      `Cover Note:`,
-      message,
-    ]
-      .filter((l) => l !== null)
-      .join("\n");
+    // Capture the first role-specific field as a label/value pair
+    const firstExtra = extraFields[0];
+    const extraLabel = firstExtra ? firstExtra.label : "";
+    const extraValue = firstExtra ? ((fd.get(firstExtra.name) as string) ?? "") : "";
 
     try {
-      const res = await fetch("/api/v1/leads/", {
+      const res = await fetch("/api/v1/careers/apply/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          role_id: roleId,
+          role_title: roleTitle,
           full_name: name,
           email,
           phone,
-          source: "CONTACT_FORM",
-          interest_type: "RENT",
-          message: fullMessage,
-          services_requested: [`Career Application — ${roleTitle}`],
-          preferred_location: "Virginia Beach, VA",
+          linkedin_url: linkedin ?? "",
+          motivation: message,
+          extra_field_label: extraLabel,
+          extra_field_value: extraValue,
         }),
       });
 

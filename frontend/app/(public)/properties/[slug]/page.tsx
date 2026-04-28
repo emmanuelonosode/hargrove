@@ -46,7 +46,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     const decodedSlug = decodeURIComponent(slug);
     const property = await fetchPropertyBySlug(decodedSlug);
     return {
-      title: `${property.title.length > 32 ? property.title.slice(0, 29) + "..." : property.title} | Hasker & Co. Realty Group`,
+       title: `${property.title.length > 32 ? property.title.slice(0, 29) + "..." : property.title} | Hasker & Co. Realty Group`,
       description: property.description?.slice(0, 160) ?? "",
       alternates: { canonical: `https://haskerrealtygroup.com/properties/${decodedSlug}` },
       openGraph: {
