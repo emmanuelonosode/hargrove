@@ -179,7 +179,9 @@
       "Bash(which python *)",
       "Bash(grep -E \"\\\\.\\(tsx|ts|jsx|js\\)$\")",
       "Bash(cmd.exe *)",
-      "Bash(grep -E \"\\\\.\\(tsx|ts\\)$\")"
+      "Bash(grep -E \"\\\\.\\(tsx|ts\\)$\")",
+      "Bash(grep -v \"\\\\.$\")",
+      "Bash(grep -r \"from.*[@]/\" \"C:/Users/emmanuel onosode/Desktop/Estate/frontend\" --include=\"*.tsx\" --include=\"*.ts\" ! -path \"*/.next/*\" ! -path \"*/node_modules/*\")"
     ]
   }
 }

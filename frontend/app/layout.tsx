@@ -162,10 +162,11 @@ const jsonLd = {
         }
       ],
       "sameAs": [
+        "https://www.facebook.com/share/1G6G3YcUd3/",
+        "https://www.tiktok.com/@haskerrealtygroup",
         "https://www.instagram.com/haskerrealty",
         "https://www.linkedin.com/company/haskerrealty",
         "https://twitter.com/haskerrealty",
-        "https://www.facebook.com/haskerrealty",
         "https://haskerrealtygroup.com"
       ],
       "slogan": "Quality Homes. Honest Prices. No Surprises.",
