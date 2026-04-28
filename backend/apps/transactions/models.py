@@ -1,6 +1,7 @@
 from django.db import models
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
+from django.utils import timezone
 
 
 class TransactionType(models.TextChoices):
@@ -218,13 +219,43 @@ class Invoice(models.Model):
 
 # ── Signals ───────────────────────────────────────────────────────────────────
 
+def _send(task_fn, pk):
+    """
+    Try to dispatch via Celery; fall back to running synchronously if the
+    broker is unavailable (e.g. no Redis in development or on the server).
+    """
+    try:
+        task_fn.delay(pk)
+    except Exception:
+        try:
+            task_fn.apply(args=(pk,))
+        except Exception:
+            pass
+
+
+@receiver(pre_save, sender=Payment)
+def auto_stamp_payment_timestamps(sender, instance, **kwargs):
+    """Auto-set verified_at when status transitions to VERIFIED or REJECTED."""
+    if not instance.pk:
+        return
+    try:
+        old = Payment.objects.get(pk=instance.pk)
+        if old.status != instance.status:
+            if instance.status == "VERIFIED" and not instance.verified_at:
+                instance.verified_at = timezone.now()
+            if instance.status == "REJECTED" and not instance.verified_at:
+                instance.verified_at = timezone.now()
+    except Payment.DoesNotExist:
+        pass
+
+
 @receiver(post_save, sender=Invoice)
 def trigger_invoice_notification(sender, instance, created, **kwargs):
     """Trigger email when invoice is marked as SENT."""
     if instance.status == "SENT":
         try:
             from apps.notifications.tasks import send_invoice_email
-            send_invoice_email.delay(instance.pk)
+            _send(send_invoice_email, instance.pk)
         except Exception:
             pass
 
@@ -240,17 +271,17 @@ def trigger_payment_notifications(sender, instance, created, **kwargs):
         )
 
         if created and instance.status == "PENDING_VERIFICATION":
-            send_payment_submitted_email.delay(instance.pk)
+            _send(send_payment_submitted_email, instance.pk)
 
         # Only fire verification email once — gate on receipt_sent flag
-        if instance.status == "VERIFIED" and instance.verified_at and not instance.receipt_sent:
+        if not created and instance.status == "VERIFIED" and instance.verified_at and not instance.receipt_sent:
             Payment.objects.filter(pk=instance.pk).update(receipt_sent=True)
-            send_payment_verified_email.delay(instance.pk)
+            _send(send_payment_verified_email, instance.pk)
 
-        # Rejection notification — use paid_at=None as proxy for "not yet notified"
-        if instance.status == "REJECTED" and not instance.receipt_sent:
+        # Rejection notification
+        if not created and instance.status == "REJECTED" and not instance.receipt_sent:
             Payment.objects.filter(pk=instance.pk).update(receipt_sent=True)
-            send_payment_rejected_email.delay(instance.pk)
+            _send(send_payment_rejected_email, instance.pk)
 
     except Exception:
         pass
