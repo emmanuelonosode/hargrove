@@ -644,7 +644,7 @@ function PaymentStepContent({
               {/* Amount — shrink-0 so it never wraps */}
               <div className="shrink-0 text-right">
                 <p className="text-[10px] text-white/50 leading-none mb-0.5">Amount due</p>
-                <p className="text-[18px] font-bold text-white leading-none">$50.00</p>
+                <p className="text-[18px] font-bold text-white leading-none">$100.00</p>
               </div>
             </div>
 
@@ -730,7 +730,7 @@ function PaymentStepContent({
             </div>
             <div className="pt-3 border-t border-white/10 flex items-center justify-between">
               <p className="text-[12px] text-white/50">Amount due</p>
-              <p className="text-[20px] font-bold">$50.00</p>
+              <p className="text-[20px] font-bold">$100.00</p>
             </div>
             {cfg.extra_instructions && (
               <p className="text-[12px] text-white/40 mt-3 leading-relaxed">{cfg.extra_instructions}</p>

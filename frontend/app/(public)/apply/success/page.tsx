@@ -16,7 +16,7 @@ const PAYMENT_DETAILS = {
   accountName: "Hasker & Co. Realty Group LLC",
   accountNumber: "000123456789",
   routingNumber: "021000021",
-  amount: "$50.00",
+  amount: "$100.00",
   memo: "Application Fee",
 };
 
