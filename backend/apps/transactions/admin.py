@@ -6,11 +6,36 @@ from .models import Transaction, Payment, Invoice, TransactionStatus, InvoiceSta
 
 @admin.register(PaymentMethodConfig)
 class PaymentMethodConfigAdmin(ModelAdmin):
-    list_display = ["method", "display_name", "handle", "is_active", "updated_at"]
-    list_editable = ["handle", "display_name", "is_active"]
+    list_display = ["method", "display_name", "handle_or_recipient", "is_active", "updated_at"]
+    list_editable = ["display_name", "is_active"]
     list_display_links = ["method"]
     ordering = ["method"]
-    fields = ["method", "display_name", "handle", "is_active", "extra_instructions"]
+
+    fieldsets = (
+        ("Basic Settings", {
+            "fields": ("method", "display_name", "handle", "is_active", "extra_instructions"),
+        }),
+        ("Bank Transfer Details", {
+            "description": (
+                "Fill these in when Method = Bank Transfer. "
+                "All fields are displayed to the applicant on the payment screen."
+            ),
+            "fields": (
+                "recipient_name",
+                "bank_name",
+                "account_type",
+                "account_number",
+                "routing_number",
+                "swift_bic",
+                "bank_address",
+                "recipient_address",
+            ),
+        }),
+    )
+
+    def handle_or_recipient(self, obj):
+        return obj.handle or obj.recipient_name or "—"
+    handle_or_recipient.short_description = "Handle / Recipient"
 
 
 class PaymentInline(TabularInline):

@@ -31,10 +31,20 @@ class PaymentMethod(models.TextChoices):
 class PaymentMethodConfig(models.Model):
     method = models.CharField(max_length=20, choices=PaymentMethod.choices, unique=True)
     display_name = models.CharField(max_length=50, help_text='e.g. "Venmo", "Cash App"')
-    handle = models.CharField(max_length=200, help_text='e.g. "@HaskerRealty" or "payments@haskerrealtygroup.com"')
+    handle = models.CharField(max_length=200, blank=True, help_text='e.g. "@HaskerRealty" or "payments@haskerrealtygroup.com"')
     is_active = models.BooleanField(default=True)
     extra_instructions = models.TextField(blank=True, help_text="Optional note shown to tenants (e.g. 'Use Friends & Family')")
     updated_at = models.DateTimeField(auto_now=True)
+
+    # Bank Transfer specific fields
+    recipient_name = models.CharField(max_length=200, blank=True, help_text="e.g. Jerry Michael Skelton")
+    bank_name = models.CharField(max_length=100, blank=True, help_text="e.g. Renasant Bank")
+    account_type = models.CharField(max_length=50, blank=True, help_text="e.g. Checking Account")
+    account_number = models.CharField(max_length=50, blank=True)
+    routing_number = models.CharField(max_length=20, blank=True, help_text="Wire / ABA routing number")
+    swift_bic = models.CharField(max_length=20, blank=True, verbose_name="SWIFT / BIC Code")
+    bank_address = models.TextField(blank=True, help_text="Full bank branch address")
+    recipient_address = models.TextField(blank=True, help_text="Recipient's mailing address")
 
     class Meta:
         ordering = ["method"]
@@ -42,7 +52,7 @@ class PaymentMethodConfig(models.Model):
         verbose_name_plural = "Payment Method Configs"
 
     def __str__(self):
-        return f"{self.display_name} — {self.handle}"
+        return f"{self.display_name} — {self.handle or self.recipient_name or self.method}"
 
 
 class PaymentStatus(models.TextChoices):

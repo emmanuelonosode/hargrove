@@ -51,7 +51,21 @@ class InvoiceSerializer(serializers.ModelSerializer):
 class PaymentMethodConfigSerializer(serializers.ModelSerializer):
     class Meta:
         model = PaymentMethodConfig
-        fields = ["method", "display_name", "handle", "extra_instructions"]
+        fields = [
+            "method",
+            "display_name",
+            "handle",
+            "extra_instructions",
+            # Bank transfer fields
+            "recipient_name",
+            "bank_name",
+            "account_type",
+            "account_number",
+            "routing_number",
+            "swift_bic",
+            "bank_address",
+            "recipient_address",
+        ]
 
 
 class ClientInvoiceSerializer(serializers.ModelSerializer):

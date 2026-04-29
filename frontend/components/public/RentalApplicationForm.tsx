@@ -23,6 +23,15 @@ interface PaymentConfig {
   display_name: string;
   handle: string;
   extra_instructions: string;
+  // Bank transfer specific
+  recipient_name?: string;
+  bank_name?: string;
+  account_type?: string;
+  account_number?: string;
+  routing_number?: string;
+  swift_bic?: string;
+  bank_address?: string;
+  recipient_address?: string;
 }
 
 const FALLBACK_METHODS: PaymentConfig[] = [
@@ -77,13 +86,35 @@ function ZelleLogo() {
   );
 }
 
+function BankTransferLogo() {
+  return (
+    <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" className="w-full h-full" aria-hidden="true">
+      <rect width="32" height="32" rx="7" fill="#1A3557"/>
+      <path d="M16 6L6 11h20L16 6zM8 13h2v8H8v-8zm6 0h2v8h-2v-8zm6 0h2v8h-2v-8zM6 23h20v2H6v-2z" fill="white"/>
+    </svg>
+  );
+}
+
 const PAYMENT_LOGOS: Record<string, React.ReactNode> = {
   VENMO:         <VenmoLogo />,
   CASHAPP:       <CashAppLogo />,
   PAYPAL:        <PayPalLogo />,
   CHIME:         <ChimeLogo />,
-  BANK_TRANSFER: <ZelleLogo />,
+  BANK_TRANSFER: <BankTransferLogo />,
 };
+
+// ── Copy-to-clipboard helper ──────────────────────────────────────────────────
+
+function useCopy(timeout = 2000) {
+  const [copied, setCopied] = useState<string | null>(null);
+  const copy = useCallback((text: string, key: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(key);
+      setTimeout(() => setCopied(null), timeout);
+    }).catch(() => {});
+  }, [timeout]);
+  return { copied, copy };
+}
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -429,6 +460,307 @@ function NavButtons({
         )}
       </button>
     </div>
+  );
+}
+
+// ── Payment Step (extracted for clarity) ─────────────────────────────────────
+
+interface PaymentStepProps {
+  paymentConfig: PaymentConfig[];
+  selectedMethod: string;
+  setSelectedMethod: (m: string) => void;
+  paymentRef: string;
+  setPaymentRef: (v: string) => void;
+  proofFile: File | null;
+  setProofFile: (f: File | null) => void;
+  autofilledFields: Set<string>;
+  setAutofilledFields: React.Dispatch<React.SetStateAction<Set<string>>>;
+  serverError: string | null;
+}
+
+function PaymentStepContent({
+  paymentConfig,
+  selectedMethod,
+  setSelectedMethod,
+  paymentRef,
+  setPaymentRef,
+  proofFile,
+  setProofFile,
+  autofilledFields,
+  setAutofilledFields,
+  serverError,
+}: PaymentStepProps) {
+  const { copied, copy } = useCopy();
+  const methods = paymentConfig.length > 0 ? paymentConfig : FALLBACK_METHODS;
+  const cfg = methods.find((m) => m.method === selectedMethod) ?? methods[0];
+  const isBankTransfer = cfg.method === "BANK_TRANSFER";
+
+  const refPlaceholder =
+    selectedMethod === "CASHAPP"      ? "Your $CashTag" :
+    selectedMethod === "VENMO"        ? "Your @username" :
+    selectedMethod === "BANK_TRANSFER" ? "Confirmation / wire reference number" :
+    "Confirmation # or email used";
+
+  return (
+    <Section icon={Lock} title="Application Fee" sub="One-time, non-refundable · covers processing & background check">
+      <div className="space-y-6">
+
+        {/* ── Fee pill ────────────────────────────────────────────────── */}
+        <div className="flex items-center justify-between px-4 py-4 bg-[#F5F5F7] rounded-2xl">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center shrink-0">
+              <Lock size={16} className="text-brand" />
+            </div>
+            <div>
+              <p className="text-[14px] font-bold text-[#1D1D1F]">Application Fee</p>
+              <p className="text-[11px] text-[#6E6E73]">One-time · non-refundable</p>
+            </div>
+          </div>
+          <p className="text-[24px] font-bold text-[#1D1D1F] tracking-tight">
+            $50<span className="text-[15px] font-semibold text-[#6E6E73]">.00</span>
+          </p>
+        </div>
+
+        {/* ── Method selector — full-width radio cards ────────────────── */}
+        <div>
+          <p className="text-[10px] font-bold text-[#6E6E73] uppercase tracking-[0.12em] mb-3">
+            Choose payment method
+          </p>
+          <div className="space-y-2">
+            {methods.map((m) => {
+              const active = selectedMethod === m.method;
+              return (
+                <button
+                  key={m.method}
+                  type="button"
+                  onClick={() => setSelectedMethod(m.method)}
+                  className={cn(
+                    "w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl border-2 transition-all text-left",
+                    active
+                      ? "border-brand bg-brand/[0.04] shadow-sm"
+                      : "border-[#E5E5EA] bg-white hover:border-[#C7C7CC]"
+                  )}
+                >
+                  {/* Logo */}
+                  <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0 shadow-sm">
+                    {PAYMENT_LOGOS[m.method] ?? <BankTransferLogo />}
+                  </div>
+
+                  {/* Label */}
+                  <div className="flex-1 min-w-0">
+                    <p className={cn(
+                      "text-[14px] font-semibold leading-tight",
+                      active ? "text-brand" : "text-[#1D1D1F]"
+                    )}>
+                      {m.display_name}
+                    </p>
+                    {(m.handle || m.recipient_name) && (
+                      <p className="text-[12px] text-[#6E6E73] mt-0.5 truncate">
+                        {m.handle || m.recipient_name}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Radio indicator */}
+                  <div className={cn(
+                    "w-5 h-5 rounded-full border-2 shrink-0 flex items-center justify-center transition-all",
+                    active ? "border-brand bg-brand" : "border-[#C7C7CC]"
+                  )}>
+                    {active && <div className="w-2 h-2 rounded-full bg-white" />}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* ── Payment details card ─────────────────────────────────────── */}
+        {isBankTransfer ? (
+          /* Bank Transfer — structured details card */
+          <div className="rounded-2xl overflow-hidden border border-[#E5E5EA]">
+            {/* Header */}
+            <div className="bg-[#1A3557] px-5 py-4 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0">
+                <BankTransferLogo />
+              </div>
+              <div>
+                <p className="text-[11px] font-bold text-white/50 uppercase tracking-widest">Wire / ACH Transfer</p>
+                <p className="text-[16px] font-bold text-white leading-tight">
+                  {cfg.bank_name || "Bank Transfer"}
+                </p>
+              </div>
+              <div className="ml-auto text-right">
+                <p className="text-[11px] text-white/50">Amount due</p>
+                <p className="text-[20px] font-bold text-white">$50.00</p>
+              </div>
+            </div>
+
+            {/* Details rows */}
+            <div className="bg-white divide-y divide-[#F0F0F0]">
+              {[
+                { label: "Recipient Name",        value: cfg.recipient_name,    key: "recipient_name" },
+                { label: "Bank Name",             value: cfg.bank_name,         key: "bank_name" },
+                { label: "Account Type",          value: cfg.account_type,      key: "account_type" },
+                { label: "Account Number",        value: cfg.account_number,    key: "account_number",  copyable: true },
+                { label: "Routing Number (Wire / ABA)", value: cfg.routing_number, key: "routing_number", copyable: true },
+                { label: "SWIFT / BIC Code",      value: cfg.swift_bic,         key: "swift_bic",       copyable: true },
+                { label: "Bank Address",          value: cfg.bank_address,      key: "bank_address" },
+                { label: "Recipient Address",     value: cfg.recipient_address, key: "recipient_address" },
+              ]
+                .filter((row) => row.value)
+                .map((row) => (
+                  <div key={row.key} className="flex items-start justify-between gap-4 px-5 py-3.5">
+                    <p className="text-[11px] font-semibold text-[#6E6E73] uppercase tracking-[0.06em] shrink-0 pt-0.5">
+                      {row.label}
+                    </p>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <p className="text-[13px] font-semibold text-[#1D1D1F] text-right break-all">
+                        {row.value}
+                      </p>
+                      {row.copyable && row.value && (
+                        <button
+                          type="button"
+                          onClick={() => copy(row.value!, row.key)}
+                          className={cn(
+                            "shrink-0 text-[10px] font-bold px-2 py-1 rounded-lg transition-all",
+                            copied === row.key
+                              ? "bg-green-100 text-green-700"
+                              : "bg-[#F5F5F7] text-[#6E6E73] hover:bg-[#E5E5EA] hover:text-[#1D1D1F]"
+                          )}
+                          aria-label={`Copy ${row.label}`}
+                        >
+                          {copied === row.key ? "Copied!" : "Copy"}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))
+              }
+            </div>
+
+            {/* Footer note */}
+            {cfg.extra_instructions && (
+              <div className="bg-amber-50 border-t border-amber-100 px-5 py-3">
+                <p className="text-[12px] text-amber-700 leading-relaxed">{cfg.extra_instructions}</p>
+              </div>
+            )}
+          </div>
+        ) : (
+          /* Venmo / CashApp / PayPal / Chime — dark send-to card */
+          <div className="bg-[#0B1F3A] rounded-2xl p-5 text-white">
+            <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-3">Send to</p>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-11 h-11 rounded-xl overflow-hidden shrink-0 shadow-md">
+                {PAYMENT_LOGOS[cfg.method] ?? <BankTransferLogo />}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[20px] font-bold tracking-tight break-all">{cfg.handle}</p>
+                <p className="text-[12px] text-white/50 mt-0.5">{cfg.display_name}</p>
+              </div>
+              {cfg.handle && (
+                <button
+                  type="button"
+                  onClick={() => copy(cfg.handle, "handle")}
+                  className={cn(
+                    "shrink-0 text-[11px] font-bold px-3 py-1.5 rounded-xl transition-all",
+                    copied === "handle"
+                      ? "bg-green-500/20 text-green-300"
+                      : "bg-white/10 text-white/60 hover:bg-white/20 hover:text-white"
+                  )}
+                >
+                  {copied === "handle" ? "Copied!" : "Copy"}
+                </button>
+              )}
+            </div>
+            <div className="pt-3 border-t border-white/10 flex items-center justify-between">
+              <p className="text-[12px] text-white/50">Amount due</p>
+              <p className="text-[20px] font-bold">$50.00</p>
+            </div>
+            {cfg.extra_instructions && (
+              <p className="text-[12px] text-white/40 mt-3 leading-relaxed">{cfg.extra_instructions}</p>
+            )}
+          </div>
+        )}
+
+        {/* ── Transaction ref + proof upload ──────────────────────────── */}
+        <div className="space-y-4">
+          <div>
+            <Label>
+              {isBankTransfer ? "Wire confirmation / reference number *" : "Your transaction ref / username *"}
+            </Label>
+            <Input
+              value={paymentRef}
+              onChange={(e) => setPaymentRef(e.target.value)}
+              placeholder={refPlaceholder}
+            />
+          </div>
+
+          <div>
+            <Label>Upload receipt screenshot *</Label>
+            <label className={cn(
+              "flex items-center justify-center gap-3 w-full py-7 rounded-2xl border-2 border-dashed transition-all cursor-pointer",
+              proofFile
+                ? "border-brand bg-brand/5"
+                : "border-[#D1D1D6] hover:border-[#A0A0A8] bg-[#F5F5F7]"
+            )}>
+              <input
+                type="file"
+                accept="image/*"
+                className="sr-only"
+                onChange={(e) => {
+                  const f = e.target.files?.[0] || null;
+                  if (f && f.size > MAX_PROOF_SIZE) {
+                    toast.error("File too large — maximum 10 MB allowed.");
+                    e.target.value = "";
+                    return;
+                  }
+                  setProofFile(f);
+                }}
+              />
+              {proofFile ? (
+                <>
+                  <div className="w-9 h-9 rounded-xl bg-brand/10 flex items-center justify-center shrink-0">
+                    <Check size={17} className="text-brand" strokeWidth={2.5} />
+                  </div>
+                  <div>
+                    <p className="text-[13px] font-semibold text-brand truncate max-w-[200px]">{proofFile.name}</p>
+                    <p className="text-[11px] text-brand/60 mt-0.5">
+                      Tap to change · {(proofFile.size / 1024 / 1024).toFixed(1)} MB
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="w-9 h-9 rounded-xl bg-[#E5E5EA] flex items-center justify-center shrink-0">
+                    <Camera size={18} className="text-[#6E6E73]" />
+                  </div>
+                  <div>
+                    <p className="text-[14px] font-medium text-[#1D1D1F]">Capture or upload receipt</p>
+                    <p className="text-[11px] text-[#6E6E73] mt-0.5">PNG, JPG or screenshot · up to 10 MB</p>
+                  </div>
+                </>
+              )}
+            </label>
+          </div>
+        </div>
+
+        {/* ── Trust note ──────────────────────────────────────────────── */}
+        <div className="flex items-start gap-3 p-4 bg-green-50 rounded-xl border border-green-100">
+          <Shield className="text-green-600 shrink-0 mt-0.5" size={15} />
+          <p className="text-[12px] text-green-700 leading-relaxed">
+            Your proof will be verified manually. You&apos;ll receive a confirmation email once approved —
+            typically within 1–2 business hours.
+          </p>
+        </div>
+
+        {serverError && (
+          <div className="bg-red-50 border border-red-200/60 text-red-600 text-[12px] rounded-xl px-4 py-3 flex items-start gap-2">
+            <AlertCircle size={14} className="shrink-0 mt-0.5" />
+            {serverError}
+          </div>
+        )}
+      </div>
+    </Section>
   );
 }
 
@@ -1382,151 +1714,18 @@ export function RentalApplicationForm({ propertySlug }: Props) {
 
       {/* ── Payment Step ──────────────────────────────────────────────── */}
       {step === PAYMENT_STEP && (
-        <Section icon={Lock} title="Application Fee" sub="One-time, non-refundable · covers processing & background check">
-          <div className="space-y-5">
-
-            {/* Fee summary */}
-            <div className="flex items-center justify-between px-4 py-3.5 bg-[#F5F5F7] rounded-2xl">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-white shadow-sm flex items-center justify-center shrink-0">
-                  <Lock size={15} className="text-brand" />
-                </div>
-                <div>
-                  <p className="text-[13px] font-bold text-[#1D1D1F]">Application Fee</p>
-                  <p className="text-[11px] text-[#6E6E73]">One-time · non-refundable</p>
-                </div>
-              </div>
-              <p className="text-[22px] font-bold text-[#1D1D1F]">
-                $50<span className="text-[14px] font-semibold text-[#6E6E73]">.00</span>
-              </p>
-            </div>
-
-            {/* Payment method selector */}
-            <div>
-              <p className="text-[10px] font-bold text-[#6E6E73] uppercase tracking-widest mb-2">Choose payment method</p>
-              <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-                {(paymentConfig.length > 0 ? paymentConfig : FALLBACK_METHODS).map((m) => (
-                  <button
-                    key={m.method}
-                    type="button"
-                    onClick={() => setSelectedMethod(m.method)}
-                    className={cn(
-                      "flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all",
-                      selectedMethod === m.method
-                        ? "border-brand bg-brand/5 shadow-sm"
-                        : "border-transparent bg-[#F5F5F7] opacity-55 hover:opacity-80"
-                    )}
-                  >
-                    <div className="w-9 h-9 rounded-xl overflow-hidden shrink-0">
-                      {PAYMENT_LOGOS[m.method]}
-                    </div>
-                    <span className={cn(
-                      "text-[9px] font-bold leading-none text-center",
-                      selectedMethod === m.method ? "text-brand" : "text-[#6E6E73]"
-                    )}>
-                      {m.display_name}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Dark instruction box */}
-            {(() => {
-              const methods = paymentConfig.length > 0 ? paymentConfig : FALLBACK_METHODS;
-              const cfg = methods.find((m) => m.method === selectedMethod) ?? methods[0];
-              return (
-                <div className="bg-[#0B1F3A] rounded-2xl p-5 text-white">
-                  <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-3">Send to</p>
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0">
-                      {PAYMENT_LOGOS[cfg.method]}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[19px] font-bold tracking-tight truncate">{cfg.handle}</p>
-                      <p className="text-[12px] text-white/50">{cfg.display_name}</p>
-                    </div>
-                  </div>
-                  <div className="pt-3 border-t border-white/10 flex items-center justify-between">
-                    <p className="text-[12px] text-white/50">Amount due</p>
-                    <p className="text-[18px] font-bold">$50.00</p>
-                  </div>
-                  {cfg.extra_instructions && (
-                    <p className="text-[11px] text-white/40 mt-2">{cfg.extra_instructions}</p>
-                  )}
-                </div>
-              );
-            })()}
-
-            {/* Transaction ref + proof upload */}
-            <div className="space-y-4">
-              <div>
-                <Label isAutofilled={autofilledFields.has("payment_ref")}>Your transaction ref / username *</Label>
-                <Input
-                  isAutofilled={autofilledFields.has("payment_ref")}
-                  onClearAutofill={() => setAutofilledFields(prev => { const n = new Set(prev); n.delete("payment_ref"); return n; })}
-                  value={paymentRef}
-                  onChange={(e) => setPaymentRef(e.target.value)}
-                  placeholder={selectedMethod === "CASHAPP" ? "Your $CashTag" : selectedMethod === "VENMO" ? "Your @Username" : "Confirmation # or Email"}
-                />
-              </div>
-
-              <div>
-                <Label>Upload receipt screenshot *</Label>
-                <label className={cn(
-                  "flex items-center justify-center gap-3 w-full py-6 rounded-2xl border-2 border-dashed transition-all cursor-pointer",
-                  proofFile ? "border-brand bg-brand/5" : "border-black/10 hover:border-black/20 bg-[#F5F5F7]"
-                )}>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="sr-only"
-                    onChange={(e) => {
-                      const f = e.target.files?.[0] || null;
-                      if (f && f.size > MAX_PROOF_SIZE) {
-                        toast.error("File too large — maximum 10 MB allowed.");
-                        e.target.value = "";
-                        return;
-                      }
-                      setProofFile(f);
-                    }}
-                  />
-                  {proofFile ? (
-                    <>
-                      <Check size={18} className="text-brand shrink-0" />
-                      <div>
-                        <p className="text-[13px] font-semibold text-brand truncate max-w-[200px]">{proofFile.name}</p>
-                        <p className="text-[10px] text-brand/60">tap to change · {(proofFile.size / 1024 / 1024).toFixed(1)} MB</p>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <Camera size={20} className="text-[#6E6E73] opacity-50 shrink-0" />
-                      <div>
-                        <p className="text-[13px] font-medium text-[#6E6E73]">Capture or upload receipt</p>
-                        <p className="text-[11px] text-[#6E6E73] opacity-60">PNG, JPG or screenshot · up to 10 MB</p>
-                      </div>
-                    </>
-                  )}
-                </label>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3 p-4 bg-green-50 rounded-xl border border-green-100">
-              <Shield className="text-green-600 shrink-0 mt-0.5" size={15} />
-              <p className="text-[12px] text-green-700 leading-relaxed">
-                Your proof will be verified manually. You&apos;ll receive a confirmation email once approved — typically within 1–2 business hours.
-              </p>
-            </div>
-
-            {serverError && (
-              <div className="bg-red-50 border border-red-200/60 text-red-600 text-[12px] rounded-xl px-4 py-3 flex items-start gap-2">
-                <AlertCircle size={14} className="shrink-0 mt-0.5" />
-                {serverError}
-              </div>
-            )}
-          </div>
-        </Section>
+        <PaymentStepContent
+          paymentConfig={paymentConfig}
+          selectedMethod={selectedMethod}
+          setSelectedMethod={setSelectedMethod}
+          paymentRef={paymentRef}
+          setPaymentRef={setPaymentRef}
+          proofFile={proofFile}
+          setProofFile={setProofFile}
+          autofilledFields={autofilledFields}
+          setAutofilledFields={setAutofilledFields}
+          serverError={serverError}
+        />
       )}
 
       {/* ── Navigation ────────────────────────────────────────────────── */}
