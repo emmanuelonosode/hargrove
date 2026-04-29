@@ -16,7 +16,56 @@ const API_BASE = typeof window !== "undefined"
   : (process.env.NEXT_PUBLIC_API_URL ?? "https://admin.haskerrealtygroup.com");
 const STORAGE_KEY = "hasker_app_draft";
 const SAVED_PROFILE_KEY = "hasker_saved_profile";
-const MAX_PROOF_SIZE = 10 * 1024 * 1024; // 10 MB
+const MAX_PROOF_SIZE = 10 * 1024 * 1024; // 10 MB — frontend gate
+const COMPRESS_THRESHOLD = 1.5 * 1024 * 1024; // compress anything over 1.5 MB
+const COMPRESS_TARGET_MB = 1.5;
+
+/**
+ * Compress an image file to under COMPRESS_TARGET_MB using the Canvas API.
+ * Falls back to the original file if compression isn't possible (e.g. non-image).
+ */
+async function compressImage(file: File): Promise<File> {
+  if (!file.type.startsWith("image/")) return file;
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        // Scale down if either dimension exceeds 1800px
+        let { width, height } = img;
+        const MAX_DIM = 1800;
+        if (width > MAX_DIM || height > MAX_DIM) {
+          const ratio = Math.min(MAX_DIM / width, MAX_DIM / height);
+          width = Math.round(width * ratio);
+          height = Math.round(height * ratio);
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext("2d")!.drawImage(img, 0, 0, width, height);
+        // Iteratively drop quality until under the target size
+        let quality = 0.82;
+        const attempt = () => {
+          canvas.toBlob((blob) => {
+            if (!blob) { resolve(file); return; }
+            if (blob.size > COMPRESS_TARGET_MB * 1024 * 1024 && quality > 0.15) {
+              quality = parseFloat((quality - 0.08).toFixed(2));
+              attempt();
+            } else {
+              resolve(new File([blob], file.name.replace(/\.[^.]+$/, ".jpg"), {
+                type: "image/jpeg",
+                lastModified: Date.now(),
+              }));
+            }
+          }, "image/jpeg", quality);
+        };
+        attempt();
+      };
+      img.src = ev.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  });
+}
 
 interface PaymentConfig {
   method: string;
@@ -714,14 +763,22 @@ function PaymentStepContent({
                 type="file"
                 accept="image/*"
                 className="sr-only"
-                onChange={(e) => {
-                  const f = e.target.files?.[0] || null;
-                  if (f && f.size > MAX_PROOF_SIZE) {
-                    toast.error("File too large — maximum 10 MB allowed.");
+                onChange={async (e) => {
+                  const f = e.target.files?.[0] ?? null;
+                  if (!f) { setProofFile(null); return; }
+                  if (f.size > MAX_PROOF_SIZE) {
+                    toast.error("File too large — please choose an image under 10 MB.");
                     e.target.value = "";
                     return;
                   }
-                  setProofFile(f);
+                  if (f.size > COMPRESS_THRESHOLD) {
+                    const toastId = toast.loading("Optimising image…");
+                    const compressed = await compressImage(f);
+                    toast.dismiss(toastId);
+                    setProofFile(compressed);
+                  } else {
+                    setProofFile(f);
+                  }
                 }}
               />
               {proofFile ? (
