@@ -579,42 +579,48 @@ function PaymentStepContent({
           /* Bank Transfer — structured details card */
           <div className="rounded-2xl overflow-hidden border border-[#E5E5EA]">
             {/* Header */}
-            <div className="bg-[#1A3557] px-5 py-4 flex items-center gap-3">
+            <div className="bg-[#1A3557] px-4 py-4 flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0">
                 <BankTransferLogo />
               </div>
-              <div>
-                <p className="text-[11px] font-bold text-white/50 uppercase tracking-widest">Wire / ACH Transfer</p>
-                <p className="text-[16px] font-bold text-white leading-tight">
+              {/* Bank info — takes all available space, never wraps amount off-screen */}
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] font-bold text-white/50 uppercase tracking-widest truncate">
+                  Wire / ACH Transfer
+                </p>
+                <p className="text-[15px] font-bold text-white leading-tight truncate">
                   {cfg.bank_name || "Bank Transfer"}
                 </p>
               </div>
-              <div className="ml-auto text-right">
-                <p className="text-[11px] text-white/50">Amount due</p>
-                <p className="text-[20px] font-bold text-white">$50.00</p>
+              {/* Amount — shrink-0 so it never wraps */}
+              <div className="shrink-0 text-right">
+                <p className="text-[10px] text-white/50 leading-none mb-0.5">Amount due</p>
+                <p className="text-[18px] font-bold text-white leading-none">$50.00</p>
               </div>
             </div>
 
-            {/* Details rows */}
-            <div className="bg-white divide-y divide-[#F0F0F0]">
+            {/* Details rows — stacked: label above, value + copy below */}
+            <div className="bg-white divide-y divide-[#F2F2F7]">
               {[
-                { label: "Recipient Name",        value: cfg.recipient_name,    key: "recipient_name" },
-                { label: "Bank Name",             value: cfg.bank_name,         key: "bank_name" },
-                { label: "Account Type",          value: cfg.account_type,      key: "account_type" },
-                { label: "Account Number",        value: cfg.account_number,    key: "account_number",  copyable: true },
-                { label: "Routing Number (Wire / ABA)", value: cfg.routing_number, key: "routing_number", copyable: true },
-                { label: "SWIFT / BIC Code",      value: cfg.swift_bic,         key: "swift_bic",       copyable: true },
-                { label: "Bank Address",          value: cfg.bank_address,      key: "bank_address" },
-                { label: "Recipient Address",     value: cfg.recipient_address, key: "recipient_address" },
+                { label: "Recipient Name",          value: cfg.recipient_name,    key: "recipient_name" },
+                { label: "Bank Name",               value: cfg.bank_name,         key: "bank_name" },
+                { label: "Account Type",            value: cfg.account_type,      key: "account_type" },
+                { label: "Account Number",          value: cfg.account_number,    key: "account_number",  copyable: true },
+                { label: "Routing Number (Wire/ABA)", value: cfg.routing_number,  key: "routing_number",  copyable: true },
+                { label: "SWIFT / BIC Code",        value: cfg.swift_bic,         key: "swift_bic",       copyable: true },
+                { label: "Bank Address",            value: cfg.bank_address,      key: "bank_address" },
+                { label: "Recipient Address",       value: cfg.recipient_address, key: "recipient_address" },
               ]
                 .filter((row) => row.value)
                 .map((row) => (
-                  <div key={row.key} className="flex items-start justify-between gap-4 px-5 py-3.5">
-                    <p className="text-[11px] font-semibold text-[#6E6E73] uppercase tracking-[0.06em] shrink-0 pt-0.5">
+                  <div key={row.key} className="px-4 py-3.5">
+                    {/* Label — always its own line */}
+                    <p className="text-[10px] font-bold text-[#8E8E93] uppercase tracking-[0.1em] mb-1.5">
                       {row.label}
                     </p>
-                    <div className="flex items-center gap-2 min-w-0">
-                      <p className="text-[13px] font-semibold text-[#1D1D1F] text-right break-all">
+                    {/* Value + copy on the next line — value gets full remaining width */}
+                    <div className="flex items-start gap-2.5">
+                      <p className="flex-1 text-[14px] font-semibold text-[#1D1D1F] leading-snug break-words min-w-0">
                         {row.value}
                       </p>
                       {row.copyable && row.value && (
@@ -622,14 +628,15 @@ function PaymentStepContent({
                           type="button"
                           onClick={() => copy(row.value!, row.key)}
                           className={cn(
-                            "shrink-0 text-[10px] font-bold px-2 py-1 rounded-lg transition-all",
+                            "shrink-0 text-[11px] font-bold px-3 py-1.5 rounded-lg",
+                            "min-w-[58px] text-center cursor-pointer transition-all duration-150",
                             copied === row.key
-                              ? "bg-green-100 text-green-700"
-                              : "bg-[#F5F5F7] text-[#6E6E73] hover:bg-[#E5E5EA] hover:text-[#1D1D1F]"
+                              ? "bg-[#D1FAE5] text-[#065F46]"
+                              : "bg-[#F0F0F5] text-[#3C3C43] hover:bg-[#E5E5EA]"
                           )}
                           aria-label={`Copy ${row.label}`}
                         >
-                          {copied === row.key ? "Copied!" : "Copy"}
+                          {copied === row.key ? "✓ Done" : "Copy"}
                         </button>
                       )}
                     </div>
