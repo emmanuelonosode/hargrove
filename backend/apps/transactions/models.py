@@ -3,7 +3,7 @@ from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
 
-
+#not commited yet
 class TransactionType(models.TextChoices):
     SALE = "SALE", "Sale"
     RENT = "RENT", "Rent"
