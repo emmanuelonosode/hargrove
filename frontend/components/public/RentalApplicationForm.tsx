@@ -551,7 +551,7 @@ function PaymentStepContent({
     "Confirmation # or email used";
 
   return (
-    <Section icon={Lock} title="Application Fee" sub="One-time, non-refundable · covers processing & background check">
+    <Section icon={Lock} title="Application Fee" sub="One-time, Refundable · covers processing & background check">
       <div className="space-y-6">
 
         {/* ── Fee pill ────────────────────────────────────────────────── */}
@@ -562,7 +562,7 @@ function PaymentStepContent({
             </div>
             <div>
               <p className="text-[14px] font-bold text-[#1D1D1F]">Application Fee</p>
-              <p className="text-[11px] text-[#6E6E73]">One-time · non-refundable</p>
+              <p className="text-[11px] text-[#6E6E73]">One-time · refundable</p>
             </div>
           </div>
           <p className="text-[24px] font-bold text-[#1D1D1F] tracking-tight">
