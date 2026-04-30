@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Privacy Policy | Hasker & Co. Realty Group",
   description: "How Hasker & Co. Realty Group collects, uses, and protects your personal information.",
+  alternates: { canonical: "https://haskerrealtygroup.com/privacy" },
   robots: { index: true, follow: true },
 };
 
