@@ -566,7 +566,7 @@ function PaymentStepContent({
             </div>
           </div>
           <p className="text-[24px] font-bold text-[#1D1D1F] tracking-tight">
-            $50<span className="text-[15px] font-semibold text-[#6E6E73]">.00</span>
+            $100<span className="text-[15px] font-semibold text-[#6E6E73]">.00</span>
           </p>
         </div>
 
