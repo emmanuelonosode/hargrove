@@ -323,33 +323,33 @@ class InvoiceAdmin(ModelAdmin):
 
     @admin.action(description="Generate PDF Invoice")
     def generate_pdf_action(self, request, queryset):
-        try:
-            from apps.notifications.tasks import generate_invoice_pdf
-            count = 0
-            for invoice in queryset:
+        from apps.notifications.tasks import generate_invoice_pdf
+        count = 0
+        for invoice in queryset:
+            try:
                 generate_invoice_pdf.delay(invoice.pk)
-                count += 1
-            self.message_user(
-                request,
-                f"PDF generation queued for {count} invoice(s). Refresh in a moment to see the download link.",
-            )
-        except Exception as e:
-            self.message_user(request, f"Error: {e}. Is Celery running?", level="warning")
+            except Exception:
+                generate_invoice_pdf(invoice.pk)
+            count += 1
+        self.message_user(
+            request,
+            f"PDF generation queued for {count} invoice(s). Refresh in a moment to see the download link.",
+        )
 
     @admin.action(description="Send Invoice to Client (email PDF)")
     def send_invoice_action(self, request, queryset):
-        try:
-            from apps.notifications.tasks import send_invoice_email
-            sent = skipped = 0
-            for invoice in queryset:
-                if invoice.pdf:
+        from apps.notifications.tasks import send_invoice_email
+        sent = skipped = 0
+        for invoice in queryset:
+            if invoice.pdf:
+                try:
                     send_invoice_email.delay(invoice.pk)
-                    sent += 1
-                else:
-                    skipped += 1
-            msg = f"Email queued for {sent} invoice(s)."
-            if skipped:
-                msg += f" {skipped} skipped — generate PDF first."
-            self.message_user(request, msg)
-        except Exception as e:
-            self.message_user(request, f"Error: {e}. Is Celery running?", level="warning")
+                except Exception:
+                    send_invoice_email(invoice.pk)
+                sent += 1
+            else:
+                skipped += 1
+        msg = f"Email sent for {sent} invoice(s)."
+        if skipped:
+            msg += f" {skipped} skipped — generate PDF first."
+        self.message_user(request, msg)

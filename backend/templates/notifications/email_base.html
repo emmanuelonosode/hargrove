@@ -15,29 +15,24 @@
 
           <!-- Header -->
           <tr>
-            <td style="background-color:#0B1F3A;border-radius:8px 8px 0 0;padding:24px 36px;">
+            <td style="background-color:#0B1F3A;border-radius:8px 8px 0 0;padding:20px 36px;">
               <table width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
-                  <td>
-                    <!-- Wordmark: icon circle + company name -->
-                    <span style="display:inline-block;vertical-align:middle;margin-right:14px;">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 44 44">
-                        <circle cx="22" cy="22" r="22" fill="#0B1F3A" stroke="#1A56DB" stroke-width="1.5"/>
-                        <g transform="translate(22,22) scale(0.173) translate(-160,-160)">
-                          <polygon points="76,160 160,56 244,160 160,264" fill="#1A56DB"/>
-                          <polygon points="120,160 160,104 200,160" fill="#FFFFFF"/>
-                          <rect x="124" y="160" width="72" height="50" rx="4" fill="#FFFFFF"/>
-                          <rect x="146" y="170" width="28" height="40" rx="4" fill="#1A56DB"/>
-                        </g>
-                      </svg>
-                    </span>
-                    <span style="vertical-align:middle;">
+                  <td style="vertical-align:middle;">
+                    <!-- Logo image -->
+                    <img src="https://haskerrealtygroup.com/logo/logo.png"
+                         alt="Hasker &amp; Co. Realty Group"
+                         width="180"
+                         style="display:block;height:auto;max-height:48px;object-fit:contain;"
+                         onerror="this.style.display='none';document.getElementById('logo-fallback').style.display='inline';" />
+                    <!-- Fallback text wordmark if image fails to load -->
+                    <span id="logo-fallback" style="display:none;vertical-align:middle;">
                       <span style="display:block;font-size:18px;font-weight:800;color:#ffffff;letter-spacing:-0.3px;line-height:1.15;">HASKER &amp; CO.</span>
                       <span style="display:block;font-size:9px;font-weight:400;color:#1A56DB;letter-spacing:2.8px;line-height:1.6;text-transform:uppercase;">REALTY GROUP</span>
                     </span>
                   </td>
-                  <td align="right" style="color:#475569;font-size:11px;vertical-align:middle;letter-spacing:0.3px;">
-                    Professional Property Management
+                  <td align="right" style="color:#94a3b8;font-size:11px;vertical-align:middle;letter-spacing:0.3px;">
+                    Quality Homes. Honest Prices.
                   </td>
                 </tr>
               </table>
@@ -63,17 +58,16 @@
                 <tr>
                   <td style="color:#64748b;font-size:11px;line-height:1.7;text-align:center;">
                     <strong style="color:#0B1F3A;">Hasker &amp; Co. Realty Group</strong><br>
-                    info@haskerrealtygroup.com &nbsp;·&nbsp; (404) 555-0182<br>
+                    info@haskerrealtygroup.com &nbsp;·&nbsp; <a href="tel:+17572082767" style="color:#1A56DB;text-decoration:none;">+1 (757) 208-2767</a><br>
                     <span style="color:#94a3b8;">Licensed Real Estate Professionals &nbsp;·&nbsp; Equal Housing Opportunity</span><br><br>
                     <span style="color:#cbd5e1;font-size:10px;">
                       This email was sent to you because you have an active inquiry or application with Hasker &amp; Co. Realty Group.<br>
-                      © {% now "Y" %} Hasker &amp; Co. Realty Group. All rights reserved.
+                      &copy; {% now "Y" %} Hasker &amp; Co. Realty Group. All rights reserved.
                     </span>
                   </td>
                 </tr>
                 <tr>
                   <td style="padding-top:16px;text-align:center;">
-                    <!-- Equal Housing logo (text-based) -->
                     <span style="display:inline-block;border:1px solid #cbd5e1;border-radius:4px;padding:4px 10px;font-size:10px;color:#94a3b8;letter-spacing:0.5px;">
                       &#9632; EQUAL HOUSING OPPORTUNITY
                     </span>

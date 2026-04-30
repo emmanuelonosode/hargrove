@@ -98,15 +98,16 @@ class LeadAdmin(ModelAdmin):
 
     @admin.action(description="Send Inquiry Acknowledgment Email")
     def send_acknowledgment_email(self, request, queryset):
-        try:
-            from apps.notifications.tasks import send_lead_acknowledgment_email
-            count = 0
-            for lead in queryset:
+        from apps.notifications.tasks import send_lead_acknowledgment_email
+        count = 0
+        for lead in queryset:
+            try:
                 send_lead_acknowledgment_email.delay(lead.pk)
-                count += 1
-            self.message_user(request, f"Acknowledgment email queued for {count} lead(s).")
-        except Exception as e:
-            self.message_user(request, f"Error queuing email: {e}", level="error")
+            except Exception:
+                # Celery/Redis unavailable — send synchronously
+                send_lead_acknowledgment_email(lead.pk)
+            count += 1
+        self.message_user(request, f"Acknowledgment email sent for {count} lead(s).")
 
 
 @admin.register(LeadActivity)
@@ -248,48 +249,48 @@ class RentalApplicationAdmin(ModelAdmin):
 
     @admin.action(description="Re-generate application PDF")
     def regenerate_pdf(self, request, queryset):
-        try:
-            from apps.notifications.tasks import generate_rental_application_pdf
-            count = 0
-            for app in queryset:
+        from apps.notifications.tasks import generate_rental_application_pdf
+        count = 0
+        for app in queryset:
+            try:
                 generate_rental_application_pdf.delay(app.id)
-                count += 1
-            self.message_user(request, f"PDF generation queued for {count} application(s).")
-        except Exception as e:
-            self.message_user(request, f"Error: {e}", level="error")
+            except Exception:
+                generate_rental_application_pdf(app.id)
+            count += 1
+        self.message_user(request, f"PDF generation queued for {count} application(s).")
 
     @admin.action(description="Send Approval Email to Applicant(s)")
     def send_approval_email(self, request, queryset):
-        try:
-            from apps.notifications.tasks import send_application_approved_email
-            count = 0
-            for app in queryset:
+        from apps.notifications.tasks import send_application_approved_email
+        count = 0
+        for app in queryset:
+            try:
                 send_application_approved_email.delay(app.pk)
-                count += 1
-            self.message_user(request, f"Approval email queued for {count} applicant(s).")
-        except Exception as e:
-            self.message_user(request, f"Error queuing email: {e}", level="error")
+            except Exception:
+                send_application_approved_email(app.pk)
+            count += 1
+        self.message_user(request, f"Approval email sent for {count} applicant(s).")
 
     @admin.action(description="Send Rejection Email to Applicant(s)")
     def send_rejection_email(self, request, queryset):
-        try:
-            from apps.notifications.tasks import send_application_rejected_email
-            count = 0
-            for app in queryset:
+        from apps.notifications.tasks import send_application_rejected_email
+        count = 0
+        for app in queryset:
+            try:
                 send_application_rejected_email.delay(app.pk)
-                count += 1
-            self.message_user(request, f"Rejection email queued for {count} applicant(s).")
-        except Exception as e:
-            self.message_user(request, f"Error queuing email: {e}", level="error")
+            except Exception:
+                send_application_rejected_email(app.pk)
+            count += 1
+        self.message_user(request, f"Rejection email sent for {count} applicant(s).")
 
     @admin.action(description="Send Move-In Instructions Email")
     def send_move_in_email(self, request, queryset):
-        try:
-            from apps.notifications.tasks import send_move_in_instructions_email
-            count = 0
-            for app in queryset:
+        from apps.notifications.tasks import send_move_in_instructions_email
+        count = 0
+        for app in queryset:
+            try:
                 send_move_in_instructions_email.delay(app.pk)
-                count += 1
-            self.message_user(request, f"Move-in instructions queued for {count} applicant(s).")
-        except Exception as e:
-            self.message_user(request, f"Error queuing email: {e}", level="error")
+            except Exception:
+                send_move_in_instructions_email(app.pk)
+            count += 1
+        self.message_user(request, f"Move-in instructions sent for {count} applicant(s).")

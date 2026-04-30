@@ -572,10 +572,22 @@ def send_lead_acknowledgment_email(self, lead_id: int):
     try:
         from apps.crm.models import Lead
 
-        lead = Lead.objects.select_related("assigned_agent", "property_interest").get(pk=lead_id)
+        lead = Lead.objects.select_related(
+            "assigned_agent",
+            "property_interest",
+            "property_interest__agent",
+        ).prefetch_related(
+            "property_interest__images",
+        ).get(pk=lead_id)
+
+        prop = lead.property_interest
+        subject = (
+            f"{prop.title} is Available — Hasker & Co. Realty Group"
+            if prop else
+            "We received your inquiry — Hasker & Co. Realty Group"
+        )
 
         from_header, connection = _get_email_sender()
-        subject = "We received your inquiry — Hasker & Co. Realty Group"
         body = render_to_string("notifications/inquiry_acknowledgment.html", {
             "lead": lead,
             "frontend_url": settings.FRONTEND_URL,
