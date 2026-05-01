@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { DM_Sans, Playfair_Display } from "next/font/google";
 import { AuthProvider } from "@/context/AuthContext";
+import { TrackingScripts } from "@/components/TrackingScripts";
+import { CookieConsentBanner } from "@/components/CookieConsentBanner";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -264,6 +266,8 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col antialiased">
         <AuthProvider>{children}</AuthProvider>
+        <TrackingScripts />
+        <CookieConsentBanner />
       </body>
     </html>
   );

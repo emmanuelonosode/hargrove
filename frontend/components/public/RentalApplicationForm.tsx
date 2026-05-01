@@ -10,6 +10,7 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { getStoredUTMs, getBestKnownCity, trackEvent } from "@/lib/tracking";
 
 const API_BASE = typeof window !== "undefined"
   ? ""
@@ -1174,6 +1175,12 @@ export function RentalApplicationForm({ propertySlug }: Props) {
       fd.append("smokes", String(form.smokes));
       fd.append("drinks", String(form.drinks));
       if (form.rental_property) fd.append("rental_property", form.rental_property);
+      const utms = getStoredUTMs();
+      if (utms.utm_source)   fd.append("utm_source",   utms.utm_source);
+      if (utms.utm_medium)   fd.append("utm_medium",   utms.utm_medium);
+      if (utms.utm_campaign) fd.append("utm_campaign", utms.utm_campaign);
+      const detectedCity = getBestKnownCity();
+      if (detectedCity) fd.append("detected_city", detectedCity);
       fd.append("payment_method", selectedMethod);
       fd.append("reference_id", paymentRef.trim());
       fd.append("proof_file", proofFile);
@@ -1219,6 +1226,7 @@ export function RentalApplicationForm({ propertySlug }: Props) {
       localStorage.setItem(SAVED_PROFILE_KEY, JSON.stringify(profileToSave));
 
       clearDraft();
+      trackEvent("submit_application", { application_id: data.id });
       toast.success("Application Submitted!");
       router.push(`/apply/success?ref=${data.id}&name=${encodeURIComponent(form.first_name)}`);
     } catch (err: unknown) {

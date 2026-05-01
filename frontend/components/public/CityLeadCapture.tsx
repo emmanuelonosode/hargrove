@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Mail, Phone, User, CheckCircle, ArrowRight } from "lucide-react";
+import { getStoredUTMs, getBestKnownCity, captureSearchIntent, trackEvent } from "@/lib/tracking";
 
 interface Props {
   cityName: string;
@@ -12,6 +13,8 @@ const API_BASE = typeof window !== "undefined"
   : (process.env.NEXT_PUBLIC_API_URL ?? "https://admin.haskerrealtygroup.com");
 
 export function CityLeadCapture({ cityName }: Props) {
+  useEffect(() => { captureSearchIntent(cityName); }, [cityName]);
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -37,6 +40,8 @@ export function CityLeadCapture({ cityName }: Props) {
           phone: phone.trim() || undefined,
           source: "city_landing",
           message: `Interested in rentals in ${cityName}. Submitted via city landing page lead capture.`,
+          detected_city: cityName || getBestKnownCity() || undefined,
+          ...getStoredUTMs(),
         }),
       });
       if (!res.ok) {
@@ -44,6 +49,7 @@ export function CityLeadCapture({ cityName }: Props) {
         throw new Error(data.detail ?? data.email?.[0] ?? "Submission failed. Please try again.");
       }
       setDone(true);
+      trackEvent("generate_lead", { city: cityName });
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {

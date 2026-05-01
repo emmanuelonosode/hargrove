@@ -36,8 +36,8 @@ class RentalApplicationInline(TabularInline):
 class LeadAdmin(ModelAdmin):
     list_display = [
         "full_name", "email", "phone",
-        "source", "interest_type", "status_badge",
-        "assigned_agent", "created_at",
+        "source", "interest_type", "status_badge", "score_badge",
+        "detected_city", "assigned_agent", "created_at",
     ]
     list_filter = ["status", "source", "interest_type", "assigned_agent"]
     search_fields = ["full_name", "email", "phone", "preferred_location"]
@@ -55,7 +55,11 @@ class LeadAdmin(ModelAdmin):
                        "property_interest", "agent_interest", "services_requested", "message"),
         }),
         ("Pipeline", {
-            "fields": ("status", "assigned_agent", "last_contacted_at"),
+            "fields": ("status", "assigned_agent", "last_contacted_at", "drip_opted_out"),
+        }),
+        ("Attribution", {
+            "fields": ("detected_city", "utm_source", "utm_medium", "utm_campaign"),
+            "classes": ("collapse",),
         }),
         ("Timestamps", {
             "fields": ("created_at", "updated_at"),
@@ -63,6 +67,15 @@ class LeadAdmin(ModelAdmin):
         }),
     )
     readonly_fields = ["created_at", "updated_at"]
+
+    def score_badge(self, obj):
+        s = obj.lead_score
+        color = "#16a34a" if s >= 70 else "#d97706" if s >= 40 else "#dc2626"
+        return format_html(
+            '<span style="background:{};color:#fff;padding:2px 8px;border-radius:9999px;font-size:11px;font-weight:600">{}/100</span>',
+            color, s
+        )
+    score_badge.short_description = "Score"
 
     def status_badge(self, obj):
         colors = {
@@ -151,13 +164,14 @@ class ClientAdmin(ModelAdmin):
 
 @admin.register(RentalApplication)
 class RentalApplicationAdmin(ModelAdmin):
-    list_display    = ["full_name", "email", "rental_property", "status_badge", "submitted_at", "pdf_download"]
+    list_display    = ["full_name", "email", "rental_property", "status_badge", "recovery_email_sent", "submitted_at", "pdf_download"]
     list_filter     = ["status", "has_pets", "has_kids", "smokes", "drinks"]
     search_fields   = ["first_name", "last_name", "email", "cell_phone", "present_address"]
     ordering        = ["-submitted_at"]
     readonly_fields = ["submitted_at", "ip_address", "lead", "application_pdf", "pdf_download", "certification_text"]
     actions         = ["mark_reviewed", "mark_approved", "mark_rejected", "regenerate_pdf",
-                      "send_approval_email", "send_rejection_email", "send_move_in_email"]
+                      "send_approval_email", "send_rejection_email", "send_move_in_email",
+                      "send_recovery_email_action"]
 
     fieldsets = (
         ("Applicant", {
@@ -174,6 +188,10 @@ class RentalApplicationAdmin(ModelAdmin):
         }),
         ("Status & Documents", {
             "fields": ("status", "lead", "submitted_at", "ip_address", "certification_text", "pdf_download"),
+        }),
+        ("Recovery & Attribution", {
+            "fields": ("recovery_email_sent", "utm_source", "utm_medium", "utm_campaign"),
+            "classes": ("collapse",),
         }),
     )
 
@@ -294,3 +312,17 @@ class RentalApplicationAdmin(ModelAdmin):
                 send_move_in_instructions_email(app.pk)
             count += 1
         self.message_user(request, f"Move-in instructions sent for {count} applicant(s).")
+
+    @admin.action(description="Send Recovery Email (re-engage abandoned applicants)")
+    def send_recovery_email_action(self, request, queryset):
+        from apps.notifications.tasks import send_abandoned_application_email
+        count = 0
+        for app in queryset:
+            app.recovery_email_sent = False
+            app.save(update_fields=["recovery_email_sent"])
+            try:
+                send_abandoned_application_email.delay(app.pk)
+            except Exception:
+                send_abandoned_application_email(app.pk)
+            count += 1
+        self.message_user(request, f"Recovery email queued for {count} applicant(s).")

@@ -13,6 +13,8 @@ class LeadCreateSerializer(serializers.ModelSerializer):
             "budget_min", "budget_max", "preferred_location",
             "property_interest", "agent_interest",
             "services_requested", "message",
+            "utm_source", "utm_medium", "utm_campaign",
+            "detected_city",
         ]
 
     def validate_services_requested(self, value):
@@ -124,6 +126,7 @@ class RentalApplicationCreateSerializer(serializers.ModelSerializer):
             "rental_property",
             "certification_text",
             "application_fee", "is_fee_paid", "status",
+            "utm_source", "utm_medium", "utm_campaign",
             # Virtual fields for payment proof submission
             "payment_method", "reference_id", "proof_image", "proof_file"
         ]

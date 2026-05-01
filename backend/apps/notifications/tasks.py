@@ -588,8 +588,28 @@ def send_lead_acknowledgment_email(self, lead_id: int):
         )
 
         from_header, connection = _get_email_sender()
+
+        # Pre-build image URLs in Python so the template never needs to call
+        # CloudinaryField methods — plain HTTPS strings are 100% reliable.
+        prop_images = []
+        prop_price_formatted = ""
+        if prop:
+            prop_price_formatted = f"{int(prop.price):,}" if prop.price else ""
+            for img in prop.images.all()[:7]:
+                try:
+                    raw = str(img.image.url)
+                    # Inject Cloudinary fill transformation for consistent sizing
+                    if "res.cloudinary.com" in raw and "/upload/" in raw:
+                        raw = raw.replace("/upload/", "/upload/c_fill,q_auto,f_jpg/")
+                    prop_images.append(raw)
+                except Exception:
+                    pass
+
         body = render_to_string("notifications/inquiry_acknowledgment.html", {
             "lead": lead,
+            "prop": prop,
+            "prop_images": prop_images,           # plain URL strings
+            "prop_price_formatted": prop_price_formatted,
             "frontend_url": settings.FRONTEND_URL,
         })
 
@@ -602,6 +622,21 @@ def send_lead_acknowledgment_email(self, lead_id: int):
         )
         msg.content_subtype = "html"
         msg.send()
+
+        # Chain the 3-email drip sequence (only if lead hasn't opted out)
+        if not lead.drip_opted_out:
+            from datetime import timedelta
+            from django.utils import timezone
+            send_drip_similar_properties.apply_async(
+                args=[lead.pk], eta=timezone.now() + timedelta(days=2)
+            )
+            send_drip_urgency_email.apply_async(
+                args=[lead.pk], eta=timezone.now() + timedelta(days=5)
+            )
+            send_drip_final_nudge.apply_async(
+                args=[lead.pk], eta=timezone.now() + timedelta(days=8)
+            )
+
         return f"Acknowledgment email sent to {lead.email}"
 
     except Exception as exc:
@@ -857,3 +892,358 @@ def _send_rental_application_emails(app, pdf_url: str):
         if pdf_data:
             agent_msg.attach(f"RentalApplication_{app.last_name}.pdf", pdf_data, "application/pdf")
         agent_msg.send(fail_silently=True)
+
+
+# ---------------------------------------------------------------------------
+# Marketing automation helpers
+# ---------------------------------------------------------------------------
+
+def _resolve_lead_city(lead) -> str:
+    """Best known city for this lead: property city > detected city > preferred location."""
+    if lead.property_interest_id and lead.property_interest:
+        return lead.property_interest.city or ""
+    return lead.detected_city or lead.preferred_location or ""
+
+
+def _build_property_image_urls(prop, count: int = 1) -> list:
+    """Pre-build Cloudinary image URLs for a property, same pattern as acknowledgment email."""
+    urls = []
+    try:
+        for img in prop.images.all()[:count]:
+            raw = str(img.image.url)
+            if "res.cloudinary.com" in raw and "/upload/" in raw:
+                raw = raw.replace("/upload/", "/upload/c_fill,q_auto,f_jpg/")
+            urls.append(raw)
+    except Exception:
+        pass
+    return urls
+
+
+def _similar_properties(exclude_pk, city, listing_type, price, count: int = 3):
+    """Return published properties similar to a given listing."""
+    from apps.properties.models import Property
+    qs = Property.objects.filter(
+        is_published=True,
+        city__iexact=city,
+    ).prefetch_related("images")
+    if listing_type:
+        qs = qs.filter(listing_type=listing_type)
+    if price:
+        lo, hi = float(price) * 0.7, float(price) * 1.35
+        qs = qs.filter(price__range=(lo, hi))
+    if exclude_pk:
+        qs = qs.exclude(pk=exclude_pk)
+    return list(qs[:count])
+
+
+# ---------------------------------------------------------------------------
+# Drip sequence — chained off send_lead_acknowledgment_email
+# ---------------------------------------------------------------------------
+
+@shared_task(bind=True, max_retries=2, default_retry_delay=300)
+def send_drip_similar_properties(self, lead_id: int):
+    """Day-2 drip: show 3 similar homes in the lead's city."""
+    try:
+        from apps.crm.models import Lead
+        lead = Lead.objects.select_related("property_interest").prefetch_related(
+            "property_interest__images"
+        ).get(pk=lead_id)
+
+        if lead.drip_opted_out:
+            return "Drip opted out"
+
+        city = _resolve_lead_city(lead)
+        if not city:
+            return "No city available — skipping drip"
+
+        prop = lead.property_interest
+        similar = _similar_properties(
+            exclude_pk=prop.pk if prop else None,
+            city=city,
+            listing_type=prop.listing_type if prop else "",
+            price=prop.price if prop else None,
+        )
+        if not similar:
+            return "No similar properties found — skipping drip"
+
+        props_with_images = [
+            {"prop": p, "images": _build_property_image_urls(p, 1)}
+            for p in similar
+        ]
+
+        from_header, connection = _get_email_sender()
+        first_name = lead.full_name.split()[0] if lead.full_name else "there"
+        body = render_to_string("notifications/drip_similar_properties.html", {
+            "lead": lead,
+            "first_name": first_name,
+            "city": city,
+            "props_with_images": props_with_images,
+            "frontend_url": settings.FRONTEND_URL,
+        })
+        msg = EmailMessage(
+            subject=f"Still looking in {city}? Here are 3 homes you'll love",
+            body=body,
+            from_email=from_header,
+            to=[lead.email],
+            connection=connection,
+        )
+        msg.content_subtype = "html"
+        msg.send()
+        return f"Drip day-2 sent to {lead.email}"
+    except Exception as exc:
+        raise self.retry(exc=exc)
+
+
+@shared_task(bind=True, max_retries=2, default_retry_delay=300)
+def send_drip_urgency_email(self, lead_id: int):
+    """Day-5 drip: urgency email with live inquiry count."""
+    try:
+        from apps.crm.models import Lead
+        from django.utils import timezone
+        from datetime import timedelta
+
+        lead = Lead.objects.select_related("property_interest").prefetch_related(
+            "property_interest__images"
+        ).get(pk=lead_id)
+
+        if lead.drip_opted_out:
+            return "Drip opted out"
+
+        city = _resolve_lead_city(lead)
+        prop = lead.property_interest
+
+        # Count recent inquiries on this property (social proof)
+        inquiry_count = 0
+        if prop:
+            inquiry_count = Lead.objects.filter(
+                property_interest=prop,
+                created_at__gte=timezone.now() - timedelta(days=30),
+            ).count()
+
+        prop_images = _build_property_image_urls(prop, 1) if prop else []
+        prop_price_formatted = f"{int(prop.price):,}" if prop and prop.price else ""
+
+        from_header, connection = _get_email_sender()
+        first_name = lead.full_name.split()[0] if lead.full_name else "there"
+        body = render_to_string("notifications/drip_urgency.html", {
+            "lead": lead,
+            "first_name": first_name,
+            "city": city,
+            "prop": prop,
+            "prop_images": prop_images,
+            "prop_price_formatted": prop_price_formatted,
+            "inquiry_count": inquiry_count,
+            "frontend_url": settings.FRONTEND_URL,
+        })
+        subject = (
+            f"{inquiry_count} people are looking at homes in {city} right now"
+            if city else
+            "Homes are moving fast — don't miss out"
+        )
+        msg = EmailMessage(
+            subject=subject,
+            body=body,
+            from_email=from_header,
+            to=[lead.email],
+            connection=connection,
+        )
+        msg.content_subtype = "html"
+        msg.send()
+        return f"Drip day-5 (urgency) sent to {lead.email}"
+    except Exception as exc:
+        raise self.retry(exc=exc)
+
+
+@shared_task(bind=True, max_retries=2, default_retry_delay=300)
+def send_drip_final_nudge(self, lead_id: int):
+    """Day-8 drip: final personal nudge — skips if lead already applied."""
+    try:
+        from apps.crm.models import Lead, RentalApplication
+
+        lead = Lead.objects.select_related("property_interest").prefetch_related(
+            "property_interest__images"
+        ).get(pk=lead_id)
+
+        if lead.drip_opted_out:
+            return "Drip opted out"
+
+        # Skip if they already submitted any application
+        if RentalApplication.objects.filter(email=lead.email).exists():
+            return "Lead already applied — final nudge skipped"
+
+        city = _resolve_lead_city(lead)
+        prop = lead.property_interest
+        prop_images = _build_property_image_urls(prop, 1) if prop else []
+        prop_price_formatted = f"{int(prop.price):,}" if prop and prop.price else ""
+
+        from_header, connection = _get_email_sender()
+        first_name = lead.full_name.split()[0] if lead.full_name else "there"
+        body = render_to_string("notifications/drip_final_nudge.html", {
+            "lead": lead,
+            "first_name": first_name,
+            "city": city,
+            "prop": prop,
+            "prop_images": prop_images,
+            "prop_price_formatted": prop_price_formatted,
+            "frontend_url": settings.FRONTEND_URL,
+        })
+        subject = (
+            f"Still searching in {city}, {first_name}?"
+            if city else
+            f"One last thing, {first_name} — we'd love to help you find a home"
+        )
+        msg = EmailMessage(
+            subject=subject,
+            body=body,
+            from_email=from_header,
+            to=[lead.email],
+            connection=connection,
+        )
+        msg.content_subtype = "html"
+        msg.send()
+        return f"Drip day-8 (final nudge) sent to {lead.email}"
+    except Exception as exc:
+        raise self.retry(exc=exc)
+
+
+# ---------------------------------------------------------------------------
+# Abandoned application recovery (Celery Beat — every 6 hours)
+# ---------------------------------------------------------------------------
+
+@shared_task
+def recover_abandoned_applications():
+    """Find DRAFT/PENDING_PAYMENT applications older than 48h and send a recovery email."""
+    from apps.crm.models import RentalApplication, ApplicationStatus
+    from django.utils import timezone
+    from datetime import timedelta
+
+    cutoff = timezone.now() - timedelta(hours=48)
+    apps = RentalApplication.objects.filter(
+        status__in=[ApplicationStatus.DRAFT, ApplicationStatus.PENDING_PAYMENT],
+        submitted_at__lte=cutoff,
+        recovery_email_sent=False,
+    ).select_related("rental_property")
+
+    count = 0
+    for app in apps:
+        send_abandoned_application_email.delay(app.pk)
+        count += 1
+    return f"Queued recovery emails for {count} abandoned applications."
+
+
+@shared_task(bind=True, max_retries=2, default_retry_delay=300)
+def send_abandoned_application_email(self, application_id: int):
+    """Send a single warm reminder to an applicant who left their form unfinished."""
+    try:
+        from apps.crm.models import RentalApplication
+
+        app = RentalApplication.objects.select_related("rental_property").get(pk=application_id)
+
+        # Guard: only send once and only for stale incomplete apps
+        if app.recovery_email_sent:
+            return "Already sent"
+
+        prop = app.rental_property
+        _images = _build_property_image_urls(prop, 1) if prop else []
+        prop_image = _images[0] if _images else ""
+        prop_price_formatted = f"{int(prop.price):,}" if prop and prop.price else ""
+        apply_url = (
+            f"{settings.FRONTEND_URL}/apply?property={prop.slug}"
+            if prop else
+            f"{settings.FRONTEND_URL}/apply"
+        )
+
+        from_header, connection = _get_email_sender()
+        body = render_to_string("notifications/abandoned_application.html", {
+            "app": app,
+            "prop": prop,
+            "prop_image": prop_image,
+            "prop_price_formatted": prop_price_formatted,
+            "apply_url": apply_url,
+            "frontend_url": settings.FRONTEND_URL,
+        })
+        prop_title = prop.title if prop else "your chosen property"
+        msg = EmailMessage(
+            subject=f"You left your application unfinished — {prop_title}",
+            body=body,
+            from_email=from_header,
+            to=[app.email],
+            connection=connection,
+        )
+        msg.content_subtype = "html"
+        msg.send()
+
+        app.recovery_email_sent = True
+        app.save(update_fields=["recovery_email_sent"])
+        return f"Recovery email sent to {app.email}"
+    except Exception as exc:
+        raise self.retry(exc=exc)
+
+
+# ---------------------------------------------------------------------------
+# Post-viewing follow-up (scheduled 2h after mark_completed in admin)
+# ---------------------------------------------------------------------------
+
+@shared_task(bind=True, max_retries=2, default_retry_delay=300)
+def send_post_viewing_followup(self, viewing_id: int):
+    """2-hour follow-up after a viewing: thank you + similar homes + Apply CTA."""
+    try:
+        from apps.scheduler.models import Viewing
+
+        viewing = Viewing.objects.select_related(
+            "lead", "property", "agent"
+        ).prefetch_related("property__images").get(pk=viewing_id)
+
+        lead = viewing.lead
+        prop = viewing.property
+        agent = viewing.agent
+
+        if not lead or not lead.email:
+            return "No lead email — skipping post-viewing follow-up"
+
+        prop_images = _build_property_image_urls(prop, 1) if prop else []
+        prop_price_formatted = f"{int(prop.price):,}" if prop and prop.price else ""
+
+        similar = _similar_properties(
+            exclude_pk=prop.pk if prop else None,
+            city=prop.city if prop else "",
+            listing_type=prop.listing_type if prop else "",
+            price=prop.price if prop else None,
+        )
+        similar_with_images = [
+            {"prop": p, "images": _build_property_image_urls(p, 1)}
+            for p in similar
+        ]
+
+        apply_url = (
+            f"{settings.FRONTEND_URL}/apply?property={prop.slug}"
+            if prop else
+            f"{settings.FRONTEND_URL}/apply"
+        )
+
+        from_header, connection = _get_email_sender()
+        first_name = lead.full_name.split()[0] if lead.full_name else "there"
+        body = render_to_string("notifications/post_viewing_followup.html", {
+            "lead": lead,
+            "first_name": first_name,
+            "prop": prop,
+            "prop_images": prop_images,
+            "prop_price_formatted": prop_price_formatted,
+            "agent": agent,
+            "similar_with_images": similar_with_images,
+            "apply_url": apply_url,
+            "frontend_url": settings.FRONTEND_URL,
+        })
+        prop_title = prop.title if prop else "the property"
+        msg = EmailMessage(
+            subject=f"Thanks for visiting {prop_title} — what did you think?",
+            body=body,
+            from_email=from_header,
+            to=[lead.email],
+            connection=connection,
+        )
+        msg.content_subtype = "html"
+        msg.send()
+        return f"Post-viewing follow-up sent to {lead.email}"
+    except Exception as exc:
+        raise self.retry(exc=exc)

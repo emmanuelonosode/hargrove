@@ -72,6 +72,16 @@ class Lead(models.Model):
 
     message = models.TextField(blank=True)
 
+    # UTM attribution — captured from the landing URL
+    utm_source   = models.CharField(max_length=100, blank=True)
+    utm_medium   = models.CharField(max_length=100, blank=True)
+    utm_campaign = models.CharField(max_length=200, blank=True)
+
+    # Geo-intelligence — city detected from browser IP or search intent
+    detected_city  = models.CharField(max_length=100, blank=True)
+    drip_opted_out = models.BooleanField(default=False,
+        help_text="Suppress automated drip sequence for this lead")
+
     # CRM pipeline
     status = models.CharField(max_length=20, choices=LeadStatus.choices, default=LeadStatus.NEW)
     assigned_agent = models.ForeignKey(
@@ -96,6 +106,22 @@ class Lead(models.Model):
 
     def __str__(self):
         return f"{self.full_name} ({self.get_status_display()})"
+
+    @property
+    def lead_score(self) -> int:
+        from django.utils import timezone as tz
+        score = 0
+        if self.source == LeadSource.PROPERTY_INQUIRY:  score += 25
+        if self.phone:                                   score += 15
+        if self.property_interest_id:                    score += 15
+        if self.budget_min or self.budget_max:           score += 10
+        if self.utm_source in ("google", "facebook", "instagram"): score += 10
+        score += min(self.activities.count() * 5, 20)
+        days_old = (tz.now() - self.created_at).days
+        if days_old > 30 and self.status == LeadStatus.NEW:           score -= 15
+        if self.status == LeadStatus.LOST:                             score  = max(score - 30, 0)
+        if self.status in (LeadStatus.CONVERTED, LeadStatus.NEGOTIATING): score = min(score + 20, 100)
+        return min(max(score, 0), 100)
 
 
 class LeadActivity(models.Model):
@@ -216,6 +242,14 @@ class RentalApplication(models.Model):
     status       = models.CharField(max_length=20, choices=ApplicationStatus.choices, default=ApplicationStatus.DRAFT)
     submitted_at = models.DateTimeField(auto_now_add=True)
     ip_address   = models.GenericIPAddressField(null=True, blank=True)
+
+    # ── UTM Attribution ───────────────────────────────────────────────────────
+    utm_source   = models.CharField(max_length=100, blank=True)
+    utm_medium   = models.CharField(max_length=100, blank=True)
+    utm_campaign = models.CharField(max_length=200, blank=True)
+
+    # ── Recovery Email ────────────────────────────────────────────────────────
+    recovery_email_sent = models.BooleanField(default=False)
 
     # ── Legal ─────────────────────────────────────────────────────────────────
     certification_text = models.CharField(

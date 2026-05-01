@@ -15,6 +15,7 @@ import { fetchPropertyBySlug, fetchProperties, toPropertyCardShape } from "@/lib
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { PropertyInquiryForm } from "@/components/public/PropertyInquiryForm";
+import { PropertyIntentCapture } from "@/components/public/PropertyIntentCapture";
 import { VirtualTourButton } from "@/components/public/VirtualTourButton";
 import { PropertyImageGallery } from "@/components/public/PropertyImageGallery";
 import { PropertyCard } from "@/components/public/PropertyCard";
@@ -224,6 +225,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
 
   return (
     <main>
+      <PropertyIntentCapture city={property.city} listingType={property.listing_type} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(listingSchema) }} />
 

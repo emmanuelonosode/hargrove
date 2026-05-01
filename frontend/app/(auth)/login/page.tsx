@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { Eye, EyeOff, AlertCircle } from "lucide-react";
 import Image from "next/image";
+import { identifyUser, trackEvent } from "@/lib/tracking";
 
 // Simulated high-quality images from Unsplash for real estate
 const HOUSE_IMAGES = [
@@ -57,6 +58,8 @@ function SplitScreenLogin() {
     setLoading(true);
     try {
       await login(email, password);
+      identifyUser(email);
+      trackEvent("login");
       router.push(next);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Invalid email or password.");

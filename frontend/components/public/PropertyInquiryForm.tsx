@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Calendar } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { getStoredUTMs, getBestKnownCity, trackEvent } from "@/lib/tracking";
 
 const API_BASE = "";
 
@@ -45,6 +46,8 @@ export function PropertyInquiryForm({
             message.trim() ||
             `I'm interested in "${propertyTitle}" and would like to schedule a viewing.`,
           services_requested: [propertySlug],
+          detected_city: getBestKnownCity() || undefined,
+          ...getStoredUTMs(),
         }),
       });
 
@@ -58,6 +61,7 @@ export function PropertyInquiryForm({
       }
 
       setSuccess(true);
+      trackEvent("generate_lead", { property: propertySlug });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {

@@ -19,6 +19,7 @@ DJANGO_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.humanize",
 ]
 
 THIRD_PARTY_APPS = [
@@ -193,6 +194,15 @@ CELERY_BROKER_URL = config("REDIS_URL", default="redis://localhost:6379/0")
 CELERY_RESULT_BACKEND = config("REDIS_URL", default="redis://localhost:6379/0")
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
+
+from celery.schedules import crontab
+CELERY_BEAT_SCHEDULE = {
+    # Every 6 hours — nudge applicants who left their form unfinished for 48h+
+    "recover-abandoned-applications": {
+        "task": "apps.notifications.tasks.recover_abandoned_applications",
+        "schedule": crontab(minute=0, hour="*/6"),
+    },
+}
 
 # ── Email ──────────────────────────────────────────────────────────────────────
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"

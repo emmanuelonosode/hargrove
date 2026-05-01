@@ -7,6 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Eye, EyeOff, AlertCircle, ArrowRight, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { apiFetch } from "@/lib/auth";
+import { identifyUser, trackEvent } from "@/lib/tracking";
 
 type Step = "signup" | "verify" | "onboarding";
 
@@ -80,6 +81,8 @@ function MultiStepRegister() {
     setLoading(true);
     try {
       await verifyEmail(form.email, otp);
+      identifyUser(form.email);
+      trackEvent("sign_up");
       setStep("onboarding");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Invalid code.");

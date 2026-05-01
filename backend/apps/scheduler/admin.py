@@ -55,8 +55,18 @@ class ViewingAdmin(ModelAdmin):
 
     @admin.action(description="Mark as Completed")
     def mark_completed(self, request, queryset):
-        updated = queryset.update(status=ViewingStatus.COMPLETED)
-        self.message_user(request, f"{updated} viewings marked completed.")
+        from apps.notifications.tasks import send_post_viewing_followup
+        count = 0
+        for viewing in queryset:
+            viewing.status = ViewingStatus.COMPLETED
+            viewing.save(update_fields=["status"])
+            # Schedule follow-up 2 hours after marking complete
+            try:
+                send_post_viewing_followup.apply_async(args=[viewing.pk], countdown=7200)
+            except Exception:
+                pass  # Never block admin action if Celery/Redis is down
+            count += 1
+        self.message_user(request, f"{count} viewings marked completed. Follow-up emails scheduled for 2 hours.")
 
     @admin.action(description="Mark as Cancelled")
     def mark_cancelled(self, request, queryset):

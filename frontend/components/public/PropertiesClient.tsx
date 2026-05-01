@@ -9,6 +9,7 @@ import {
   List, Map as MapIcon, Layers,
 } from "lucide-react";
 import { FavoriteButton } from "./FavoriteButton";
+import { captureSearchIntent } from "@/lib/tracking";
 import { PropertiesMapLoader } from "./PropertiesMapLoader";
 import type { MapMarker, MapBounds } from "./PropertiesMap";
 import type { PropertyListItemAPI } from "@/lib/properties";
@@ -115,7 +116,11 @@ export function PropertiesClient({
     router.push(buildUrl({ ...overrides, page: undefined }));
   }
 
-  const handleSearch = (e: React.FormEvent) => { e.preventDefault(); navigate(); };
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (q.trim()) captureSearchIntent(q.trim(), listingType || undefined);
+    navigate();
+  };
 
   // ── Map search ───────────────────────────────────────────────────────────
   const handleBoundsChange = useCallback(async (bounds: MapBounds) => {

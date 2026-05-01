@@ -28,6 +28,8 @@ desktop.ini
 
 # ─── Secrets & Environment ────────────────────────────────────────────────────
 .env
+.env.local
+.env.production
 .env.*
 !.env.example
 *.pem
