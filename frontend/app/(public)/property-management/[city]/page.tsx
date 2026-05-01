@@ -35,6 +35,17 @@ export async function generateMetadata(
   return {
     title,
     description,
+    keywords: [
+      `property management ${city.name}`,
+      `${city.name} property management company`,
+      `rental property manager ${city.name} ${city.stateCode}`,
+      `landlord services ${city.name}`,
+      `tenant screening ${city.name}`,
+      `rent collection service ${city.name}`,
+      `property management fees ${city.name}`,
+      `hire property manager ${city.name}`,
+      `investment property management ${city.name}`,
+    ],
     alternates: { canonical: url },
     openGraph: {
       title,

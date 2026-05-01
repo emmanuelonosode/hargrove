@@ -23,15 +23,28 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
   try {
     const agent = await fetchAgentById(id);
+    const profile = agent.agent_profile;
+    const specialty = profile?.specialties?.[0] ?? "Housing Specialist";
+    const yearsExp = profile?.years_experience ? `${profile.years_experience}+ years experience. ` : "";
+    const bioExcerpt = profile?.bio?.slice(0, 100) ?? "";
+    const description = `${agent.full_name} — ${specialty} at Hasker & Co. Realty Group. ${yearsExp}${bioExcerpt} Helping families find affordable rentals with no hidden fees.`.slice(0, 160);
     return {
-      title: `${agent.full_name} | Hasker & Co. Realty Group`,
-      description: agent.agent_profile?.bio?.slice(0, 160) ?? `Rental specialist at Hasker & Co. Realty Group.`,
+      title: `${agent.full_name} — ${specialty} | Hasker & Co. Realty Group`,
+      description,
+      keywords: [
+        `${agent.full_name} real estate agent`,
+        `${specialty} Hasker Realty`,
+        "affordable rental specialist",
+        "housing specialist Virginia Beach",
+        "rental agent near me",
+      ],
       alternates: { canonical: `https://haskerrealtygroup.com/agents/${id}` },
       openGraph: {
-        title: `${agent.full_name} | Hasker & Co. Realty Group`,
-        description: agent.agent_profile?.bio?.slice(0, 160) ?? `Rental specialist at Hasker & Co. Realty Group.`,
+        title: `${agent.full_name} — ${specialty} | Hasker & Co. Realty Group`,
+        description,
         type: "profile",
         url: `https://haskerrealtygroup.com/agents/${id}`,
+        ...(agent.avatar_url && { images: [{ url: agent.avatar_url, width: 400, height: 400, alt: agent.full_name }] }),
       },
     };
   } catch {
@@ -88,8 +101,51 @@ export default async function AgentProfilePage({ params }: Props) {
 
   const socialLinks = profile?.social_links ?? {};
 
+  const breadcrumb = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://haskerrealtygroup.com" },
+      { "@type": "ListItem", position: 2, name: "Our Team", item: "https://haskerrealtygroup.com/agents" },
+      { "@type": "ListItem", position: 3, name: agent.full_name, item: `https://haskerrealtygroup.com/agents/${id}` },
+    ],
+  };
+
+  const personSchema = {
+    "@context": "https://schema.org",
+    "@type": "RealEstateAgent",
+    "@id": `https://haskerrealtygroup.com/agents/${id}`,
+    name: agent.full_name,
+    givenName: agent.first_name,
+    familyName: agent.last_name,
+    jobTitle: profile?.specialties?.[0] ?? "Housing Specialist",
+    ...(agent.email && { email: agent.email }),
+    ...(agent.avatar_url && { image: agent.avatar_url }),
+    ...(profile?.bio && { description: profile.bio }),
+    ...(profile?.license_number && { hasCredential: {
+      "@type": "EducationalOccupationalCredential",
+      credentialCategory: "Real Estate License",
+      name: `License #${profile.license_number}`,
+    }}),
+    url: `https://haskerrealtygroup.com/agents/${id}`,
+    worksFor: {
+      "@type": "Organization",
+      name: "Hasker & Co. Realty Group",
+      url: "https://haskerrealtygroup.com",
+    },
+    ...(profile?.years_experience && { hasOccupation: {
+      "@type": "Occupation",
+      name: "Real Estate Agent",
+      yearsExperienceMin: profile.years_experience,
+    }}),
+    ...(socialLinks.linkedin && { sameAs: [socialLinks.linkedin] }),
+    areaServed: ["Virginia Beach, VA", "Atlanta, GA", "Charlotte, NC", "Houston, TX"],
+  };
+
   return (
     <div className="pt-20">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(personSchema) }} />
       {/* Back link + hero */}
       <div className="bg-brand-dark text-white">
         <div className="max-w-7xl mx-auto px-6 lg:px-8 pt-10 pb-16">

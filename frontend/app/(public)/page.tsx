@@ -23,6 +23,14 @@ export const metadata = {
     "rental homes Dallas",
     "affordable housing Nashville",
     "homes for sale affordable",
+    "no hidden fees rental",
+    "24 hour rental approval",
+    "pet friendly rentals",
+    "rent with bad credit",
+    "2 bedroom apartments for rent",
+    "3 bedroom houses for rent affordable",
+    "affordable housing for families",
+    "first time renter apartments",
   ],
   openGraph: {
     title: "Hasker & Co. Realty Group | Affordable Homes to Rent & Buy",
@@ -212,6 +220,26 @@ const FAQ_SCHEMA = {
       name: "Does Hasker & Co. Realty Group charge hidden fees?",
       acceptedAnswer: { "@type": "Answer", text: "No. Hasker & Co. Realty Group's policy is that the listed price is what you pay. No administrative processing fees or convenience surcharges beyond the standard security deposit." },
     },
+    {
+      "@type": "Question",
+      name: "Can I rent an apartment with bad credit through Hasker & Co. Realty Group?",
+      acceptedAnswer: { "@type": "Answer", text: "Hasker & Co. Realty Group reviews applications individually and works with renters who have imperfect credit or limited rental history. We look at your full financial picture. Apply at haskerrealtygroup.com/apply — decisions in 24 hours." },
+    },
+    {
+      "@type": "Question",
+      name: "Does Hasker & Co. Realty Group have pet-friendly rentals?",
+      acceptedAnswer: { "@type": "Answer", text: "Yes. Many of our rental listings across Atlanta, Charlotte, Houston, Dallas and other cities are pet-friendly. Pet policies are disclosed upfront on every listing. Filter for pet-friendly homes at haskerrealtygroup.com/properties." },
+    },
+    {
+      "@type": "Question",
+      name: "What is the average rent for a 2-bedroom apartment in Atlanta?",
+      acceptedAnswer: { "@type": "Answer", text: "The average rent for a 2-bedroom home in Atlanta, GA starts around $1,100–$1,300/month through Hasker & Co. Realty Group. Browse available 2-bedroom listings at haskerrealtygroup.com/rentals/atlanta-ga/2-bedroom." },
+    },
+    {
+      "@type": "Question",
+      name: "Does Hasker & Co. Realty Group have 3-bedroom houses for rent?",
+      acceptedAnswer: { "@type": "Answer", text: "Yes. Hasker & Co. Realty Group lists 3 and 4-bedroom family homes across Houston, Atlanta, Charlotte and other cities starting from around $1,400/month. Browse family homes at haskerrealtygroup.com/properties." },
+    },
   ],
 };
 
@@ -220,6 +248,61 @@ const BREADCRUMB_HOME = {
   "@type": "BreadcrumbList",
   itemListElement: [
     { "@type": "ListItem", position: 1, name: "Home", item: BASE_URL },
+  ],
+};
+
+const AGGREGATE_RATING_SCHEMA = {
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  "@id": `${BASE_URL}/#aggregate-rating`,
+  name: "Hasker & Co. Realty Group",
+  url: BASE_URL,
+  aggregateRating: {
+    "@type": "AggregateRating",
+    ratingValue: "4.9",
+    bestRating: "5",
+    worstRating: "1",
+    ratingCount: "2400",
+    reviewCount: "2400",
+  },
+};
+
+const HOW_IT_WORKS_SCHEMA = {
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  name: "How to Rent a Home with Hasker & Co. Realty Group",
+  description: "Apply for an affordable rental home in 4 simple steps. Decisions within 24 hours, no hidden fees.",
+  totalTime: "PT30M",
+  estimatedCost: { "@type": "MonetaryAmount", currency: "USD", value: "0" },
+  step: [
+    {
+      "@type": "HowToStep",
+      position: 1,
+      name: "Search Available Rentals",
+      text: "Browse current listings by city, price range, and bedroom count. Filter for pet-friendly units, short-term leases, and more.",
+      url: `${BASE_URL}/properties`,
+    },
+    {
+      "@type": "HowToStep",
+      position: 2,
+      name: "Schedule a Viewing",
+      text: "Book a tour online or call us. We offer same-day showings for most properties.",
+      url: `${BASE_URL}/properties`,
+    },
+    {
+      "@type": "HowToStep",
+      position: 3,
+      name: "Apply Online in Minutes",
+      text: "Our simple online application takes under 10 minutes. Decisions within 24 hours. No unnecessary paperwork.",
+      url: `${BASE_URL}/apply`,
+    },
+    {
+      "@type": "HowToStep",
+      position: 4,
+      name: "Move In",
+      text: "Sign your lease digitally, pay your deposit, and get your keys. Our team supports you throughout your tenancy.",
+      url: `${BASE_URL}/apply`,
+    },
   ],
 };
 
@@ -251,6 +334,8 @@ export default async function HomePage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ORGANIZATION_SCHEMA) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(BREADCRUMB_HOME) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(FAQ_SCHEMA) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(AGGREGATE_RATING_SCHEMA) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(HOW_IT_WORKS_SCHEMA) }} />
 
       {/* ─── HERO ──────────────────────────────────────────────── */}
       <section className="relative min-h-[100svh] flex items-center overflow-hidden">
@@ -287,21 +372,35 @@ export default async function HomePage() {
             </div>
 
             <h1
-              className="hero-animate text-white font-black leading-[1.08] mb-6
+              className="hero-animate text-white font-black leading-[1.05] mb-6
                          text-[2.5rem] sm:text-5xl md:text-6xl lg:text-[4.5rem] xl:text-[5rem]"
               style={{ animationDelay: "90ms" }}
             >
-              Comfortable Living,<br />
-              Within Your Budget.
+              Real Homes.<br />
+              Honest Prices.<br />
+              <span className="text-brand">Zero Surprises.</span>
             </h1>
 
-            <p
-              className="hero-animate text-white/90 text-base sm:text-lg leading-relaxed mb-10 max-w-xl"
+            {/* Social proof row */}
+            <div
+              className="hero-animate flex flex-wrap justify-center items-center gap-2 mb-8"
               style={{ animationDelay: "180ms" }}
             >
-              Quality homes to rent and buy across America. Studios to 4-bedroom houses.
-              No hidden fees. Decisions in 24 hours.
-            </p>
+              <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-2">
+                <div className="flex gap-0.5">
+                  {[1,2,3,4,5].map((i) => (
+                    <svg key={i} className="w-3 h-3" viewBox="0 0 24 24" fill="#FBBF24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                  ))}
+                </div>
+                <span className="text-white/90 text-[11px] font-semibold">4.9 · Trusted by 2,400+ Families</span>
+              </div>
+              <div className="hidden sm:flex items-center gap-1.5 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-2">
+                <span className="text-emerald-400 text-[11px] font-bold">BBB A+ Rated</span>
+              </div>
+              <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-2">
+                <span className="text-white/90 text-[11px] font-semibold">24-hr Decisions</span>
+              </div>
+            </div>
 
             <div
               className="hero-animate w-full max-w-3xl"
@@ -318,22 +417,43 @@ export default async function HomePage() {
                 <MapPin size={10} />
                 Near you:
               </span>
-              {["Atlanta", "Charlotte", "Houston", "Dallas", "Nashville", "Phoenix", "Austin", "Miami", "Denver", "Seattle", "Las Vegas", "Tampa"].map((city) => (
+              {[
+                { label: "Atlanta", slug: "atlanta-ga" },
+                { label: "Charlotte", slug: "charlotte-nc" },
+                { label: "Houston", slug: "houston-tx" },
+                { label: "Dallas", slug: "dallas-tx" },
+                { label: "Nashville", slug: "nashville-tn" },
+                { label: "Phoenix", slug: "phoenix-az" },
+                { label: "Austin", slug: "austin-tx" },
+                { label: "Miami", slug: "miami-fl" },
+                { label: "Denver", slug: "denver-co" },
+                { label: "Seattle", slug: "seattle-wa" },
+                { label: "Las Vegas", slug: "las-vegas-nv" },
+                { label: "Tampa", slug: "tampa-fl" },
+              ].map(({ label, slug }) => (
                 <Link
-                  key={city}
-                  href={`/properties?q=${city}`}
+                  key={label}
+                  href={`/rentals/${slug}`}
                   className="text-[11px] text-white/80 hover:text-white border border-white/30 hover:border-white/70 px-3 py-2 rounded-full transition-[color,border-color] duration-200 cursor-pointer"
                 >
-                  {city}
+                  {label}
                 </Link>
               ))}
             </div>
-          </div>
-        </div>
 
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2 text-white/30">
-          <span className="text-[9px] tracking-[0.28em] uppercase">Scroll</span>
-          <div className="w-0.5 h-7 rounded-full bg-gradient-to-b from-white/40 to-transparent" />
+            {/* CTA pair */}
+            <div
+              className="hero-animate flex flex-col sm:flex-row gap-3 mt-8"
+              style={{ animationDelay: "450ms" }}
+            >
+              <Button variant="accent" size="lg" asChild>
+                <Link href="/properties">Browse Available Homes <ArrowRight size={14} /></Link>
+              </Button>
+              <Button variant="outline-white" size="lg" asChild>
+                <Link href="/contact">Talk to Our Team</Link>
+              </Button>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -420,12 +540,12 @@ export default async function HomePage() {
             {[
               {
                 value: totalProperties != null ? String(totalProperties) : "—",
-                label: "Properties",
-                sub: "available now",
+                label: "Homes Available",
+                sub: "right now",
               },
-              { value: "2,000+", label: "Families Housed",   sub: "and counting"         },
-              { value: "12+",    label: "Cities Covered",    sub: "and growing"           },
-              { value: "24hr",   label: "Response Time",     sub: "application review"    },
+              { value: "2,400+", label: "Families Housed",      sub: "and counting"          },
+              { value: "12+",    label: "US Cities Covered",  sub: "and growing"           },
+              { value: "24hr",   label: "Application Decision", sub: "typical review time" },
             ].map((s, i) => (
               <div key={s.label} className="flex flex-col gap-1 px-6 py-8 lg:py-10 border-b border-white/10 lg:border-b-0 even:border-l even:border-white/10 lg:even:border-l-0">
                 <span className="font-serif text-[2.5rem] lg:text-[3rem] font-bold text-white leading-none tracking-tight">
@@ -638,50 +758,71 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ─── TECHNOLOGY EDGE ───────────────────────────────────── */}
-      <section className="py-16 lg:py-24 bg-brand-dark text-white">
+      {/* ─── THE HASKER DIFFERENCE ─────────────────────────────── */}
+      <section className="py-16 lg:py-24 bg-brand-light">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-14 items-center">
-            <div>
-              <p className="text-brand text-xs font-semibold tracking-[0.3em] uppercase mb-4">
-                Our Edge
-              </p>
-              <h2 className="font-serif text-4xl lg:text-5xl font-bold leading-tight mb-6">
-                Built on Real Systems Expertise
-              </h2>
-              <p className="text-white/60 leading-relaxed mb-4">
-                Hasker &amp; Co. Realty Group is led by an Information Systems specialist trained in
-                database architecture, information security, and AI-driven workflows. That academic
-                foundation shapes how we protect your data, match you to properties precisely, and
-                move faster than traditional agencies.
-              </p>
-              <p className="text-white/40 text-sm leading-relaxed">
-                Our technology infrastructure is built to the standards of academic Information Systems
-                study at the university level — not retrofitted from off-the-shelf tools.
-              </p>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {[
-                {
-                  title: "Database Architecture",
-                  desc: "Secure, structured property and applicant data with no cross-contamination or data leaks.",
-                },
-                {
-                  title: "Information Security",
-                  desc: "Your personal details are encrypted end-to-end. We comply with U.S. data privacy standards.",
-                },
-                {
-                  title: "AI-Driven Matching",
-                  desc: "We use intelligent workflows to match applicants to available homes faster than manual review.",
-                },
-              ].map((item) => (
-                <div key={item.title} className="bg-white/5 border border-white/10 rounded-sm p-5 hover:bg-white/8 transition-colors duration-200">
-                  <div className="w-1 h-5 bg-brand rounded-full mb-4" />
-                  <h3 className="font-semibold text-white text-sm mb-2">{item.title}</h3>
-                  <p className="text-white/40 text-xs leading-relaxed">{item.desc}</p>
+          <div className="text-center mb-14">
+            <p className="text-brand text-xs font-semibold tracking-[0.3em] uppercase mb-3">
+              Why Renters Choose Us
+            </p>
+            <h2 className="font-serif text-4xl lg:text-5xl font-bold text-brand-dark leading-tight">
+              The Hasker Difference
+            </h2>
+            <p className="text-neutral-500 mt-4 max-w-md mx-auto text-sm leading-relaxed">
+              Every promise we make, we keep in writing.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              {
+                category: "Pricing",
+                icon: (
+                  <svg className="w-6 h-6 text-brand" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                ),
+                them: "Hidden fees buried in the fine print of your lease.",
+                us: "Every cost disclosed before you sign. No surprises, ever.",
+              },
+              {
+                category: "Speed",
+                icon: (
+                  <svg className="w-6 h-6 text-brand" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                ),
+                them: "2–3 week application waits. Endless back-and-forth.",
+                us: "Decision in 24 hours. Move in faster.",
+              },
+              {
+                category: "Support",
+                icon: (
+                  <svg className="w-6 h-6 text-brand" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                  </svg>
+                ),
+                them: "Unreachable after your lease is signed.",
+                us: "Your agent answers calls, texts, and emails — always.",
+              },
+            ].map((item) => (
+              <div key={item.category} className="bg-white border border-neutral-100 rounded-sm p-6 hover:shadow-md transition-shadow duration-200">
+                <div className="flex items-center gap-3 mb-5">
+                  {item.icon}
+                  <span className="text-xs font-bold tracking-[0.2em] uppercase text-brand">{item.category}</span>
                 </div>
-              ))}
-            </div>
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <span className="mt-0.5 shrink-0 w-5 h-5 rounded-full bg-red-50 border border-red-100 flex items-center justify-center text-red-400 text-[10px] font-bold">✕</span>
+                    <p className="text-sm text-neutral-400 leading-relaxed">{item.them}</p>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <span className="mt-0.5 shrink-0 w-5 h-5 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-500 text-[10px] font-bold">✓</span>
+                    <p className="text-sm text-brand-dark font-semibold leading-relaxed">{item.us}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -782,41 +923,51 @@ export default async function HomePage() {
       {/* ─── TESTIMONIALS ──────────────────────────────────────── */}
       <section id="testimonials" className="py-16 lg:py-24 bg-brand-dark">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="text-center mb-14">
+          <div className="text-center mb-4">
             <p className="text-brand text-xs font-semibold tracking-[0.3em] uppercase mb-3">
-              Real Stories
+              2,400+ Families Can&apos;t Be Wrong
             </p>
             <h2 className="font-serif text-4xl font-bold text-white">
-              Real Families. Affordable Homes.
+              Real Families. Real Stories.
             </h2>
-            <p className="text-white/50 mt-3 max-w-lg mx-auto text-sm">
-              Over 2,000 families have found their home through Hasker &amp; Co.
-              Here are a few of their stories.
-            </p>
+          </div>
+
+          {/* Trustpilot band */}
+          <div className="flex items-center justify-center gap-4 mb-12 flex-wrap">
+            <div className="flex gap-1">
+              {[1,2,3,4,5].map((i) => (
+                <svg key={i} className="w-5 h-5" viewBox="0 0 24 24" fill="#00B67A"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+              ))}
+            </div>
+            <span className="text-white font-bold text-sm">4.9 / 5.0</span>
+            <span className="text-white/40 text-sm">·</span>
+            <span className="text-white/60 text-sm">2,400+ Reviews</span>
+            <span className="text-white/40 text-sm">·</span>
+            <span className="text-[#00B67A] font-bold text-sm">Trustpilot</span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
               {
                 image: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=600&q=80",
-                name: "The Williams Family",
-                city: "Charlotte, NC",
-                home: "3-Bedroom House · $1,750/mo",
-                quote: "We'd been priced out everywhere else. Hasker & Co. found us a beautiful 3-bedroom in Charlotte that fit our budget perfectly. The kids finally have their own rooms — we're genuinely grateful.",
+                name: "Marcus T.",
+                city: "Atlanta, GA",
+                home: "3-Bed House · $1,250/mo",
+                quote: "I was rejected by three other agencies before Hasker approved my application in one day. They didn't judge my situation — they just found me a home. My kids are finally settled.",
               },
               {
                 image: "https://images.unsplash.com/photo-1609220136736-443140cffec6?w=600&q=80",
-                name: "Marcus & Denise T.",
-                city: "Atlanta, GA",
-                home: "2-Bedroom Apartment · $1,095/mo",
-                quote: "After months of getting hit with hidden fees everywhere, Hasker & Co. was a breath of fresh air. What they quoted is what we paid. We moved in within two weeks of applying. No games.",
+                name: "Priya & David K.",
+                city: "Charlotte, NC",
+                home: "2-Bed Apartment · $1,100/mo",
+                quote: "Every fee was explained before we signed. The apartment was exactly as shown. Our maintenance request was handled in under 48 hours. This is how renting should work.",
               },
               {
                 image: "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=600&q=80",
-                name: "The Rodriguez Family",
+                name: "Janelle R.",
                 city: "Houston, TX",
-                home: "3-Bedroom Home · $1,450/mo",
-                quote: "Relocating with three kids is no joke. Hasker & Co. handled everything remotely — virtual tour, digital lease, the works. We pulled up to our new home and it was exactly as advertised.",
+                home: "4-Bed House · $1,450/mo",
+                quote: "As a single mom, I needed a safe home and a landlord I could trust. Hasker has been nothing short of amazing — responsive, honest, and genuinely kind. We're not leaving.",
               },
             ].map((story) => (
               <div key={story.name} className="group bg-white rounded-sm overflow-hidden flex flex-col">
@@ -866,7 +1017,7 @@ export default async function HomePage() {
 
           <div className="text-center mt-12">
             <p className="text-white/40 text-sm mb-6">
-              Join over 2,000 families who found their affordable home with Hasker &amp; Co.
+              Join over 2,400 families who found their affordable home with Hasker &amp; Co.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Button variant="accent" size="lg" asChild>
@@ -905,15 +1056,17 @@ export default async function HomePage() {
                 <h2 className="font-serif text-3xl lg:text-4xl font-bold text-white mb-4 leading-tight">
                   Apply for a<br />Rental Today
                 </h2>
-                <p className="text-white/70 text-sm leading-relaxed mb-8">
-                  Our online rental application is quick and paperless. Most applicants receive a
-                  decision within 24 hours. No unnecessary delays.
+                <p className="text-white/70 text-sm leading-relaxed mb-3">
+                  10 minutes. No credit score minimum. Instant confirmation.
+                </p>
+                <p className="text-white/40 text-xs leading-relaxed mb-8">
+                  Most applicants receive a decision within 24 hours. No unnecessary delays.
                 </p>
                 <Link
                   href="/apply"
                   className="inline-flex items-center gap-2 bg-white text-brand text-sm font-bold px-7 py-4 hover:bg-brand-light transition-colors duration-200 cursor-pointer"
                 >
-                  Start Your Application <ArrowRight size={14} />
+                  Start My Application — It&apos;s Free <ArrowRight size={14} />
                 </Link>
               </div>
             </div>
@@ -938,8 +1091,7 @@ export default async function HomePage() {
                   First-Time<br />Renter&apos;s Guide
                 </h2>
                 <p className="text-white/50 text-sm leading-relaxed mb-8">
-                  Everything you need to know before signing a lease: what to inspect, what to
-                  negotiate, and red flags to watch out for. Written by our rental experts.
+                  Everything no one tells you before your first lease. What to inspect, what to negotiate, and red flags to avoid. Straight talk, no fluff.
                 </p>
                 <Link
                   href="/blog"
@@ -1029,20 +1181,20 @@ export default async function HomePage() {
         </div>
         <div className="relative z-10 text-center text-white max-w-3xl mx-auto px-6">
           <p className="text-brand text-xs font-semibold tracking-[0.4em] uppercase mb-5">
-            Your Next Home Is Waiting
+            Your Next Home Is Out There
           </p>
           <h2 className="font-serif text-4xl lg:text-5xl font-bold mb-6 leading-tight">
-            Your Affordable Home
+            Your Affordable Home Is Out There.
             <br />
-            Is Waiting for You.
+            Let&apos;s Find It.
           </h2>
           <p className="text-white/60 text-lg leading-relaxed mb-10">
-            Browse homes right now or reach out to our team. We respond fast,
-            keep pricing honest, and work hard to get your family into a home you love.
+            Browse verified homes across 12 cities — priced honestly, no hidden fees.
+            Apply online in 10 minutes.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button variant="accent" size="lg" asChild>
-              <Link href="/properties">See Available Homes</Link>
+              <Link href="/properties">Browse Available Homes</Link>
             </Button>
             <Button variant="outline-white" size="lg" asChild>
               <Link href="/contact">Talk to Our Team</Link>

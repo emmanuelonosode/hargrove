@@ -138,7 +138,7 @@ export function Navbar() {
                   Sign In
                 </Link>
                 <Button variant="accent" size="sm" asChild>
-                  <Link href="/apply">Apply Now</Link>
+                  <Link href="/apply">Apply Free</Link>
                 </Button>
               </>
             )}
@@ -182,6 +182,16 @@ export function Navbar() {
         )}
       >
         <div className="px-6 py-5 flex flex-col gap-1">
+          {/* Apply Free accent card — primary CTA at top of mobile menu */}
+          <Link
+            href="/apply"
+            onClick={() => setMobileOpen(false)}
+            className="flex items-center justify-between bg-brand text-white font-semibold text-sm px-5 py-4 rounded-md mb-4 hover:bg-brand-hover transition-colors"
+          >
+            <span>Apply Free — Get a Decision in 24 Hours</span>
+            <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
+          </Link>
+
           {navLinks.map((link) => (
             <Link
               key={link.href}
@@ -239,7 +249,7 @@ export function Navbar() {
                 </Link>
                 <Button variant="accent" className="w-full" asChild>
                   <Link href="/apply" onClick={() => setMobileOpen(false)}>
-                    Apply Now
+                    Apply Free
                   </Link>
                 </Button>
               </>

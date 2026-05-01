@@ -41,20 +41,32 @@ export async function generateMetadata(
     city = buildGenericCityData(stats);
   }
 
-  const title = `Rentals in ${city.name}, ${city.stateCode} | Hasker & Co. Realty Group`;
-  const description = `Browse comfortable, budget-friendly homes and apartments for rent in ${city.name}, ${city.state}. No hidden fees, 24-hour application decisions. Find your next home today.`;
+  const title = `Homes for Rent in ${city.name}, ${city.stateCode} — Affordable Rentals | Hasker & Co. Realty Group`;
+  const description = `Find affordable 1–4 bedroom homes and apartments for rent in ${city.name}, ${city.stateCode}. Starting from ${city.avgRent}/mo. No hidden fees, pet-friendly options, 24-hour approval decisions.`;
   const url = `https://haskerrealtygroup.com/rentals/${slug}`;
 
   return {
     title,
     description,
+    keywords: [
+      `homes for rent in ${city.name}`,
+      `${city.name} affordable rentals`,
+      `apartments for rent ${city.name} ${city.stateCode}`,
+      `2 bedroom apartments ${city.name}`,
+      `3 bedroom houses for rent ${city.name}`,
+      `pet friendly apartments ${city.name}`,
+      `cheap rent ${city.name}`,
+      `no hidden fees rentals ${city.name}`,
+      `${city.name} rental homes no credit check`,
+      `move in ready homes ${city.name}`,
+    ],
     alternates: { canonical: url },
     openGraph: {
       title,
       description,
       type: "website",
       url,
-      images: [{ url: city.heroImage, width: 1600, height: 900, alt: `Affordable homes in ${city.name}` }],
+      images: [{ url: city.heroImage, width: 1600, height: 900, alt: `Affordable homes for rent in ${city.name}, ${city.stateCode}` }],
     },
     twitter: {
       card: "summary_large_image",
@@ -193,6 +205,22 @@ export default async function CityRentalsPage(
           text: `No. Hasker & Co. Realty Group does not charge hidden administrative or processing fees. The price listed is the price you pay. Standard upfront costs are a security deposit (typically 1–2 months rent) and the first month's rent.`,
         },
       },
+      {
+        "@type": "Question",
+        name: `Are there 2-bedroom and 3-bedroom homes for rent in ${city.name}?`,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: `Yes. Hasker & Co. Realty Group lists 1, 2, 3, and 4-bedroom homes for rent in ${city.name}, ${city.stateCode}. Family-sized homes typically start around ${city.avgRent}/month. Browse available bedrooms at haskerrealtygroup.com/rentals/${slug}.`,
+        },
+      },
+      {
+        "@type": "Question",
+        name: `Can I rent in ${city.name} with bad credit or no rental history?`,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: `Hasker & Co. Realty Group reviews each application individually and works with renters who have less-than-perfect credit or limited rental history. We look at your full financial picture, not just your credit score. Apply at haskerrealtygroup.com/apply.`,
+        },
+      },
     ],
   };
 
@@ -230,8 +258,13 @@ export default async function CityRentalsPage(
             {city.stateCode} Rentals
           </p>
           <h1 className="font-serif text-4xl lg:text-5xl xl:text-6xl font-bold text-white leading-tight hero-animate" style={{ animationDelay: "80ms" }}>
-            Find Your Next Home in {city.name}
+            Homes for Rent in {city.name}, {city.stateCode}
           </h1>
+          {properties.length > 0 && (
+            <p className="text-brand text-sm font-semibold mt-3 hero-animate" style={{ animationDelay: "130ms" }}>
+              {properties.length} verified listings · Updated daily
+            </p>
+          )}
           <p className="text-blue-100 text-lg lg:text-xl max-w-2xl mt-4 leading-relaxed hero-animate" style={{ animationDelay: "160ms" }}>
             {city.tagline} Browse affordable homes and apartments — no hidden fees, decisions in 24 hours.
           </p>
@@ -245,7 +278,7 @@ export default async function CityRentalsPage(
             </Button>
             <Button variant="outline-white" size="lg" asChild>
               <Link href="/apply">
-                Apply Now — 10 Min
+                Apply Free — 10 Minutes
               </Link>
             </Button>
           </div>
@@ -349,6 +382,20 @@ export default async function CityRentalsPage(
             Leave your details and we&apos;ll notify you the moment a home matching your needs becomes available — before it goes public.
           </p>
           <CityLeadCapture cityName={city.name} />
+          <div className="flex flex-wrap justify-center items-center gap-4 mt-6">
+            <span className="text-blue-300/60 text-xs flex items-center gap-1.5">
+              <svg className="w-3.5 h-3.5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/></svg>
+              No spam
+            </span>
+            <span className="text-blue-300/60 text-xs flex items-center gap-1.5">
+              <svg className="w-3.5 h-3.5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/></svg>
+              Unsubscribe anytime
+            </span>
+            <span className="text-blue-300/60 text-xs flex items-center gap-1.5">
+              <svg className="w-3.5 h-3.5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/></svg>
+              2,400+ families already subscribed
+            </span>
+          </div>
         </div>
       </section>
 
@@ -362,6 +409,20 @@ export default async function CityRentalsPage(
               <h2 className="font-serif text-4xl lg:text-5xl font-bold text-brand-dark leading-tight mb-8">
                 Renting in {city.name}
               </h2>
+              {/* Inline stat row */}
+              <div className="grid grid-cols-3 gap-3 mb-6">
+                {[
+                  { label: "Avg. Rent", value: city.avgRent },
+                  { label: "Homes Available", value: properties.length > 0 ? `${properties.length}+` : "New Soon" },
+                  { label: "Decision Time", value: "24 hrs" },
+                ].map((stat) => (
+                  <div key={stat.label} className="border-l-2 border-brand pl-3">
+                    <p className="text-base font-bold text-brand-dark">{stat.value}</p>
+                    <p className="text-[10px] text-neutral-500 uppercase tracking-wide mt-0.5">{stat.label}</p>
+                  </div>
+                ))}
+              </div>
+
               <div className="space-y-5">
                 {city.seoContent.split("\n\n").map((paragraph, i) => (
                   <p key={i} className="text-neutral-600 text-sm leading-relaxed">{paragraph}</p>

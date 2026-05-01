@@ -136,7 +136,7 @@ export default async function AgentsPage() {
       {/* ── HERO ─────────────────────────────────────────────────────────── */}
       <section className="relative min-h-[560px] lg:min-h-[620px] flex items-end overflow-hidden">
         <Image
-          src="https://images.unsplash.com/photo-1582407947304-fd86f28f1a2a?w=1600&q=80"
+          src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=1600&q=80"
           alt="Housing specialists at Hasker & Co. Realty Group"
           fill
           priority

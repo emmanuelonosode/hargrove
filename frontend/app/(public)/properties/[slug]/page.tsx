@@ -47,26 +47,71 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     const { slug } = await params;
     const decodedSlug = decodeURIComponent(slug);
     const property = await fetchPropertyBySlug(decodedSlug);
+
+    const bedsLabel = property.bedrooms ? `${property.bedrooms}-Bed ` : "";
+    const typeLabel =
+      property.property_type === "residential" ? "House" :
+      property.property_type === "condo" ? "Condo" :
+      property.property_type === "townhouse" ? "Townhouse" :
+      property.property_type === "apartment" ? "Apartment" : "Home";
+    const actionLabel =
+      property.listing_type === "for-sale" ? "for Sale" :
+      property.listing_type === "for-lease" ? "for Lease" : "for Rent";
+    const priceLabel = property.listing_type === "for-rent"
+      ? ` – $${Number(property.price).toLocaleString()}/mo`
+      : ` – $${Number(property.price).toLocaleString()}`;
+
+    // Address-first title so address searches rank: "123 Main St, Atlanta GA — 3-Bed House for Rent"
+    const streetAddress = property.address ?? "";
+    const fullAddr = `${streetAddress}, ${property.city}, ${property.state}${property.zip_code ? " " + property.zip_code : ""}`;
+    const seoTitle = streetAddress
+      ? `${streetAddress} — ${bedsLabel}${typeLabel} ${actionLabel} in ${property.city}, ${property.state}${priceLabel}`
+      : `${bedsLabel}${typeLabel} ${actionLabel} in ${property.city}, ${property.state}${priceLabel}`;
+
+    // Description leads with address + features so it shows in snippet for address searches
+    const featureList = [
+      property.bedrooms ? `${property.bedrooms} bed` : null,
+      property.bathrooms ? `${property.bathrooms} bath` : null,
+      property.sqft ? `${Number(property.sqft).toLocaleString()} sqft` : null,
+    ].filter(Boolean).join(", ");
+    const addrPrefix = streetAddress ? `${fullAddr}. ` : "";
+    const seoDesc = `${addrPrefix}${featureList ? featureList + ". " : ""}Affordable ${typeLabel.toLowerCase()} ${actionLabel} — no hidden fees. Apply online, decision in 24 hours.`;
+
+    const ogImage = property.images?.[0]?.image_url
+      ? toOgImageUrl(property.images[0].image_url)
+      : FALLBACK_IMAGE;
+
     return {
-       title: `${property.title.length > 32 ? property.title.slice(0, 29) + "..." : property.title} | Hasker & Co. Realty Group`,
-      description: property.description?.slice(0, 160) ?? "",
+      title: `${seoTitle} | Hasker & Co. Realty Group`,
+      description: seoDesc.slice(0, 160),
+      keywords: [
+        // Address-specific — ranks when someone Googles the exact address
+        ...(streetAddress ? [
+          streetAddress,
+          `${streetAddress} ${property.city}`,
+          `${streetAddress} ${property.city} ${property.state}`,
+          `${fullAddr} rental`,
+          `${fullAddr} for rent`,
+        ] : []),
+        // City + type keywords
+        `${bedsLabel.trim()} ${typeLabel} ${actionLabel} ${property.city}`.trim(),
+        `affordable ${typeLabel.toLowerCase()} ${property.city}`,
+        `${property.city} ${typeLabel.toLowerCase()} ${actionLabel} no hidden fees`,
+        `${property.city} ${actionLabel}`,
+      ],
       alternates: { canonical: `https://haskerrealtygroup.com/properties/${decodedSlug}` },
       openGraph: {
-        title: `${property.title} | Hasker & Co. Realty Group`,
-        description: property.description?.slice(0, 160) ?? "",
+        title: `${seoTitle} | Hasker & Co. Realty Group`,
+        description: seoDesc.slice(0, 160),
         type: "website",
         url: `https://haskerrealtygroup.com/properties/${decodedSlug}`,
-        images: property.images?.[0]?.image_url
-          ? [{ url: toOgImageUrl(property.images[0].image_url), width: 1200, height: 630, alt: property.title }]
-          : [{ url: FALLBACK_IMAGE, width: 1200, height: 630, alt: "Affordable rental home" }],
+        images: [{ url: ogImage, width: 1200, height: 630, alt: seoTitle }],
       },
       twitter: {
         card: "summary_large_image",
-        title: `${property.title} | Hasker & Co. Realty Group`,
-        description: property.description?.slice(0, 160) ?? "",
-        images: property.images?.[0]?.image_url
-          ? [toOgImageUrl(property.images[0].image_url)]
-          : [FALLBACK_IMAGE],
+        title: `${seoTitle} | Hasker & Co. Realty Group`,
+        description: seoDesc.slice(0, 160),
+        images: [ogImage],
       },
     };
   } catch {
@@ -160,14 +205,26 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: "https://haskerrealtygroup.com" },
       { "@type": "ListItem", position: 2, name: "Properties", item: "https://haskerrealtygroup.com/properties" },
-      { "@type": "ListItem", position: 3, name: property.title, item: `https://haskerrealtygroup.com/properties/${decodedSlug}` },
+      {
+        "@type": "ListItem",
+        position: 3,
+        // Use address in breadcrumb so it appears in Google's breadcrumb trail for address searches
+        name: property.address
+          ? `${property.address}, ${property.city}, ${property.state}`
+          : property.title,
+        item: `https://haskerrealtygroup.com/properties/${decodedSlug}`,
+      },
     ],
   };
 
   const listingSchema = {
     "@context": "https://schema.org",
     "@type": "RealEstateListing",
-    name: property.title,
+    // Lead with full address so Google indexes the address as the canonical name of this listing
+    name: property.address
+      ? `${property.address}, ${property.city}, ${property.state} ${property.zip_code ?? ""}`.trim()
+      : property.title,
+    alternateName: property.title,
     description: property.description ?? "",
     url: `https://haskerrealtygroup.com/properties/${property.slug}`,
     image: images.length > 0
@@ -497,9 +554,15 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
                   )}
 
                   {(property.listing_type === "for-rent" || property.listing_type === "for-lease") && (
-                    <Button variant="accent" className="w-full mb-3" asChild>
-                      <Link href={`/apply?property=${property.slug}`}>Apply Now — 10 Min</Link>
-                    </Button>
+                    <>
+                      <p className="text-xs text-amber-600 font-medium flex items-center gap-1.5 mb-3">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse inline-block shrink-0" />
+                        Properties like this typically rent within 5–7 days
+                      </p>
+                      <Button variant="accent" className="w-full mb-3" asChild>
+                        <Link href={`/apply?property=${property.slug}`}>Apply Free — Decision in 24 Hours</Link>
+                      </Button>
+                    </>
                   )}
                   {property.listing_type === "for-sale" && (
                     <Button variant="accent" className="w-full mb-3" asChild>
@@ -565,7 +628,10 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
           {similar.length > 0 && (
             <section className="mt-16 pt-10 border-t border-neutral-100">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="font-serif text-2xl font-bold text-brand-dark">Similar Homes in {property.city}</h2>
+                <div>
+                  <h2 className="font-serif text-2xl font-bold text-brand-dark">More Affordable Homes in {property.city}</h2>
+                  <p className="text-xs text-neutral-500 mt-1">Browse and compare — no account needed</p>
+                </div>
                 <Link href={`/properties?q=${encodeURIComponent(property.city)}&listing_type=${property.listing_type}`} className="text-sm text-brand hover:underline">
                   View all →
                 </Link>
@@ -605,7 +671,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
                 href={`/apply?property=${property.slug}`}
                 className="shrink-0 h-11 px-5 bg-brand text-white text-sm font-semibold rounded-lg flex items-center hover:opacity-90 transition-opacity"
               >
-                Apply
+                Apply Free
               </Link>
             )}
             {property.listing_type === "for-sale" && (
