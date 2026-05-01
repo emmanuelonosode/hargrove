@@ -6,7 +6,11 @@ import {
   Clock, ShieldCheck, PawPrint, Home, ArrowRight,
   Bed, Bath, Maximize, MapPin, Star, TrendingUp, Users, Building,
 } from "lucide-react";
-import { CITIES, getAllCitySlugs, getCityBySlug, type CityData } from "@/lib/cities";
+import {
+  CITIES, getAllCitySlugs, getCityBySlug,
+  fetchAllCities, buildGenericCityData,
+  type CityData,
+} from "@/lib/cities";
 import { fetchProperties, toPropertyCardShape } from "@/lib/properties";
 import { PropertyCard } from "@/components/public/PropertyCard";
 import { Button } from "@/components/ui/Button";
@@ -16,8 +20,11 @@ export const revalidate = 300;
 
 /* ── Static Params ──────────────────────────────────────────────────── */
 
-export function generateStaticParams() {
-  return getAllCitySlugs().map((city) => ({ city }));
+export async function generateStaticParams() {
+  const dbCities = await fetchAllCities();
+  const dbSlugs = dbCities.map((c) => c.slug);
+  const all = [...new Set([...getAllCitySlugs(), ...dbSlugs])];
+  return all.map((city) => ({ city }));
 }
 
 /* ── Dynamic SEO Metadata ───────────────────────────────────────────── */
@@ -26,8 +33,13 @@ export async function generateMetadata(
   { params }: { params: Promise<{ city: string }> }
 ): Promise<Metadata> {
   const { city: slug } = await params;
-  const city = getCityBySlug(slug);
-  if (!city) return { title: "City Not Found" };
+  let city = getCityBySlug(slug);
+  if (!city) {
+    const dbCities = await fetchAllCities();
+    const stats = dbCities.find((c) => c.slug === slug);
+    if (!stats) return { title: "City Not Found" };
+    city = buildGenericCityData(stats);
+  }
 
   const title = `Rentals in ${city.name}, ${city.stateCode} | Hasker & Co. Realty Group`;
   const description = `Browse comfortable, budget-friendly homes and apartments for rent in ${city.name}, ${city.state}. No hidden fees, 24-hour application decisions. Find your next home today.`;
@@ -96,8 +108,13 @@ export default async function CityRentalsPage(
   { params }: { params: Promise<{ city: string }> }
 ) {
   const { city: slug } = await params;
-  const city = getCityBySlug(slug);
-  if (!city) notFound();
+  let city = getCityBySlug(slug);
+  if (!city) {
+    const dbCities = await fetchAllCities();
+    const stats = dbCities.find((c) => c.slug === slug);
+    if (!stats) notFound();
+    city = buildGenericCityData(stats);
+  }
 
   // Fetch real properties for this city from the API
   let properties: import("@/types").Property[] = [];

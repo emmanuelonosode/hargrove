@@ -1,6 +1,8 @@
 declare global {
   interface Window {
     dataLayer: Record<string, unknown>[];
+    fbq: (...args: unknown[]) => void;
+    _fbq?: unknown;
   }
 }
 
@@ -163,4 +165,26 @@ export function identifyUser(email: string, userId?: string | number): void {
     user_id: userId?.toString() ?? undefined,
     user_email: email,
   });
+}
+
+// ── Meta Pixel Events ─────────────────────────────────────────────────────────
+
+/** Fires a standard Meta Pixel event (fbq("track", ...)). No-ops if Pixel not loaded or no consent. */
+export function trackMetaEvent(
+  eventName: string,
+  params?: Record<string, unknown>
+): void {
+  if (typeof window === "undefined" || !hasConsent()) return;
+  if (typeof window.fbq !== "function") return;
+  window.fbq("track", eventName, params ?? {});
+}
+
+/** Fires a custom Meta Pixel event (fbq("trackCustom", ...)). */
+export function trackMetaCustom(
+  eventName: string,
+  params?: Record<string, unknown>
+): void {
+  if (typeof window === "undefined" || !hasConsent()) return;
+  if (typeof window.fbq !== "function") return;
+  window.fbq("trackCustom", eventName, params ?? {});
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, type ChangeEvent } from "react";
+import { useState, useEffect, useCallback, useRef, type ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -10,7 +10,7 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { getStoredUTMs, getBestKnownCity, trackEvent } from "@/lib/tracking";
+import { getStoredUTMs, getBestKnownCity, trackEvent, trackMetaEvent } from "@/lib/tracking";
 
 const API_BASE = typeof window !== "undefined"
   ? ""
@@ -855,6 +855,30 @@ export function RentalApplicationForm({ propertySlug }: Props) {
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [paymentConfig, setPaymentConfig] = useState<PaymentConfig[]>([]);
 
+  const hasStartedRef = useRef(false);
+  const isSubmittedRef = useRef(false);
+
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (hasStartedRef.current && !isSubmittedRef.current) {
+        window.dataLayer?.push({ event: "application_abandoned", property_slug: propertySlug ?? "", step_reached: step });
+        if (typeof window.fbq === "function") {
+          window.fbq("trackCustom", "ApplicationAbandoned", { content_ids: [propertySlug ?? ""], step_reached: step });
+        }
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [propertySlug, step]);
+
+  function handleFirstInteraction() {
+    if (!hasStartedRef.current) {
+      hasStartedRef.current = true;
+      trackEvent("application_started", { property_slug: propertySlug ?? "" });
+      trackMetaEvent("InitiateCheckout", { content_ids: [propertySlug ?? ""], content_type: "property" });
+    }
+  }
+
   useEffect(() => {
     fetch(`${API_BASE}/api/v1/transactions/payment-config/`)
       .then((r) => r.ok ? r.json() : [])
@@ -1226,7 +1250,9 @@ export function RentalApplicationForm({ propertySlug }: Props) {
       localStorage.setItem(SAVED_PROFILE_KEY, JSON.stringify(profileToSave));
 
       clearDraft();
+      isSubmittedRef.current = true;
       trackEvent("submit_application", { application_id: data.id });
+      trackMetaEvent("Lead", { content_name: "Rental Application Submitted", content_ids: [form.rental_property ?? ""] });
       toast.success("Application Submitted!");
       router.push(`/apply/success?ref=${data.id}&name=${encodeURIComponent(form.first_name)}`);
     } catch (err: unknown) {
@@ -1254,10 +1280,11 @@ export function RentalApplicationForm({ propertySlug }: Props) {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
                 <Label isAutofilled={autofilledFields.has("first_name")}>First Name *</Label>
-                <Input 
+                <Input
                   isAutofilled={autofilledFields.has("first_name")}
                   onClearAutofill={() => setAutofilledFields(prev => { const n = new Set(prev); n.delete("first_name"); return n; })}
-                  value={form.first_name} onChange={text("first_name")} placeholder="Jane" error={errors.first_name} 
+                  value={form.first_name} onChange={text("first_name")} placeholder="Jane" error={errors.first_name}
+                  onFocus={handleFirstInteraction}
                 />
               </div>
               <div>

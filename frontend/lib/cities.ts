@@ -119,3 +119,69 @@ export function getCityBySlug(slug: string): CityData | undefined {
 export function getAllCitySlugs(): string[] {
   return Object.keys(CITIES);
 }
+
+// ── DB-derived city stats ─────────────────────────────────────────────────────
+
+export interface CityStats {
+  city: string;
+  state: string;
+  slug: string;
+  count: number;
+  avg_price: number | null;
+  min_price: number | null;
+  max_price: number | null;
+  listing_types: string[];
+}
+
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_URL ?? "https://admin.haskerrealtygroup.com";
+
+/**
+ * Fetches distinct cities with published rental listings from the API.
+ * Safe to call at build time — never throws, returns [] on any error.
+ */
+export async function fetchAllCities(): Promise<CityStats[]> {
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/properties/cities/`, {
+      next: { revalidate: 3600 },
+    });
+    if (!res.ok) return [];
+    return res.json();
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Builds a CityData object from DB stats for cities not in the CITIES constant.
+ */
+export function buildGenericCityData(stats: CityStats): CityData {
+  const avgRent = stats.avg_price
+    ? `$${Math.round(stats.avg_price).toLocaleString()}`
+    : "Contact us";
+  return {
+    slug: stats.slug,
+    name: stats.city,
+    state: stats.state,
+    stateCode: stats.state,
+    tagline: `Explore affordable rental homes in ${stats.city}, ${stats.state}.`,
+    heroImage:
+      "https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=1600&q=80",
+    avgRent,
+    population: "N/A",
+    marketHighlight: `${stats.count} active rental listing${stats.count !== 1 ? "s" : ""}`,
+    seoContent: `Hasker & Co. Realty Group offers verified rental listings in ${stats.city}, ${stats.state}. Browse our current inventory of ${stats.count} available propert${stats.count !== 1 ? "ies" : "y"} — no hidden fees, decisions within 24 hours.\n\nOur ${stats.city} listings span a range of bedroom counts and property types to fit any budget. Apply online in under 10 minutes and receive a decision the same business day.`,
+  };
+}
+
+/**
+ * Resolves a city slug to CityData — checks hardcoded CITIES first, then DB.
+ * Returns null if the slug doesn't exist in either source.
+ */
+export async function resolveCityData(slug: string): Promise<CityData | null> {
+  const hardcoded = getCityBySlug(slug);
+  if (hardcoded) return hardcoded;
+  const dbCities = await fetchAllCities();
+  const stats = dbCities.find((c) => c.slug === slug);
+  return stats ? buildGenericCityData(stats) : null;
+}

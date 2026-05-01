@@ -1,3 +1,7 @@
+from collections import defaultdict
+
+from django.db.models import Avg, Count, Max, Min
+from django.utils.text import slugify
 from rest_framework import generics, permissions, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.pagination import PageNumberPagination
@@ -230,3 +234,48 @@ def agent_inquiry(request, agent_id):
     send_lead_notification.delay(lead.id)
 
     return Response({"message": "Message sent. The advisor will be in touch shortly."}, status=status.HTTP_201_CREATED)
+
+
+@api_view(["GET"])
+@permission_classes([permissions.AllowAny])
+def city_stats(request):
+    """
+    GET /api/v1/properties/cities/
+    Returns distinct cities that have at least one published rental listing.
+    Used by the Next.js front-end for programmatic SEO page generation.
+    """
+    qs = (
+        Property.objects
+        .filter(is_published=True, listing_type__in=["for-rent", "for-lease"])
+        .values("city", "state")
+        .annotate(
+            count=Count("id"),
+            avg_price=Avg("price"),
+            min_price=Min("price"),
+            max_price=Max("price"),
+        )
+        .order_by("-count")
+    )
+
+    lt_map: dict = defaultdict(set)
+    for row in (
+        Property.objects
+        .filter(is_published=True, listing_type__in=["for-rent", "for-lease"])
+        .values("city", "state", "listing_type")
+        .distinct()
+    ):
+        lt_map[(row["city"], row["state"])].add(row["listing_type"])
+
+    return Response([
+        {
+            "city": r["city"],
+            "state": r["state"].upper() if r["state"] else "",
+            "slug": slugify(f"{r['city']}-{r['state']}"),
+            "count": r["count"],
+            "avg_price": float(r["avg_price"]) if r["avg_price"] else None,
+            "min_price": float(r["min_price"]) if r["min_price"] else None,
+            "max_price": float(r["max_price"]) if r["max_price"] else None,
+            "listing_types": sorted(lt_map.get((r["city"], r["state"]), [])),
+        }
+        for r in qs
+    ])

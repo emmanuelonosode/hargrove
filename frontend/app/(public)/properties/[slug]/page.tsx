@@ -22,6 +22,7 @@ import { PropertyCard } from "@/components/public/PropertyCard";
 import { PropertyDetailMapLoader } from "@/components/public/PropertyDetailMapLoader";
 import { FavoriteButton } from "@/components/public/FavoriteButton";
 import type { DetailMarker } from "@/components/public/PropertyDetailMap";
+import { PropertyPageTracker } from "@/components/public/PropertyPageTracker";
 import { formatPrice, formatNumber } from "@/lib/utils";
 
 export const revalidate = 300;
@@ -226,6 +227,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
   return (
     <main>
       <PropertyIntentCapture city={property.city} listingType={property.listing_type} />
+      <PropertyPageTracker slug={property.slug} price={Number(property.price)} listingType={property.listing_type} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(listingSchema) }} />
 
