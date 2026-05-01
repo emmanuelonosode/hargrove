@@ -36,7 +36,19 @@ export async function generateMetadata(
     title,
     description,
     alternates: { canonical: url },
-    openGraph: { title, description, url, type: "website" },
+    openGraph: {
+      title,
+      description,
+      url,
+      type: "website",
+      images: [{ url: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1200&q=80", width: 1200, height: 630, alt: title }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: ["https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1200&q=80"],
+    },
   };
 }
 
@@ -144,7 +156,7 @@ export default async function PropertyManagementCityPage(
     {
       icon: Users,
       title: "Lease Management",
-      desc: "Full lease preparation, signing, renewals, and compliance with local landlord-tenant laws in ${city.stateCode}.",
+      desc: `Full lease preparation, signing, renewals, and compliance with local landlord-tenant laws in ${city.stateCode}.`,
     },
   ];
 

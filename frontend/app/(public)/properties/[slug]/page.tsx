@@ -470,7 +470,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
               )}
 
               {/* ── Mobile inquiry form (inline, not fixed) ── */}
-              <div id="schedule-form" className="lg:hidden">
+              <div id="schedule-form-mobile" className="lg:hidden">
                 <h2 className="font-serif text-2xl font-bold text-brand-dark mb-1">Schedule a Viewing</h2>
                 <p className="text-neutral-500 text-sm mb-5">Response within 24 hours.</p>
                 <div className="bg-brand-dark text-white rounded-xl p-5">
@@ -507,7 +507,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
                     </Button>
                   )}
                   <a
-                    href="#schedule-form"
+                    href="#schedule-form-mobile"
                     className="w-full flex items-center justify-center gap-2 border border-brand-dark text-brand-dark text-sm font-semibold py-2.5 rounded-md hover:bg-brand-dark hover:text-white transition-colors"
                   >
                     <Calendar size={14} />

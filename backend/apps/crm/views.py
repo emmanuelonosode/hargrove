@@ -68,12 +68,18 @@ class LeadListCreateView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         lead = serializer.save()
-        # Notify any currently assigned agent (or broadcast to managers)
+        # Notify agent/managers of new lead
         try:
             from apps.notifications.tasks import send_lead_notification
             send_lead_notification.delay(lead.id)
         except Exception:
-            pass  # Don't let notification failure break lead creation
+            pass
+        # Send acknowledgment email to the prospective tenant
+        try:
+            from apps.notifications.tasks import send_lead_acknowledgment_email
+            send_lead_acknowledgment_email.delay(lead.id)
+        except Exception:
+            pass
 
 
 class LeadDetailView(generics.RetrieveUpdateAPIView):

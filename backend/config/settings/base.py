@@ -202,6 +202,16 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.notifications.tasks.recover_abandoned_applications",
         "schedule": crontab(minute=0, hour="*/6"),
     },
+    # Every Monday 8 AM — follow up with leads that haven't responded in 7 days
+    "weekly-lead-followup": {
+        "task": "apps.notifications.tasks.weekly_lead_followup",
+        "schedule": crontab(hour=8, minute=0, day_of_week=1),
+    },
+    # Every hour — send 24h reminders for upcoming property viewings
+    "schedule-viewing-reminders": {
+        "task": "apps.notifications.tasks.schedule_viewing_reminders",
+        "schedule": crontab(minute=0),
+    },
 }
 
 # ── Email ──────────────────────────────────────────────────────────────────────
