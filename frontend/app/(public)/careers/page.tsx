@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Mail, MapPin, Clock, ArrowRight, CheckCircle } from "lucide-react";
 import type { Metadata } from "next";
 import { CareerApplicationForm } from "@/components/public/CareerApplicationForm";
+import { FeaturedJobCard } from "@/components/public/FeaturedJobCard";
 
 export const metadata: Metadata = {
   title: "Careers at Hasker & Co. Realty Group | Join Our Team",
@@ -404,6 +405,26 @@ export default function CareersPage() {
             <p className="text-white/30 text-xs leading-relaxed max-w-xs sm:text-right">
               Virginia Beach, VA · Equal opportunity employer committed to a diverse, inclusive team.
             </p>
+          </div>
+
+          {/* ── FEATURED OPPORTUNITY ──────────────────────────────────── */}
+          <div className="mb-12">
+            <div className="flex items-center gap-3 mb-5">
+              <p className="text-brand text-[10px] font-bold tracking-[0.35em] uppercase">
+                Featured Opportunity
+              </p>
+              <div className="flex-1 border-t border-white/[0.07]" />
+            </div>
+            <FeaturedJobCard />
+          </div>
+
+          {/* ── ALL OPEN POSITIONS ──────────────────────────────────────── */}
+          <div className="flex items-center gap-4 mb-10">
+            <div className="flex-1 border-t border-white/[0.07]" />
+            <p className="text-[9px] font-bold tracking-[0.35em] uppercase text-white/20">
+              All Open Positions
+            </p>
+            <div className="flex-1 border-t border-white/[0.07]" />
           </div>
 
           <div className="divide-y divide-white/[0.08]">
