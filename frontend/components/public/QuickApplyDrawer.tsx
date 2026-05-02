@@ -2,8 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import {
-  X, Send, CheckCircle, AlertCircle,
-  Loader2, Paperclip, Upload,
+  X, Send, CheckCircle, AlertCircle, Loader2,
 } from "lucide-react";
 
 interface Props {
@@ -16,8 +15,6 @@ interface Props {
 export function QuickApplyDrawer({ open, onClose, roleId, roleTitle }: Props) {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
-  const [fileName, setFileName] = useState("");
-  const fileRef = useRef<HTMLInputElement>(null);
   const firstFieldRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -49,19 +46,21 @@ export function QuickApplyDrawer({ open, onClose, roleId, roleTitle }: Props) {
     setErrorMsg("");
 
     const raw = new FormData(e.currentTarget);
-    const fd = new FormData();
-    fd.append("role_id", roleId);
-    fd.append("role_title", roleTitle);
-    fd.append("full_name", (raw.get("name") as string) ?? "");
-    fd.append("email", (raw.get("email") as string) ?? "");
-    fd.append("phone", (raw.get("phone") as string) ?? "");
-    fd.append("linkedin_url", (raw.get("linkedin_url") as string) ?? "");
-    fd.append("motivation", "Quick Apply submission");
-    const file = raw.get("resume");
-    if (file instanceof File && file.size > 0) fd.append("resume", file);
 
     try {
-      const res = await fetch("/api/v1/careers/apply/", { method: "POST", body: fd });
+      const res = await fetch("/api/v1/careers/apply/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          role_id: roleId,
+          role_title: roleTitle,
+          full_name: (raw.get("name") as string) ?? "",
+          email: (raw.get("email") as string) ?? "",
+          phone: (raw.get("phone") as string) ?? "",
+          linkedin_url: (raw.get("linkedin_url") as string) ?? "",
+          motivation: "Quick Apply submission",
+        }),
+      });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         const detail =
@@ -192,44 +191,6 @@ export function QuickApplyDrawer({ open, onClose, roleId, roleTitle }: Props) {
                   placeholder="(757) 555-0100"
                   className={inputCls}
                 />
-              </div>
-
-              {/* Resume upload */}
-              <div>
-                <label className={labelCls}>
-                  Resume <span className="text-red-500">*</span>
-                  <span className="text-neutral-400 font-normal ml-1">(PDF or Word, max 5 MB)</span>
-                </label>
-                <input
-                  ref={fileRef}
-                  name="resume"
-                  type="file"
-                  required
-                  accept=".pdf,.doc,.docx"
-                  onChange={(e) => setFileName(e.target.files?.[0]?.name ?? "")}
-                  className="sr-only"
-                />
-                <button
-                  type="button"
-                  onClick={() => fileRef.current?.click()}
-                  className={`w-full border-2 border-dashed rounded-sm px-4 py-4 text-sm transition-colors flex items-center gap-3 text-left ${
-                    fileName
-                      ? "border-brand/40 bg-brand/[0.04] text-brand-dark"
-                      : "border-neutral-200 text-neutral-400 hover:border-brand/30 hover:text-neutral-600"
-                  }`}
-                >
-                  {fileName ? (
-                    <>
-                      <Paperclip size={15} className="text-brand shrink-0" />
-                      <span className="truncate">{fileName}</span>
-                    </>
-                  ) : (
-                    <>
-                      <Upload size={15} className="shrink-0" />
-                      <span>Click to upload your resume</span>
-                    </>
-                  )}
-                </button>
               </div>
 
               {/* LinkedIn */}
