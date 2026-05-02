@@ -50,10 +50,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
     const bedsLabel = property.bedrooms ? `${property.bedrooms}-Bed ` : "";
     const typeLabel =
-      property.property_type === "residential" ? "House" :
-      property.property_type === "condo" ? "Condo" :
-      property.property_type === "townhouse" ? "Townhouse" :
-      property.property_type === "apartment" ? "Apartment" : "Home";
+      property.type === "residential" ? "House" :
+      property.type === "condo" ? "Condo" :
+      property.type === "townhouse" ? "Townhouse" :
+      property.type === "apartment" ? "Apartment" : "Home";
     const actionLabel =
       property.listing_type === "for-sale" ? "for Sale" :
       property.listing_type === "for-lease" ? "for Lease" : "for Rent";
