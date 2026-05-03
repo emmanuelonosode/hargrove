@@ -25,7 +25,7 @@ MIDDLEWARE = [
     "whitenoise.middleware.WhiteNoiseMiddleware",
 ] + MIDDLEWARE[1:]  # noqa — replace SecurityMiddleware with whitenoise version
 
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 
 # SSL & Security
 SECURE_SSL_REDIRECT = True
