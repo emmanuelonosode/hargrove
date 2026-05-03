@@ -182,7 +182,10 @@
       "Bash(grep -E \"\\\\.\\(tsx|ts\\)$\")",
       "Bash(grep -v \"\\\\.$\")",
       "Bash(grep -r \"from.*[@]/\" \"C:/Users/emmanuel onosode/Desktop/Estate/frontend\" --include=\"*.tsx\" --include=\"*.ts\" ! -path \"*/.next/*\" ! -path \"*/node_modules/*\")",
-      "Bash(awk '$1 > 1 {print}')"
+      "Bash(awk '$1 > 1 {print}')",
+      "Bash(where py *)",
+      "Bash(powershell -Command \"Get-Content 'C:\\\\Users\\\\emman\\\\.claude\\\\projects\\\\c--Users-emman-Desktop-Estate-hargrove\\\\e44cd30c-51a1-4eb0-81f9-129cc8081d54.jsonl' -Tail 100 | Select-String 'content|text|role' | Select-Object -Last 50\")",
+      "PowerShell($lines = Get-Content 'C:\\\\Users\\\\emman\\\\.claude\\\\projects\\\\c--Users-emman-Desktop-Estate-hargrove\\\\e44cd30c-51a1-4eb0-81f9-129cc8081d54.jsonl' -Tail 50; foreach \\($line in $lines\\) { try { $obj = $line | ConvertFrom-Json; if \\($obj.message.role -eq 'assistant'\\) { $obj.message.content | ForEach-Object { if \\($_.type -eq 'text' -and $_.text.Length -gt 20\\) { Write-Host \"ASSISTANT: $\\($_.text.Substring\\(0, [Math]::Min\\(300, $_.text.Length\\)\\)\\)\" } } } elseif \\($obj.message.role -eq 'user'\\) { $obj.message.content | ForEach-Object { if \\($_.type -eq 'text'\\) { Write-Host \"USER: $\\($_.text.Substring\\(0, [Math]::Min\\(200, $_.text.Length\\)\\)\\)\" } } } } catch {} })"
     ]
   }
 }

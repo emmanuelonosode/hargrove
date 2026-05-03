@@ -75,15 +75,15 @@ class LeadListCreateView(generics.ListCreateAPIView):
         # Notify agent/managers of new lead
         try:
             from apps.notifications.tasks import send_lead_notification
-            send_lead_notification.delay(lead.id)
+            send_lead_notification(lead.id)
         except Exception as e:
-            logger.error("Failed to queue send_lead_notification for lead %s: %s", lead.id, e)
+            logger.error("send_lead_notification failed for lead %s: %s", lead.id, e)
         # Send acknowledgment email to the prospective tenant
         try:
             from apps.notifications.tasks import send_lead_acknowledgment_email
-            send_lead_acknowledgment_email.delay(lead.id)
+            send_lead_acknowledgment_email(lead.id)
         except Exception as e:
-            logger.error("Failed to queue send_lead_acknowledgment_email for lead %s: %s", lead.id, e)
+            logger.error("send_lead_acknowledgment_email failed for lead %s: %s", lead.id, e)
 
 
 class LeadDetailView(generics.RetrieveUpdateAPIView):
@@ -260,10 +260,10 @@ class RentalApplicationCreateView(generics.CreateAPIView):
         # Fire immediate applicant confirmation email (independent of PDF)
         try:
             from apps.notifications.tasks import send_application_submitted_email, generate_rental_application_pdf
-            send_application_submitted_email.delay(application.id)
-            generate_rental_application_pdf.delay(application.id)
+            send_application_submitted_email(application.id)
+            generate_rental_application_pdf(application.id)
         except Exception:
-            pass  # Celery may not be running in dev — fail silently
+            pass
 
 
 class RentalApplicationDetailView(generics.RetrieveUpdateAPIView):

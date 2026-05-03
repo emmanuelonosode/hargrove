@@ -1,19 +1,18 @@
 """
-Celery tasks for Hasker & Co. Realty Group.
+Email functions for Hasker & Co. Realty Group.
 
-Task registry:
-  - send_lead_notification      → email assigned agent (or managers) when a new lead arrives
-  - generate_invoice_pdf        → WeasyPrint → PDF → upload to Cloudinary
-  - generate_payment_receipt    → same pipeline for one-off payment receipts
-  - send_invoice_email          → email branded PDF to client
-  - send_viewing_reminder       → 24h reminder before a scheduled viewing
-  - weekly_lead_followup        → every Monday, remind agents of stale leads (>7 days)
+All functions run synchronously — no Celery worker required.
+For scheduled tasks (weekly_lead_followup, etc.) wire them up as
+cPanel cron jobs via a management command if needed.
 """
 
-from celery import shared_task
+import logging
+
 from django.conf import settings
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
+
+logger = logging.getLogger(__name__)
 
 
 def _get_email_sender():
@@ -28,7 +27,6 @@ def _get_email_sender():
             return config.get_from_header(), config.get_connection()
     except Exception:
         pass
-    # Fallback: use settings.py / .env values
     return settings.DEFAULT_FROM_EMAIL, None
 
 
@@ -36,8 +34,7 @@ def _get_email_sender():
 # Lead notifications
 # ---------------------------------------------------------------------------
 
-@shared_task(bind=True, max_retries=3, default_retry_delay=60)
-def send_lead_notification(self, lead_id: int):
+def send_lead_notification(lead_id: int):
     """Email the assigned agent (or all managers) when a new lead is created."""
     try:
         from apps.crm.models import Lead
@@ -45,11 +42,9 @@ def send_lead_notification(self, lead_id: int):
 
         lead = Lead.objects.select_related("assigned_agent", "property_interest").get(pk=lead_id)
 
-        # Determine recipients
         if lead.assigned_agent:
             recipients = [lead.assigned_agent.email]
         else:
-            # Notify all active managers
             recipients = list(
                 CustomUser.objects.filter(role=Role.MANAGER, is_active=True).values_list("email", flat=True)
             )
@@ -71,12 +66,12 @@ def send_lead_notification(self, lead_id: int):
         msg.send()
         return f"Notification sent to {recipients}"
 
-    except Exception as exc:
-        raise self.retry(exc=exc)
+    except Exception:
+        logger.exception("send_lead_notification failed for lead %s", lead_id)
+        raise
 
 
-@shared_task(bind=True, max_retries=3, default_retry_delay=60)
-def send_verification_email(self, user_id: int):
+def send_verification_email(user_id: int):
     """Email the 6-digit OTP code to a newly registered user."""
     try:
         from apps.accounts.models import CustomUser
@@ -87,8 +82,7 @@ def send_verification_email(self, user_id: int):
 
         from_header, connection = _get_email_sender()
         subject = f"{user.email_verification_code} is your Hasker & Co. verification code"
-        
-        # Render HTML template 
+
         body = render_to_string("notifications/email_verification.html", {
             "user": user,
             "frontend_url": settings.FRONTEND_URL,
@@ -105,20 +99,17 @@ def send_verification_email(self, user_id: int):
         msg.send()
         return f"Verification email sent to {user.email}"
 
-    except Exception as exc:
-        raise self.retry(exc=exc)
+    except Exception:
+        logger.exception("send_verification_email failed for user %s", user_id)
+        raise
 
 
 # ---------------------------------------------------------------------------
 # PDF generation
 # ---------------------------------------------------------------------------
 
-@shared_task(bind=True, max_retries=3, default_retry_delay=120)
-def generate_invoice_pdf(self, invoice_id: int):
-    """
-    Render an invoice as HTML → convert to PDF via WeasyPrint
-    → upload to Cloudinary → update Invoice.pdf.
-    """
+def generate_invoice_pdf(invoice_id: int):
+    """Render invoice HTML → PDF via WeasyPrint → upload to Cloudinary."""
     try:
         from apps.transactions.models import Invoice
         import cloudinary.uploader
@@ -149,12 +140,12 @@ def generate_invoice_pdf(self, invoice_id: int):
         Invoice.objects.filter(pk=invoice_id).update(pdf=result["secure_url"])
         return f"Invoice PDF generated: {result['secure_url']}"
 
-    except Exception as exc:
-        raise self.retry(exc=exc)
+    except Exception:
+        logger.exception("generate_invoice_pdf failed for invoice %s", invoice_id)
+        raise
 
 
-@shared_task(bind=True, max_retries=3, default_retry_delay=120)
-def generate_payment_receipt(self, payment_id: int):
+def generate_payment_receipt(payment_id: int):
     """Generate a PDF receipt for a completed payment."""
     try:
         from apps.transactions.models import Payment
@@ -185,16 +176,16 @@ def generate_payment_receipt(self, payment_id: int):
         Payment.objects.filter(pk=payment_id).update(receipt_pdf=result["secure_url"])
         return f"Receipt PDF generated: {result['secure_url']}"
 
-    except Exception as exc:
-        raise self.retry(exc=exc)
+    except Exception:
+        logger.exception("generate_payment_receipt failed for payment %s", payment_id)
+        raise
 
 
 # ---------------------------------------------------------------------------
 # Email delivery
 # ---------------------------------------------------------------------------
 
-@shared_task(bind=True, max_retries=3, default_retry_delay=60)
-def send_invoice_email(self, invoice_id: int):
+def send_invoice_email(invoice_id: int):
     """Email the invoice PDF to the client."""
     try:
         from apps.transactions.models import Invoice
@@ -205,7 +196,6 @@ def send_invoice_email(self, invoice_id: int):
             "user",
         ).get(pk=invoice_id)
 
-        # Recipient logic: check user profile first, then fallback to transaction client
         if invoice.user:
             client_email = invoice.user.email
             client_name = invoice.user.full_name
@@ -232,7 +222,6 @@ def send_invoice_email(self, invoice_id: int):
         )
         msg.content_subtype = "html"
 
-        # Attach PDF if available; send without attachment if still generating
         if invoice.pdf:
             try:
                 pdf_data = urllib.request.urlopen(invoice.pdf).read()
@@ -243,16 +232,16 @@ def send_invoice_email(self, invoice_id: int):
         msg.send()
         return f"Invoice emailed to {client_email}"
 
-    except Exception as exc:
-        raise self.retry(exc=exc)
+    except Exception:
+        logger.exception("send_invoice_email failed for invoice %s", invoice_id)
+        raise
 
 
 # ---------------------------------------------------------------------------
 # Careers / Job Applications
 # ---------------------------------------------------------------------------
 
-@shared_task(bind=True, max_retries=3, default_retry_delay=60)
-def send_job_application_notification(self, application_id: int):
+def send_job_application_notification(application_id: int):
     """
     1. Send confirmation email to the applicant.
     2. Send an alert with full details to careers@ and all active managers.
@@ -264,7 +253,6 @@ def send_job_application_notification(self, application_id: int):
         app = JobApplication.objects.get(pk=application_id)
         from_header, connection = _get_email_sender()
 
-        # 1. Confirmation to applicant
         confirmation_body = render_to_string(
             "notifications/job_application_confirmation.html", {"app": app}
         )
@@ -278,7 +266,6 @@ def send_job_application_notification(self, application_id: int):
         msg_confirm.content_subtype = "html"
         msg_confirm.send()
 
-        # 2. Alert to hiring team (active managers + careers@ inbox)
         manager_emails = list(
             CustomUser.objects.filter(role=Role.MANAGER, is_active=True)
             .values_list("email", flat=True)
@@ -300,12 +287,12 @@ def send_job_application_notification(self, application_id: int):
 
         return f"Job application notifications sent for application {application_id}"
 
-    except Exception as exc:
-        raise self.retry(exc=exc)
+    except Exception:
+        logger.exception("send_job_application_notification failed for application %s", application_id)
+        raise
 
 
-@shared_task(bind=True, max_retries=3, default_retry_delay=60)
-def send_job_rejection_email(self, application_id: int):
+def send_job_rejection_email(application_id: int):
     """Send a polite rejection email to an applicant."""
     try:
         from apps.careers.models import JobApplication
@@ -328,8 +315,10 @@ def send_job_rejection_email(self, application_id: int):
         msg.send()
         return f"Rejection email sent to {app.email}"
 
-    except Exception as exc:
-        raise self.retry(exc=exc)
+    except Exception:
+        logger.exception("send_job_rejection_email failed for application %s", application_id)
+        raise
+
 
 def _payment_recipient(payment):
     """
@@ -351,8 +340,7 @@ def _payment_recipient(payment):
     return None
 
 
-@shared_task(bind=True, max_retries=3, default_retry_delay=60)
-def send_payment_submitted_email(self, payment_id: int):
+def send_payment_submitted_email(payment_id: int):
     """Notify the user that their payment proof was received."""
     try:
         from apps.transactions.models import Payment
@@ -381,12 +369,13 @@ def send_payment_submitted_email(self, payment_id: int):
         msg.content_subtype = "html"
         msg.send()
         return f"Payment confirmation sent to {recipient_email}"
-    except Exception as exc:
-        raise self.retry(exc=exc)
+
+    except Exception:
+        logger.exception("send_payment_submitted_email failed for payment %s", payment_id)
+        raise
 
 
-@shared_task(bind=True, max_retries=3, default_retry_delay=60)
-def send_payment_verified_email(self, payment_id: int):
+def send_payment_verified_email(payment_id: int):
     """Notify the user that their payment has been verified."""
     try:
         from apps.transactions.models import Payment
@@ -415,12 +404,13 @@ def send_payment_verified_email(self, payment_id: int):
         msg.content_subtype = "html"
         msg.send()
         return f"Payment verification sent to {recipient_email}"
-    except Exception as exc:
-        raise self.retry(exc=exc)
+
+    except Exception:
+        logger.exception("send_payment_verified_email failed for payment %s", payment_id)
+        raise
 
 
-@shared_task(bind=True, max_retries=3, default_retry_delay=60)
-def send_payment_rejected_email(self, payment_id: int):
+def send_payment_rejected_email(payment_id: int):
     """Notify the user that their payment proof was rejected."""
     try:
         from apps.transactions.models import Payment
@@ -449,16 +439,17 @@ def send_payment_rejected_email(self, payment_id: int):
         msg.content_subtype = "html"
         msg.send()
         return f"Payment rejection notice sent to {recipient_email}"
-    except Exception as exc:
-        raise self.retry(exc=exc)
+
+    except Exception:
+        logger.exception("send_payment_rejected_email failed for payment %s", payment_id)
+        raise
 
 
 # ---------------------------------------------------------------------------
 # Viewing reminders
 # ---------------------------------------------------------------------------
 
-@shared_task(bind=True, max_retries=3, default_retry_delay=60)
-def send_viewing_reminder(self, viewing_id: int):
+def send_viewing_reminder(viewing_id: int):
     """Send a 24h-before reminder to the lead (and the agent)."""
     try:
         from apps.scheduler.models import Viewing
@@ -482,19 +473,19 @@ def send_viewing_reminder(self, viewing_id: int):
         Viewing.objects.filter(pk=viewing_id).update(reminder_sent=True)
         return f"Reminder sent for viewing #{viewing_id}"
 
-    except Exception as exc:
-        raise self.retry(exc=exc)
+    except Exception:
+        logger.exception("send_viewing_reminder failed for viewing %s", viewing_id)
+        raise
 
 
 # ---------------------------------------------------------------------------
-# Scheduled (Celery Beat) tasks
+# Scheduled tasks — wire up as cPanel cron jobs if needed
 # ---------------------------------------------------------------------------
 
-@shared_task
 def weekly_lead_followup():
     """
-    Runs every Monday via Celery Beat.
     Reminds agents of any leads they haven't contacted in 7+ days.
+    Run via cPanel cron: every Monday at 8 AM.
     """
     from django.utils import timezone
     from datetime import timedelta
@@ -512,7 +503,6 @@ def weekly_lead_followup():
         .select_related("assigned_agent")
     )
 
-    # Group by agent
     agent_leads: dict = {}
     for lead in stale_leads:
         agent = lead.assigned_agent
@@ -536,11 +526,10 @@ def weekly_lead_followup():
     return f"Weekly follow-up sent for {len(agent_leads)} agents, {stale_leads.count()} leads."
 
 
-@shared_task
 def schedule_viewing_reminders():
     """
-    Runs hourly via Celery Beat.
     Queues send_viewing_reminder for viewings starting in 20–26 hours.
+    Run via cPanel cron: every hour.
     """
     from django.utils import timezone
     from datetime import timedelta
@@ -557,17 +546,16 @@ def schedule_viewing_reminders():
     )
 
     for viewing in viewings:
-        send_viewing_reminder.delay(viewing.pk)
+        send_viewing_reminder(viewing.pk)
 
-    return f"Queued reminders for {viewings.count()} viewings."
+    return f"Sent reminders for {viewings.count()} viewings."
 
 
 # ---------------------------------------------------------------------------
 # Tenant communication emails (admin-triggered)
 # ---------------------------------------------------------------------------
 
-@shared_task(bind=True, max_retries=3, default_retry_delay=60)
-def send_lead_acknowledgment_email(self, lead_id: int):
+def send_lead_acknowledgment_email(lead_id: int):
     """Send a branded inquiry acknowledgment email to the prospective tenant."""
     try:
         from apps.crm.models import Lead
@@ -680,28 +668,14 @@ def send_lead_acknowledgment_email(self, lead_id: int):
         msg.content_subtype = "html"
         msg.send()
 
-        # Chain the 3-email drip sequence (only if lead hasn't opted out)
-        if not lead.drip_opted_out:
-            from datetime import timedelta
-            from django.utils import timezone
-            send_drip_similar_properties.apply_async(
-                args=[lead.pk], eta=timezone.now() + timedelta(days=2)
-            )
-            send_drip_urgency_email.apply_async(
-                args=[lead.pk], eta=timezone.now() + timedelta(days=5)
-            )
-            send_drip_final_nudge.apply_async(
-                args=[lead.pk], eta=timezone.now() + timedelta(days=8)
-            )
-
         return f"Acknowledgment email sent to {lead.email}"
 
-    except Exception as exc:
-        raise self.retry(exc=exc)
+    except Exception:
+        logger.exception("send_lead_acknowledgment_email failed for lead %s", lead_id)
+        raise
 
 
-@shared_task(bind=True, max_retries=3, default_retry_delay=60)
-def send_application_approved_email(self, application_id: int):
+def send_application_approved_email(application_id: int):
     """Send branded approval email with legitimate next steps to the applicant."""
     try:
         from apps.crm.models import RentalApplication
@@ -731,12 +705,12 @@ def send_application_approved_email(self, application_id: int):
         msg.send()
         return f"Approval email sent to {app.email}"
 
-    except Exception as exc:
-        raise self.retry(exc=exc)
+    except Exception:
+        logger.exception("send_application_approved_email failed for application %s", application_id)
+        raise
 
 
-@shared_task(bind=True, max_retries=3, default_retry_delay=60)
-def send_application_rejected_email(self, application_id: int):
+def send_application_rejected_email(application_id: int):
     """Send polite rejection email with link to other listings."""
     try:
         from apps.crm.models import RentalApplication
@@ -761,12 +735,12 @@ def send_application_rejected_email(self, application_id: int):
         msg.send()
         return f"Rejection email sent to {app.email}"
 
-    except Exception as exc:
-        raise self.retry(exc=exc)
+    except Exception:
+        logger.exception("send_application_rejected_email failed for application %s", application_id)
+        raise
 
 
-@shared_task(bind=True, max_retries=3, default_retry_delay=60)
-def send_move_in_instructions_email(self, application_id: int):
+def send_move_in_instructions_email(application_id: int):
     """Send move-in instructions email with in-person key handover details."""
     try:
         from apps.crm.models import RentalApplication
@@ -794,16 +768,12 @@ def send_move_in_instructions_email(self, application_id: int):
         msg.send()
         return f"Move-in instructions sent to {app.email}"
 
-    except Exception as exc:
-        raise self.retry(exc=exc)
+    except Exception:
+        logger.exception("send_move_in_instructions_email failed for application %s", application_id)
+        raise
 
 
-# ---------------------------------------------------------------------------
-# Rental Application emails / PDF
-
-
-@shared_task(bind=True, max_retries=3, default_retry_delay=60)
-def send_application_under_review_email(self, application_id: int):
+def send_application_under_review_email(application_id: int):
     """Notify the applicant that their application is now being actively reviewed."""
     try:
         from apps.crm.models import RentalApplication
@@ -828,17 +798,13 @@ def send_application_under_review_email(self, application_id: int):
         msg.send()
         return f"Under-review email sent to {app.email}"
 
-    except Exception as exc:
-        raise self.retry(exc=exc)
+    except Exception:
+        logger.exception("send_application_under_review_email failed for application %s", application_id)
+        raise
 
-@shared_task(bind=True, max_retries=3, default_retry_delay=60)
-def send_application_submitted_email(self, application_id: int):
-    """
-    Send an immediate HTML confirmation to the applicant when their application
-    is received. Fires directly from perform_create — does NOT depend on PDF
-    generation, so the applicant always gets a confirmation even if Celery or
-    WeasyPrint is misconfigured.
-    """
+
+def send_application_submitted_email(application_id: int):
+    """Send an immediate HTML confirmation to the applicant when their application is received."""
     try:
         from apps.crm.models import RentalApplication
 
@@ -862,16 +828,13 @@ def send_application_submitted_email(self, application_id: int):
         msg.send()
         return f"Application confirmation sent to {app.email}"
 
-    except Exception as exc:
-        raise self.retry(exc=exc)
+    except Exception:
+        logger.exception("send_application_submitted_email failed for application %s", application_id)
+        raise
 
 
-@shared_task(bind=True, max_retries=3, default_retry_delay=120)
-def generate_rental_application_pdf(self, application_id: int):
-    """
-    Render rental application → WeasyPrint PDF → Cloudinary → email applicant + agent.
-    Fails silently if WeasyPrint or Cloudinary are not fully configured in dev.
-    """
+def generate_rental_application_pdf(application_id: int):
+    """Render rental application → WeasyPrint PDF → Cloudinary → email applicant + agent."""
     try:
         import tempfile
         import os
@@ -908,8 +871,9 @@ def generate_rental_application_pdf(self, application_id: int):
         _send_rental_application_emails(app, result["secure_url"])
         return f"Rental application PDF generated: {result['secure_url']}"
 
-    except Exception as exc:
-        raise self.retry(exc=exc)
+    except Exception:
+        logger.exception("generate_rental_application_pdf failed for application %s", application_id)
+        raise
 
 
 def _send_rental_application_emails(app, pdf_url: str):
@@ -922,11 +886,9 @@ def _send_rental_application_emails(app, pdf_url: str):
 
     from_header, connection = _get_email_sender()
 
-    # Determine agent recipients
     if app.rental_property and app.rental_property.agent:
         agent_recipients = [app.rental_property.agent.email]
     else:
-        # Fall back to notifying all active managers
         from apps.accounts.models import CustomUser, Role
         agent_recipients = list(
             CustomUser.objects.filter(role=Role.MANAGER, is_active=True).values_list("email", flat=True)
@@ -963,7 +925,7 @@ def _resolve_lead_city(lead) -> str:
 
 
 def _build_property_image_urls(prop, count: int = 1) -> list:
-    """Pre-build Cloudinary image URLs for a property, same pattern as acknowledgment email."""
+    """Pre-build Cloudinary image URLs for a property."""
     urls = []
     try:
         for img in prop.images.all()[:count]:
@@ -994,11 +956,10 @@ def _similar_properties(exclude_pk, city, listing_type, price, count: int = 3):
 
 
 # ---------------------------------------------------------------------------
-# Drip sequence — chained off send_lead_acknowledgment_email
+# Drip sequence
 # ---------------------------------------------------------------------------
 
-@shared_task(bind=True, max_retries=2, default_retry_delay=300)
-def send_drip_similar_properties(self, lead_id: int):
+def send_drip_similar_properties(lead_id: int):
     """Day-2 drip: show 3 similar homes in the lead's city."""
     try:
         from apps.crm.models import Lead
@@ -1047,12 +1008,13 @@ def send_drip_similar_properties(self, lead_id: int):
         msg.content_subtype = "html"
         msg.send()
         return f"Drip day-2 sent to {lead.email}"
-    except Exception as exc:
-        raise self.retry(exc=exc)
+
+    except Exception:
+        logger.exception("send_drip_similar_properties failed for lead %s", lead_id)
+        raise
 
 
-@shared_task(bind=True, max_retries=2, default_retry_delay=300)
-def send_drip_urgency_email(self, lead_id: int):
+def send_drip_urgency_email(lead_id: int):
     """Day-5 drip: urgency email with live inquiry count."""
     try:
         from apps.crm.models import Lead
@@ -1069,7 +1031,6 @@ def send_drip_urgency_email(self, lead_id: int):
         city = _resolve_lead_city(lead)
         prop = lead.property_interest
 
-        # Count recent inquiries on this property (social proof)
         inquiry_count = 0
         if prop:
             inquiry_count = Lead.objects.filter(
@@ -1107,12 +1068,13 @@ def send_drip_urgency_email(self, lead_id: int):
         msg.content_subtype = "html"
         msg.send()
         return f"Drip day-5 (urgency) sent to {lead.email}"
-    except Exception as exc:
-        raise self.retry(exc=exc)
+
+    except Exception:
+        logger.exception("send_drip_urgency_email failed for lead %s", lead_id)
+        raise
 
 
-@shared_task(bind=True, max_retries=2, default_retry_delay=300)
-def send_drip_final_nudge(self, lead_id: int):
+def send_drip_final_nudge(lead_id: int):
     """Day-8 drip: final personal nudge — skips if lead already applied."""
     try:
         from apps.crm.models import Lead, RentalApplication
@@ -1124,7 +1086,6 @@ def send_drip_final_nudge(self, lead_id: int):
         if lead.drip_opted_out:
             return "Drip opted out"
 
-        # Skip if they already submitted any application
         if RentalApplication.objects.filter(email=lead.email).exists():
             return "Lead already applied — final nudge skipped"
 
@@ -1159,15 +1120,16 @@ def send_drip_final_nudge(self, lead_id: int):
         msg.content_subtype = "html"
         msg.send()
         return f"Drip day-8 (final nudge) sent to {lead.email}"
-    except Exception as exc:
-        raise self.retry(exc=exc)
+
+    except Exception:
+        logger.exception("send_drip_final_nudge failed for lead %s", lead_id)
+        raise
 
 
 # ---------------------------------------------------------------------------
-# Abandoned application recovery (Celery Beat — every 6 hours)
+# Abandoned application recovery — run via cPanel cron every 6 hours
 # ---------------------------------------------------------------------------
 
-@shared_task
 def recover_abandoned_applications():
     """Find DRAFT/PENDING_PAYMENT applications older than 48h and send a recovery email."""
     from apps.crm.models import RentalApplication, ApplicationStatus
@@ -1183,20 +1145,18 @@ def recover_abandoned_applications():
 
     count = 0
     for app in apps:
-        send_abandoned_application_email.delay(app.pk)
+        send_abandoned_application_email(app.pk)
         count += 1
-    return f"Queued recovery emails for {count} abandoned applications."
+    return f"Sent recovery emails for {count} abandoned applications."
 
 
-@shared_task(bind=True, max_retries=2, default_retry_delay=300)
-def send_abandoned_application_email(self, application_id: int):
+def send_abandoned_application_email(application_id: int):
     """Send a single warm reminder to an applicant who left their form unfinished."""
     try:
         from apps.crm.models import RentalApplication
 
         app = RentalApplication.objects.select_related("rental_property").get(pk=application_id)
 
-        # Guard: only send once and only for stale incomplete apps
         if app.recovery_email_sent:
             return "Already sent"
 
@@ -1233,16 +1193,17 @@ def send_abandoned_application_email(self, application_id: int):
         app.recovery_email_sent = True
         app.save(update_fields=["recovery_email_sent"])
         return f"Recovery email sent to {app.email}"
-    except Exception as exc:
-        raise self.retry(exc=exc)
+
+    except Exception:
+        logger.exception("send_abandoned_application_email failed for application %s", application_id)
+        raise
 
 
 # ---------------------------------------------------------------------------
-# Post-viewing follow-up (scheduled 2h after mark_completed in admin)
+# Post-viewing follow-up
 # ---------------------------------------------------------------------------
 
-@shared_task(bind=True, max_retries=2, default_retry_delay=300)
-def send_post_viewing_followup(self, viewing_id: int):
+def send_post_viewing_followup(viewing_id: int):
     """2-hour follow-up after a viewing: thank you + similar homes + Apply CTA."""
     try:
         from apps.scheduler.models import Viewing
@@ -1302,5 +1263,7 @@ def send_post_viewing_followup(self, viewing_id: int):
         msg.content_subtype = "html"
         msg.send()
         return f"Post-viewing follow-up sent to {lead.email}"
-    except Exception as exc:
-        raise self.retry(exc=exc)
+
+    except Exception:
+        logger.exception("send_post_viewing_followup failed for viewing %s", viewing_id)
+        raise

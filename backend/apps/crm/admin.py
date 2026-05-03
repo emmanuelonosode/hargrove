@@ -134,7 +134,7 @@ class LeadAdmin(ModelAdmin):
         failed = 0
         for lead in queryset:
             try:
-                send_lead_acknowledgment_email.delay(lead.pk)
+                send_lead_acknowledgment_email(lead.pk)
                 queued += 1
             except Exception as e:
                 logger.error("Failed to queue acknowledgment email for lead %s: %s", lead.pk, e)
@@ -257,7 +257,7 @@ class RentalApplicationAdmin(ModelAdmin):
             app.save()
             try:
                 from apps.notifications.tasks import send_application_under_review_email
-                send_application_under_review_email.delay(app.pk)
+                send_application_under_review_email(app.pk)
             except Exception:
                 pass
             count += 1
@@ -271,7 +271,7 @@ class RentalApplicationAdmin(ModelAdmin):
             app.save()
             try:
                 from apps.notifications.tasks import send_application_approved_email
-                send_application_approved_email.delay(app.pk)
+                send_application_approved_email(app.pk)
             except Exception:
                 pass
             count += 1
@@ -285,7 +285,7 @@ class RentalApplicationAdmin(ModelAdmin):
             app.save()
             try:
                 from apps.notifications.tasks import send_application_rejected_email
-                send_application_rejected_email.delay(app.pk)
+                send_application_rejected_email(app.pk)
             except Exception:
                 pass
             count += 1
@@ -297,7 +297,7 @@ class RentalApplicationAdmin(ModelAdmin):
         count = 0
         for app in queryset:
             try:
-                generate_rental_application_pdf.delay(app.id)
+                generate_rental_application_pdf(app.id)
             except Exception:
                 generate_rental_application_pdf(app.id)
             count += 1
@@ -309,7 +309,7 @@ class RentalApplicationAdmin(ModelAdmin):
         count = 0
         for app in queryset:
             try:
-                send_application_approved_email.delay(app.pk)
+                send_application_approved_email(app.pk)
             except Exception:
                 send_application_approved_email(app.pk)
             count += 1
@@ -321,7 +321,7 @@ class RentalApplicationAdmin(ModelAdmin):
         count = 0
         for app in queryset:
             try:
-                send_application_rejected_email.delay(app.pk)
+                send_application_rejected_email(app.pk)
             except Exception:
                 send_application_rejected_email(app.pk)
             count += 1
@@ -333,7 +333,7 @@ class RentalApplicationAdmin(ModelAdmin):
         count = 0
         for app in queryset:
             try:
-                send_move_in_instructions_email.delay(app.pk)
+                send_move_in_instructions_email(app.pk)
             except Exception:
                 send_move_in_instructions_email(app.pk)
             count += 1
@@ -347,7 +347,7 @@ class RentalApplicationAdmin(ModelAdmin):
             app.recovery_email_sent = False
             app.save(update_fields=["recovery_email_sent"])
             try:
-                send_abandoned_application_email.delay(app.pk)
+                send_abandoned_application_email(app.pk)
             except Exception:
                 send_abandoned_application_email(app.pk)
             count += 1

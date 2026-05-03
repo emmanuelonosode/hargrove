@@ -77,7 +77,7 @@ class PaymentListCreateView(generics.ListCreateAPIView):
         if payment.status == "SUCCESSFUL":
             try:
                 from apps.notifications.tasks import generate_payment_receipt
-                generate_payment_receipt.delay(payment.id)
+                generate_payment_receipt(payment.id)
             except Exception:
                 pass
 
@@ -96,7 +96,7 @@ class InvoiceListCreateView(generics.ListCreateAPIView):
 
         try:
             from apps.notifications.tasks import generate_invoice_pdf
-            generate_invoice_pdf.delay(invoice.id)
+            generate_invoice_pdf(invoice.id)
         except Exception:
             pass
 
@@ -117,7 +117,7 @@ def send_invoice(request, transaction_pk, invoice_pk):
 
     try:
         from apps.notifications.tasks import send_invoice_email
-        send_invoice_email.delay(invoice.id)
+        send_invoice_email(invoice.id)
     except Exception as e:
         return Response({"detail": f"Failed to queue email: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 

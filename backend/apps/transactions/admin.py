@@ -327,9 +327,9 @@ class InvoiceAdmin(ModelAdmin):
         count = 0
         for invoice in queryset:
             try:
-                generate_invoice_pdf.delay(invoice.pk)
-            except Exception:
                 generate_invoice_pdf(invoice.pk)
+            except Exception:
+                pass
             count += 1
         self.message_user(
             request,
@@ -343,9 +343,9 @@ class InvoiceAdmin(ModelAdmin):
         for invoice in queryset:
             if invoice.pdf:
                 try:
-                    send_invoice_email.delay(invoice.pk)
-                except Exception:
                     send_invoice_email(invoice.pk)
+                except Exception:
+                    pass
                 sent += 1
             else:
                 skipped += 1

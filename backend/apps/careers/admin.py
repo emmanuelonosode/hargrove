@@ -82,7 +82,7 @@ class JobApplicationAdmin(ModelAdmin):
             from apps.notifications.tasks import send_job_rejection_email
             count = 0
             for app in queryset:
-                send_job_rejection_email.delay(app.pk)
+                send_job_rejection_email(app.pk)
                 count += 1
             self.message_user(request, f"Rejection email queued for {count} applicant(s).")
         except Exception as e:

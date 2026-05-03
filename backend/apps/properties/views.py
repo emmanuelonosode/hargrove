@@ -205,7 +205,7 @@ def property_inquiry(request, slug):
 
     # Async: notify the listing agent
     from apps.notifications.tasks import send_lead_notification
-    send_lead_notification.delay(lead.id)
+    send_lead_notification(lead.id)
 
     return Response({"message": "Inquiry received. An advisor will contact you within 24 hours."}, status=status.HTTP_201_CREATED)
 
@@ -231,7 +231,7 @@ def agent_inquiry(request, agent_id):
     lead = serializer.save()
 
     from apps.notifications.tasks import send_lead_notification
-    send_lead_notification.delay(lead.id)
+    send_lead_notification(lead.id)
 
     return Response({"message": "Message sent. The advisor will be in touch shortly."}, status=status.HTTP_201_CREATED)
 

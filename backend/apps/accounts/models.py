@@ -110,11 +110,9 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         self.email_verification_expires = timezone.now() + timedelta(minutes=15)
         self.save(update_fields=['email_verification_code', 'email_verification_expires'])
 
-        # Try Celery async first; fall back to sync send if Celery/Redis is unavailable
-        # (shared hosting does not keep Celery workers alive).
         try:
             from apps.notifications.tasks import send_verification_email
-            send_verification_email.delay(self.id)
+            send_verification_email(self.id)
         except Exception:
             self._send_verification_email_sync()
 

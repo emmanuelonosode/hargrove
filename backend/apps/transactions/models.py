@@ -230,17 +230,10 @@ class Invoice(models.Model):
 # ── Signals ───────────────────────────────────────────────────────────────────
 
 def _send(task_fn, pk):
-    """
-    Try to dispatch via Celery; fall back to running synchronously if the
-    broker is unavailable (e.g. no Redis in development or on the server).
-    """
     try:
-        task_fn.delay(pk)
+        task_fn(pk)
     except Exception:
-        try:
-            task_fn.apply(args=(pk,))
-        except Exception:
-            pass
+        pass
 
 
 @receiver(pre_save, sender=Payment)

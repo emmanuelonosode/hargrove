@@ -16,7 +16,7 @@ class JobApplicationCreateView(generics.CreateAPIView):
         application = serializer.save()
         try:
             from apps.notifications.tasks import send_job_application_notification
-            send_job_application_notification.delay(application.pk)
+            send_job_application_notification(application.pk)
         except Exception:
             pass  # never let email failure block a successful submission
 
