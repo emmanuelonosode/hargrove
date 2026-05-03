@@ -1,10 +1,17 @@
+import importlib.machinery
+import importlib.util
 import os
 import sys
 
-# Add backend directory to Python path yes
+
 sys.path.insert(0, os.path.dirname(__file__))
 
-os.environ["DJANGO_SETTINGS_MODULE"] = "config.settings.production"
+def load_source(modname, filename):
+    loader = importlib.machinery.SourceFileLoader(modname, filename)
+    spec = importlib.util.spec_from_file_location(modname, filename, loader=loader)
+    module = importlib.util.module_from_spec(spec)
+    loader.exec_module(module)
+    return module
 
-from django.core.wsgi import get_wsgi_application
-application = get_wsgi_application()
+wsgi = load_source('wsgi', 'passenger_wsgi.py')
+application = wsgi.application
