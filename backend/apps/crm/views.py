@@ -1,3 +1,5 @@
+import logging
+
 from django.utils import timezone
 from rest_framework import generics, permissions, status
 from rest_framework.decorators import api_view, permission_classes
@@ -6,6 +8,8 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 
 from apps.accounts.permissions import IsAgentOrAbove, IsManagerOrAbove
+
+logger = logging.getLogger(__name__)
 from .models import Lead, LeadActivity, Client, LeadStatus, RentalApplication
 from .serializers import (
     LeadCreateSerializer, LeadListSerializer, LeadDetailSerializer,
@@ -72,14 +76,14 @@ class LeadListCreateView(generics.ListCreateAPIView):
         try:
             from apps.notifications.tasks import send_lead_notification
             send_lead_notification.delay(lead.id)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.error("Failed to queue send_lead_notification for lead %s: %s", lead.id, e)
         # Send acknowledgment email to the prospective tenant
         try:
             from apps.notifications.tasks import send_lead_acknowledgment_email
             send_lead_acknowledgment_email.delay(lead.id)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.error("Failed to queue send_lead_acknowledgment_email for lead %s: %s", lead.id, e)
 
 
 class LeadDetailView(generics.RetrieveUpdateAPIView):

@@ -1,8 +1,12 @@
+import logging
+
 from django.contrib import admin
 from django.utils.html import format_html
 from django.utils import timezone
 from unfold.admin import ModelAdmin, TabularInline
 from .models import Lead, LeadActivity, Client, LeadStatus, RentalApplication, ApplicationStatus
+
+logger = logging.getLogger(__name__)
 
 
 class LeadActivityInline(TabularInline):
@@ -36,11 +40,14 @@ class RentalApplicationInline(TabularInline):
 class LeadAdmin(ModelAdmin):
     list_display = [
         "full_name", "email", "phone",
-        "source", "interest_type", "status_badge", "score_badge",
-        "detected_city", "assigned_agent", "created_at",
+        "interest_type", "budget_display", "preferred_location",
+        "property_interest", "source", "status_badge", "score_badge",
+        "assigned_agent", "last_contacted_at", "created_at",
     ]
-    list_filter = ["status", "source", "interest_type", "assigned_agent"]
-    search_fields = ["full_name", "email", "phone", "preferred_location"]
+    list_display_links = ["full_name", "email"]
+    list_filter = ["status", "source", "interest_type", "assigned_agent", "drip_opted_out"]
+    search_fields = ["full_name", "email", "phone", "preferred_location", "message",
+                     "property_interest__title", "utm_source", "utm_campaign"]
     ordering = ["-created_at"]
     date_hierarchy = "created_at"
     inlines = [LeadActivityInline, RentalApplicationInline]
@@ -67,6 +74,16 @@ class LeadAdmin(ModelAdmin):
         }),
     )
     readonly_fields = ["created_at", "updated_at"]
+
+    def budget_display(self, obj):
+        if obj.budget_min and obj.budget_max:
+            return f"${int(obj.budget_min):,} – ${int(obj.budget_max):,}"
+        if obj.budget_min:
+            return f"${int(obj.budget_min):,}+"
+        if obj.budget_max:
+            return f"up to ${int(obj.budget_max):,}"
+        return "—"
+    budget_display.short_description = "Budget"
 
     def score_badge(self, obj):
         s = obj.lead_score
@@ -111,16 +128,25 @@ class LeadAdmin(ModelAdmin):
 
     @admin.action(description="Send Inquiry Acknowledgment Email")
     def send_acknowledgment_email(self, request, queryset):
+        from django.contrib import messages
         from apps.notifications.tasks import send_lead_acknowledgment_email
-        count = 0
+        queued = 0
+        failed = 0
         for lead in queryset:
             try:
                 send_lead_acknowledgment_email.delay(lead.pk)
-            except Exception:
-                # Celery/Redis unavailable — send synchronously
-                send_lead_acknowledgment_email(lead.pk)
-            count += 1
-        self.message_user(request, f"Acknowledgment email sent for {count} lead(s).")
+                queued += 1
+            except Exception as e:
+                logger.error("Failed to queue acknowledgment email for lead %s: %s", lead.pk, e)
+                failed += 1
+        if queued:
+            self.message_user(request, f"Acknowledgment email queued for {queued} lead(s).")
+        if failed:
+            self.message_user(
+                request,
+                f"{failed} email(s) could not be queued — check that Celery is running.",
+                level=messages.ERROR,
+            )
 
 
 @admin.register(LeadActivity)

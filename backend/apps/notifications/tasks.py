@@ -571,6 +571,7 @@ def send_lead_acknowledgment_email(self, lead_id: int):
     """Send a branded inquiry acknowledgment email to the prospective tenant."""
     try:
         from apps.crm.models import Lead
+        from apps.properties.models import Property
 
         lead = Lead.objects.select_related(
             "assigned_agent",
@@ -578,9 +579,78 @@ def send_lead_acknowledgment_email(self, lead_id: int):
             "property_interest__agent",
         ).prefetch_related(
             "property_interest__images",
+            "property_interest__amenities__category",
         ).get(pk=lead_id)
 
         prop = lead.property_interest
+
+        # ── Main property images ───────────────────────────────────────────────
+        prop_images = []
+        prop_price_formatted = ""
+        if prop:
+            prop_price_formatted = f"{int(prop.price):,}" if prop.price else ""
+            for img in prop.images.all()[:7]:
+                try:
+                    prop_images.append(str(img.image.url))
+                except Exception:
+                    pass
+
+        # ── Amenities grouped by category ─────────────────────────────────────
+        prop_amenities_grouped = []
+        if prop:
+            cat_map = {}
+            for amenity in prop.amenities.select_related("category").all():
+                cat_name = amenity.category.name if amenity.category else "Features"
+                cat_map.setdefault(cat_name, []).append(amenity.name)
+            prop_amenities_grouped = [
+                {"category": cat, "amenities": items}
+                for cat, items in cat_map.items()
+            ]
+
+        # ── Nearby available properties (same city, same listing type) ─────────
+        nearby_props = []
+        search_city = None
+        if prop:
+            search_city = prop.city
+        elif lead.detected_city:
+            search_city = lead.detected_city
+        elif lead.preferred_location:
+            search_city = lead.preferred_location.split(",")[0].strip()
+
+        if search_city:
+            nearby_qs = Property.objects.filter(
+                city__icontains=search_city,
+                status="available",
+                is_published=True,
+            ).prefetch_related("images")
+            if prop:
+                nearby_qs = nearby_qs.exclude(pk=prop.pk).filter(listing_type=prop.listing_type)
+            elif lead.interest_type == "RENT":
+                nearby_qs = nearby_qs.filter(listing_type="for-rent")
+            for nearby in nearby_qs.order_by("-is_featured", "-created_at")[:3]:
+                nearby_img = None
+                first = nearby.images.first()
+                if first:
+                    try:
+                        nearby_img = str(first.image.url)
+                    except Exception:
+                        pass
+                nearby_props.append({
+                    "title": nearby.title,
+                    "slug": nearby.slug,
+                    "address": nearby.address,
+                    "city": nearby.city,
+                    "state": nearby.state,
+                    "price": f"{int(nearby.price):,}" if nearby.price else "",
+                    "price_label": nearby.price_label,
+                    "bedrooms": nearby.bedrooms,
+                    "bathrooms": nearby.bathrooms,
+                    "sqft": f"{nearby.sqft:,}" if nearby.sqft else "",
+                    "listing_type": nearby.listing_type,
+                    "neighborhood": nearby.neighborhood,
+                    "image": nearby_img,
+                })
+
         subject = (
             f"{prop.title} is Available — Hasker & Co. Realty Group"
             if prop else
@@ -589,27 +659,14 @@ def send_lead_acknowledgment_email(self, lead_id: int):
 
         from_header, connection = _get_email_sender()
 
-        # Pre-build image URLs in Python so the template never needs to call
-        # CloudinaryField methods — plain HTTPS strings are 100% reliable.
-        prop_images = []
-        prop_price_formatted = ""
-        if prop:
-            prop_price_formatted = f"{int(prop.price):,}" if prop.price else ""
-            for img in prop.images.all()[:7]:
-                try:
-                    raw = str(img.image.url)
-                    # Inject Cloudinary fill transformation for consistent sizing
-                    if "res.cloudinary.com" in raw and "/upload/" in raw:
-                        raw = raw.replace("/upload/", "/upload/c_fill,q_auto,f_jpg/")
-                    prop_images.append(raw)
-                except Exception:
-                    pass
-
         body = render_to_string("notifications/inquiry_acknowledgment.html", {
             "lead": lead,
             "prop": prop,
-            "prop_images": prop_images,           # plain URL strings
+            "prop_images": prop_images,
             "prop_price_formatted": prop_price_formatted,
+            "prop_amenities_grouped": prop_amenities_grouped,
+            "nearby_props": nearby_props,
+            "search_city": search_city,
             "frontend_url": settings.FRONTEND_URL,
         })
 
