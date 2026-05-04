@@ -80,6 +80,13 @@ function fmtDate(d: string) {
   return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
+function fmtCompact(v: number) {
+  if (v >= 1_000_000) return `$${(v / 1_000_000).toFixed(1)}M`;
+  if (v >= 10_000)    return `$${Math.round(v / 1_000)}K`;
+  if (v >= 1_000)     return `$${(v / 1_000).toFixed(1)}K`;
+  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(v);
+}
+
 // ── Inline SVG logos ──────────────────────────────────────────────────────────
 function VenmoLogo() {
   return (
@@ -375,7 +382,7 @@ function PaymentRow({ payment: pay }: { payment: Payment }) {
         </div>
         <p className="text-[11px] text-[#6E6E73]">{fmtDate(pay.created_at)}</p>
       </div>
-      <p className={cn("text-[15px] font-bold shrink-0", isVerified ? "text-[#34C759]" : "text-[#1D1D1F]")}>
+      <p className={cn("text-[13px] sm:text-[15px] font-bold tabular-nums shrink-0", isVerified ? "text-[#34C759]" : "text-[#1D1D1F]")}>
         {fmt(pay.amount)}
       </p>
     </div>
@@ -423,14 +430,14 @@ function InvoiceCard({
                 {invoice.title || invoice.property_title || "Invoice"}
               </p>
             </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <div className="text-right">
-                <p className="text-[15px] font-bold text-[#1D1D1F]">{fmt(invoice.total)}</p>
-                <p className="text-[10px] text-[#6E6E73]">due {fmtDate(invoice.due_date)}</p>
+            <div className="flex items-center gap-1.5 shrink-0 max-w-[42%] sm:max-w-none">
+              <div className="text-right min-w-0">
+                <p className="text-[13px] sm:text-[15px] font-bold text-[#1D1D1F] tabular-nums">{fmt(invoice.total)}</p>
+                <p className="text-[10px] text-[#6E6E73] whitespace-nowrap">due {fmtDate(invoice.due_date)}</p>
               </div>
               <ChevronDown
                 size={14}
-                className={cn("text-[#C7C7CC] transition-transform duration-200", expanded && "rotate-180")}
+                className={cn("text-[#C7C7CC] transition-transform duration-200 shrink-0", expanded && "rotate-180")}
                 strokeWidth={2.5}
               />
             </div>
@@ -460,8 +467,8 @@ function InvoiceCard({
               </div>
 
               {invoice.line_items?.length > 0 && (
-                <div className="rounded-xl bg-[#F5F5F7] overflow-hidden mb-4">
-                  <table className="w-full text-[13px]">
+                <div className="rounded-xl bg-[#F5F5F7] overflow-hidden mb-4 overflow-x-auto">
+                  <table className="w-full text-[13px] min-w-[280px]">
                     <thead>
                       <tr className="border-b border-black/[0.06]">
                         <th className="text-left px-4 py-2.5 text-[10px] font-bold text-[#6E6E73] uppercase tracking-wide">Description</th>
@@ -605,30 +612,30 @@ export default function PaymentsPage() {
 
         {/* Stats row — only shown when data exists */}
         {!loading && !loadError && hasData && (
-          <div className="grid grid-cols-3 gap-3">
-            <div className="bg-white rounded-2xl p-4 sm:p-5 shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
-              <p className="text-[10px] font-bold text-[#6E6E73] uppercase tracking-widest mb-2">Outstanding</p>
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
+            <div className="bg-white rounded-2xl p-3 sm:p-5 shadow-[0_2px_8px_rgba(0,0,0,0.06)] overflow-hidden">
+              <p className="text-[9px] sm:text-[10px] font-bold text-[#6E6E73] uppercase tracking-widest mb-1 sm:mb-2 truncate">Due</p>
               <p className={cn(
-                "text-[20px] sm:text-[22px] font-bold leading-tight",
+                "text-[17px] sm:text-[22px] font-bold leading-tight tabular-nums",
                 totalOutstanding > 0 ? "text-[#FF9F0A]" : "text-[#34C759]"
               )}>
-                {fmt(totalOutstanding)}
+                {fmtCompact(totalOutstanding)}
               </p>
-              <p className="text-[11px] text-[#6E6E73] mt-1 hidden sm:block">
-                {pending.length} invoice{pending.length !== 1 ? "s" : ""}
-              </p>
-            </div>
-            <div className="bg-white rounded-2xl p-4 sm:p-5 shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
-              <p className="text-[10px] font-bold text-[#6E6E73] uppercase tracking-widest mb-2">Paid</p>
-              <p className="text-[20px] sm:text-[22px] font-bold text-[#34C759] leading-tight">{fmt(totalPaid)}</p>
-              <p className="text-[11px] text-[#6E6E73] mt-1 hidden sm:block">
-                {paid.length} invoice{paid.length !== 1 ? "s" : ""}
+              <p className="text-[10px] text-[#6E6E73] mt-0.5 sm:mt-1">
+                {pending.length} inv.
               </p>
             </div>
-            <div className="bg-white rounded-2xl p-4 sm:p-5 shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
-              <p className="text-[10px] font-bold text-[#6E6E73] uppercase tracking-widest mb-2">Payments</p>
-              <p className="text-[20px] sm:text-[22px] font-bold text-[#1D1D1F] leading-tight">{payments.length}</p>
-              <p className="text-[11px] text-[#6E6E73] mt-1 hidden sm:block">submitted</p>
+            <div className="bg-white rounded-2xl p-3 sm:p-5 shadow-[0_2px_8px_rgba(0,0,0,0.06)] overflow-hidden">
+              <p className="text-[9px] sm:text-[10px] font-bold text-[#6E6E73] uppercase tracking-widest mb-1 sm:mb-2 truncate">Paid</p>
+              <p className="text-[17px] sm:text-[22px] font-bold text-[#34C759] leading-tight tabular-nums">{fmtCompact(totalPaid)}</p>
+              <p className="text-[10px] text-[#6E6E73] mt-0.5 sm:mt-1">
+                {paid.length} inv.
+              </p>
+            </div>
+            <div className="bg-white rounded-2xl p-3 sm:p-5 shadow-[0_2px_8px_rgba(0,0,0,0.06)] overflow-hidden">
+              <p className="text-[9px] sm:text-[10px] font-bold text-[#6E6E73] uppercase tracking-widest mb-1 sm:mb-2 truncate">Payments</p>
+              <p className="text-[17px] sm:text-[22px] font-bold text-[#1D1D1F] leading-tight tabular-nums">{payments.length}</p>
+              <p className="text-[10px] text-[#6E6E73] mt-0.5 sm:mt-1">submitted</p>
             </div>
           </div>
         )}
