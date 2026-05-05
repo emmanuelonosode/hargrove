@@ -188,7 +188,8 @@
       "PowerShell($lines = Get-Content 'C:\\\\Users\\\\emman\\\\.claude\\\\projects\\\\c--Users-emman-Desktop-Estate-hargrove\\\\e44cd30c-51a1-4eb0-81f9-129cc8081d54.jsonl' -Tail 50; foreach \\($line in $lines\\) { try { $obj = $line | ConvertFrom-Json; if \\($obj.message.role -eq 'assistant'\\) { $obj.message.content | ForEach-Object { if \\($_.type -eq 'text' -and $_.text.Length -gt 20\\) { Write-Host \"ASSISTANT: $\\($_.text.Substring\\(0, [Math]::Min\\(300, $_.text.Length\\)\\)\\)\" } } } elseif \\($obj.message.role -eq 'user'\\) { $obj.message.content | ForEach-Object { if \\($_.type -eq 'text'\\) { Write-Host \"USER: $\\($_.text.Substring\\(0, [Math]::Min\\(200, $_.text.Length\\)\\)\\)\" } } } } catch {} })",
       "Bash(Get-ChildItem -Recurse \"c:\\\\Users\\\\emman\\\\Desktop\\\\Estate\\\\hargrove\\\\frontend\\\\app\\\\portal\")",
       "Bash(Select-Object FullName, PSIsContainer)",
-      "Bash(Format-Table -AutoSize)"
+      "Bash(Format-Table -AutoSize)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\emman\\\\Desktop\\\\Estate\\\\hargrove\\\\backend\\\\apps\\\\transactions\\\\\" -Recurse)"
     ]
   }
 }

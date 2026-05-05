@@ -5,7 +5,7 @@ import Link from "next/link";
 import {
   FileText, CheckCircle, Clock, AlertCircle,
   ArrowLeft, Download, Mail, Building2, ChevronDown,
-  Camera, Shield, X, CreditCard,
+  Camera, Shield, X, CreditCard, Copy, Check,
 } from "lucide-react";
 import { apiFetch } from "@/lib/auth";
 import { cn } from "@/lib/utils";
@@ -56,6 +56,14 @@ interface PaymentConfig {
   display_name: string;
   handle: string;
   extra_instructions: string;
+  recipient_name: string;
+  bank_name: string;
+  account_type: string;
+  account_number: string;
+  routing_number: string;
+  swift_bic: string;
+  bank_address: string;
+  recipient_address: string;
 }
 
 const STATUS_CONFIG = {
@@ -137,13 +145,99 @@ const PAYMENT_LOGOS: Record<string, React.ReactNode> = {
 
 type ModalStep = "form" | "success";
 
+const EMPTY_BANK: Pick<PaymentConfig, "recipient_name"|"bank_name"|"account_type"|"account_number"|"routing_number"|"swift_bic"|"bank_address"|"recipient_address"> = {
+  recipient_name: "", bank_name: "", account_type: "", account_number: "",
+  routing_number: "", swift_bic: "", bank_address: "", recipient_address: "",
+};
+
 const FALLBACK_METHODS: PaymentConfig[] = [
-  { method: "VENMO",         display_name: "Venmo",    handle: "@HaskerRealty",                  extra_instructions: "" },
-  { method: "CASHAPP",       display_name: "Cash App", handle: "$HaskerRealty",                  extra_instructions: "" },
-  { method: "PAYPAL",        display_name: "PayPal",   handle: "payments@haskerrealtygroup.com", extra_instructions: "Use Friends & Family to avoid delays." },
-  { method: "CHIME",         display_name: "Chime",    handle: "@Hasker-Realty",                 extra_instructions: "" },
-  { method: "BANK_TRANSFER", display_name: "Zelle",    handle: "info@haskerrealtygroup.com",     extra_instructions: "" },
+  { method: "VENMO",         display_name: "Venmo",         handle: "@HaskerRealty",                  extra_instructions: "",                                            ...EMPTY_BANK },
+  { method: "CASHAPP",       display_name: "Cash App",      handle: "$HaskerRealty",                  extra_instructions: "",                                            ...EMPTY_BANK },
+  { method: "PAYPAL",        display_name: "PayPal",        handle: "payments@haskerrealtygroup.com", extra_instructions: "Use Friends & Family to avoid delays.",        ...EMPTY_BANK },
+  { method: "CHIME",         display_name: "Chime",         handle: "@Hasker-Realty",                 extra_instructions: "",                                            ...EMPTY_BANK },
+  { method: "BANK_TRANSFER", display_name: "Bank Transfer", handle: "info@haskerrealtygroup.com",     extra_instructions: "Contact us for full wire transfer details.",   ...EMPTY_BANK },
 ];
+
+// ── Bank Transfer Details Card ────────────────────────────────────────────────
+function CopyButton({ value }: { value: string }) {
+  const [copied, setCopied] = useState(false);
+  function copy() {
+    navigator.clipboard.writeText(value).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    });
+  }
+  return (
+    <button
+      type="button"
+      onClick={copy}
+      className="ml-2 shrink-0 p-1 rounded-md hover:bg-white/10 transition-colors"
+      aria-label="Copy"
+    >
+      {copied
+        ? <Check size={12} className="text-[#34C759]" />
+        : <Copy size={12} className="text-white/40 hover:text-white/70" />
+      }
+    </button>
+  );
+}
+
+function BankRow({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
+  if (!value) return null;
+  return (
+    <div className="flex items-start justify-between gap-3 py-2.5 border-b border-white/[0.07] last:border-0">
+      <p className="text-[11px] text-white/40 shrink-0 pt-0.5 w-28">{label}</p>
+      <div className="flex items-center justify-end flex-1 min-w-0">
+        <p className={cn("text-[13px] font-semibold text-right break-all", mono && "font-mono tracking-wide")}>{value}</p>
+        {mono && <CopyButton value={value} />}
+      </div>
+    </div>
+  );
+}
+
+function BankTransferCard({ config, invoice }: { config: PaymentConfig; invoice: Invoice }) {
+  return (
+    <div className="rounded-2xl overflow-hidden border border-black/[0.06]">
+      {/* Header */}
+      <div className="bg-[#0B1F3A] px-5 pt-4 pb-3 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl overflow-hidden shrink-0">{PAYMENT_LOGOS["BANK_TRANSFER"]}</div>
+          <div>
+            <p className="text-[13px] font-bold text-white leading-tight">{config.display_name}</p>
+            <p className="text-[10px] text-white/40 uppercase tracking-widest">Wire / Bank Transfer</p>
+          </div>
+        </div>
+        <div className="text-right shrink-0">
+          <p className="text-[10px] text-white/40 mb-0.5">Amount due</p>
+          <p className="text-[17px] font-bold text-white tabular-nums">{fmt(invoice.total)}</p>
+        </div>
+      </div>
+
+      {/* Bank detail rows */}
+      <div className="bg-[#111C2E] px-5">
+        <BankRow label="Recipient"    value={config.recipient_name} />
+        <BankRow label="Bank"         value={config.bank_name} />
+        <BankRow label="Account Type" value={config.account_type} />
+        <BankRow label="Account #"    value={config.account_number} mono />
+        <BankRow label="Routing #"    value={config.routing_number} mono />
+        {config.swift_bic     && <BankRow label="SWIFT / BIC"  value={config.swift_bic} mono />}
+        {config.bank_address  && <BankRow label="Bank Address" value={config.bank_address} />}
+        {config.recipient_address && <BankRow label="Recipient Addr." value={config.recipient_address} />}
+        {config.handle        && <BankRow label="Zelle / Email" value={config.handle} />}
+      </div>
+
+      {/* Footer */}
+      <div className="bg-[#0B1F3A] px-5 py-3">
+        {config.extra_instructions && (
+          <p className="text-[11px] text-white/40 mb-1.5">{config.extra_instructions}</p>
+        )}
+        <p className="text-[11px] text-white/30">
+          Include <span className="font-mono text-white/60">{invoice.invoice_number}</span> in the memo/reference field
+        </p>
+      </div>
+    </div>
+  );
+}
 
 // ── Payment Modal ─────────────────────────────────────────────────────────────
 function PaymentModal({
@@ -195,10 +289,10 @@ function PaymentModal({
     }
   }
 
-  const methods = (paymentConfig.length > 0 ? paymentConfig : FALLBACK_METHODS).map((c) => ({
-    id: c.method, label: c.display_name, handle: c.handle, extra: c.extra_instructions,
-  }));
-  const current = methods.find((m) => m.id === method) ?? methods[0];
+  const methods = (paymentConfig.length > 0 ? paymentConfig : FALLBACK_METHODS);
+  const current = methods.find((m) => m.method === method) ?? methods[0];
+  const isBankTransfer = current.method === "BANK_TRANSFER";
+  const hasBankDetails = !!(current.account_number || current.routing_number || current.recipient_name);
 
   return (
     <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center">
@@ -244,53 +338,82 @@ function PaymentModal({
               <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
                 {methods.map((m) => (
                   <button
-                    key={m.id}
+                    key={m.method}
                     type="button"
-                    onClick={() => setMethod(m.id)}
+                    onClick={() => setMethod(m.method)}
                     className={cn(
                       "flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all",
-                      method === m.id
+                      method === m.method
                         ? "border-brand bg-brand/5 shadow-sm"
                         : "border-transparent bg-[#F5F5F7] opacity-55 hover:opacity-80"
                     )}
                   >
-                    <div className="w-9 h-9 rounded-lg overflow-hidden shrink-0">{PAYMENT_LOGOS[m.id]}</div>
-                    <span className={cn("text-[9px] font-bold leading-none text-center", method === m.id ? "text-brand" : "text-[#6E6E73]")}>
-                      {m.label}
+                    <div className="w-9 h-9 rounded-lg overflow-hidden shrink-0">{PAYMENT_LOGOS[m.method]}</div>
+                    <span className={cn("text-[9px] font-bold leading-none text-center", method === m.method ? "text-brand" : "text-[#6E6E73]")}>
+                      {m.display_name}
                     </span>
                   </button>
                 ))}
               </div>
 
-              {/* Dark instruction box */}
-              <div className="bg-[#0B1F3A] rounded-2xl p-5 text-white">
-                <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-3">Transfer to</p>
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0">{PAYMENT_LOGOS[method]}</div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[19px] font-bold tracking-tight truncate">{current.handle}</p>
-                    <p className="text-[12px] text-white/50">{current.label}</p>
+              {/* Instruction box — bank transfer vs P2P */}
+              {isBankTransfer && hasBankDetails ? (
+                <BankTransferCard config={current} invoice={invoice} />
+              ) : isBankTransfer ? (
+                /* Bank transfer configured with just a handle (e.g. Zelle email) */
+                <div className="bg-[#0B1F3A] rounded-2xl p-5 text-white">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0">{PAYMENT_LOGOS[method]}</div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-0.5">{current.display_name}</p>
+                      <p className="text-[17px] font-bold tracking-tight break-all">{current.handle || "Contact us for details"}</p>
+                    </div>
                   </div>
+                  <div className="pt-3 border-t border-white/10 flex items-center justify-between">
+                    <p className="text-[12px] text-white/50">Amount due</p>
+                    <p className="text-[18px] font-bold tabular-nums">{fmt(invoice.total)}</p>
+                  </div>
+                  {current.extra_instructions && <p className="text-[11px] text-white/40 mt-2">{current.extra_instructions}</p>}
+                  <p className="text-[11px] text-white/30 mt-1.5">
+                    Include <span className="font-mono text-white/60">{invoice.invoice_number}</span> in the memo/note
+                  </p>
                 </div>
-                <div className="pt-3 border-t border-white/10 flex items-center justify-between">
-                  <p className="text-[12px] text-white/50">Amount due</p>
-                  <p className="text-[18px] font-bold">{fmt(invoice.total)}</p>
+              ) : (
+                /* P2P methods: Venmo, PayPal, Cash App, Chime */
+                <div className="bg-[#0B1F3A] rounded-2xl p-5 text-white">
+                  <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-3">Send to</p>
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0">{PAYMENT_LOGOS[method]}</div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[19px] font-bold tracking-tight truncate">{current.handle}</p>
+                      <p className="text-[12px] text-white/50">{current.display_name}</p>
+                    </div>
+                  </div>
+                  <div className="pt-3 border-t border-white/10 flex items-center justify-between">
+                    <p className="text-[12px] text-white/50">Amount due</p>
+                    <p className="text-[18px] font-bold tabular-nums">{fmt(invoice.total)}</p>
+                  </div>
+                  {current.extra_instructions && <p className="text-[11px] text-white/40 mt-2">{current.extra_instructions}</p>}
+                  <p className="text-[11px] text-white/30 mt-1.5">
+                    Include <span className="font-mono text-white/60">{invoice.invoice_number}</span> in the note
+                  </p>
                 </div>
-                {current.extra && <p className="text-[11px] text-white/40 mt-2">{current.extra}</p>}
-                <p className="text-[11px] text-white/30 mt-1.5">
-                  Include ref <span className="font-mono text-white/60">{invoice.invoice_number}</span> in the note
-                </p>
-              </div>
+              )}
 
               {/* Reference field */}
               <div>
                 <label className="block text-[11px] font-semibold text-[#6E6E73] uppercase tracking-wide mb-1.5 px-1">
-                  Your {current.label} username / ref *
+                  {isBankTransfer ? "Transaction / Confirmation ID *" : `Your ${current.display_name} username / ref *`}
                 </label>
                 <input
                   value={refId}
                   onChange={(e) => setRefId(e.target.value)}
-                  placeholder={method === "CASHAPP" ? "$Cashtag" : method === "VENMO" ? "@Username" : "Confirmation ID or Email"}
+                  placeholder={
+                    method === "CASHAPP"       ? "$Cashtag" :
+                    method === "VENMO"         ? "@Username" :
+                    method === "BANK_TRANSFER" ? "e.g. Wire confirmation number" :
+                    "Confirmation ID or Email"
+                  }
                   className="w-full rounded-xl bg-[#F5F5F7] px-4 py-3 text-[14px] outline-none focus:ring-2 focus:ring-brand/20 focus:bg-white border border-transparent transition-all"
                 />
               </div>
