@@ -171,12 +171,12 @@ function CopyButton({ value }: { value: string }) {
     <button
       type="button"
       onClick={copy}
-      className="ml-2 shrink-0 p-1 rounded-md hover:bg-white/10 transition-colors"
+      className="ml-2 shrink-0 p-1.5 rounded-md hover:bg-black/5 transition-colors"
       aria-label="Copy"
     >
       {copied
-        ? <Check size={12} className="text-[#34C759]" />
-        : <Copy size={12} className="text-white/40 hover:text-white/70" />
+        ? <Check size={14} className="text-[#34C759]" />
+        : <Copy size={14} className="text-[#C7C7CC] hover:text-[#6E6E73]" />
       }
     </button>
   );
@@ -185,10 +185,10 @@ function CopyButton({ value }: { value: string }) {
 function BankRow({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   if (!value) return null;
   return (
-    <div className="flex items-start justify-between gap-3 py-2.5 border-b border-white/[0.07] last:border-0">
-      <p className="text-[11px] text-white/40 shrink-0 pt-0.5 w-28">{label}</p>
+    <div className="flex items-start justify-between gap-3 py-3 border-b border-black/[0.04] last:border-0">
+      <p className="text-[12px] text-[#6E6E73] shrink-0 pt-0.5 w-28">{label}</p>
       <div className="flex items-center justify-end flex-1 min-w-0">
-        <p className={cn("text-[13px] font-semibold text-right break-all", mono && "font-mono tracking-wide")}>{value}</p>
+        <p className={cn("text-[13px] font-semibold text-[#1D1D1F] text-right break-all", mono && "font-mono tracking-wide")}>{value}</p>
         {mono && <CopyButton value={value} />}
       </div>
     </div>
@@ -197,24 +197,24 @@ function BankRow({ label, value, mono }: { label: string; value: string; mono?: 
 
 function BankTransferCard({ config, invoice }: { config: PaymentConfig; invoice: Invoice }) {
   return (
-    <div className="rounded-2xl overflow-hidden border border-black/[0.06]">
+    <div className="rounded-2xl overflow-hidden border border-black/[0.08] bg-white">
       {/* Header */}
-      <div className="bg-[#0B1F3A] px-5 pt-4 pb-3 flex items-center justify-between gap-3">
+      <div className="bg-[#F5F5F7] px-5 pt-4 pb-3 flex items-center justify-between gap-3 border-b border-black/[0.04]">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl overflow-hidden shrink-0">{PAYMENT_LOGOS["BANK_TRANSFER"]}</div>
+          <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0">{PAYMENT_LOGOS["BANK_TRANSFER"]}</div>
           <div>
-            <p className="text-[13px] font-bold text-white leading-tight">{config.display_name}</p>
-            <p className="text-[10px] text-white/40 uppercase tracking-widest">Wire / Bank Transfer</p>
+            <p className="text-[14px] font-bold text-[#1D1D1F] leading-tight">{config.display_name}</p>
+            <p className="text-[10px] font-semibold text-[#6E6E73] uppercase tracking-widest mt-0.5">Wire / Bank Transfer</p>
           </div>
         </div>
         <div className="text-right shrink-0">
-          <p className="text-[10px] text-white/40 mb-0.5">Amount due</p>
-          <p className="text-[17px] font-bold text-white tabular-nums">{fmt(invoice.total)}</p>
+          <p className="text-[10px] font-semibold text-[#6E6E73] uppercase tracking-wider mb-0.5">Amount due</p>
+          <p className="text-[18px] font-bold text-[#1D1D1F] tabular-nums">{fmt(invoice.total)}</p>
         </div>
       </div>
 
       {/* Bank detail rows */}
-      <div className="bg-[#111C2E] px-5">
+      <div className="bg-white px-5">
         <BankRow label="Recipient"    value={config.recipient_name} />
         <BankRow label="Bank"         value={config.bank_name} />
         <BankRow label="Account Type" value={config.account_type} />
@@ -227,12 +227,12 @@ function BankTransferCard({ config, invoice }: { config: PaymentConfig; invoice:
       </div>
 
       {/* Footer */}
-      <div className="bg-[#0B1F3A] px-5 py-3">
+      <div className="bg-[#F5F5F7] border-t border-black/[0.04] px-5 py-3.5">
         {config.extra_instructions && (
-          <p className="text-[11px] text-white/40 mb-1.5">{config.extra_instructions}</p>
+          <p className="text-[12px] text-[#6E6E73] mb-1.5">{config.extra_instructions}</p>
         )}
-        <p className="text-[11px] text-white/30">
-          Include <span className="font-mono text-white/60">{invoice.invoice_number}</span> in the memo/reference field
+        <p className="text-[12px] text-[#6E6E73]">
+          Include <span className="font-mono font-semibold text-[#1D1D1F] bg-white px-1.5 py-0.5 rounded border border-black/5">{invoice.invoice_number}</span> in the memo/reference field
         </p>
       </div>
     </div>
@@ -361,41 +361,41 @@ function PaymentModal({
                 <BankTransferCard config={current} invoice={invoice} />
               ) : isBankTransfer ? (
                 /* Bank transfer configured with just a handle (e.g. Zelle email) */
-                <div className="bg-[#0B1F3A] rounded-2xl p-5 text-white">
+                <div className="bg-white border border-black/[0.08] rounded-2xl p-5">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0">{PAYMENT_LOGOS[method]}</div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-0.5">{current.display_name}</p>
-                      <p className="text-[17px] font-bold tracking-tight break-all">{current.handle || "Contact us for details"}</p>
+                      <p className="text-[10px] font-bold text-[#6E6E73] uppercase tracking-widest mb-0.5">{current.display_name}</p>
+                      <p className="text-[17px] font-bold text-[#1D1D1F] tracking-tight break-all">{current.handle || "Contact us for details"}</p>
                     </div>
                   </div>
-                  <div className="pt-3 border-t border-white/10 flex items-center justify-between">
-                    <p className="text-[12px] text-white/50">Amount due</p>
-                    <p className="text-[18px] font-bold tabular-nums">{fmt(invoice.total)}</p>
+                  <div className="pt-3 border-t border-black/[0.06] flex items-center justify-between">
+                    <p className="text-[12px] font-medium text-[#6E6E73] uppercase tracking-wider">Amount due</p>
+                    <p className="text-[18px] font-bold text-[#1D1D1F] tabular-nums">{fmt(invoice.total)}</p>
                   </div>
-                  {current.extra_instructions && <p className="text-[11px] text-white/40 mt-2">{current.extra_instructions}</p>}
-                  <p className="text-[11px] text-white/30 mt-1.5">
-                    Include <span className="font-mono text-white/60">{invoice.invoice_number}</span> in the memo/note
+                  {current.extra_instructions && <p className="text-[12px] text-[#6E6E73] mt-2">{current.extra_instructions}</p>}
+                  <p className="text-[12px] text-[#6E6E73] mt-1.5">
+                    Include <span className="font-mono font-semibold text-[#1D1D1F] bg-[#F5F5F7] px-1 py-0.5 rounded">{invoice.invoice_number}</span> in the memo/note
                   </p>
                 </div>
               ) : (
                 /* P2P methods: Venmo, PayPal, Cash App, Chime */
-                <div className="bg-[#0B1F3A] rounded-2xl p-5 text-white">
-                  <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-3">Send to</p>
+                <div className="bg-white border border-black/[0.08] rounded-2xl p-5">
+                  <p className="text-[10px] font-bold text-[#6E6E73] uppercase tracking-widest mb-3">Send to</p>
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0">{PAYMENT_LOGOS[method]}</div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[19px] font-bold tracking-tight truncate">{current.handle}</p>
-                      <p className="text-[12px] text-white/50">{current.display_name}</p>
+                      <p className="text-[19px] font-bold text-[#1D1D1F] tracking-tight truncate">{current.handle}</p>
+                      <p className="text-[12px] font-medium text-[#6E6E73]">{current.display_name}</p>
                     </div>
                   </div>
-                  <div className="pt-3 border-t border-white/10 flex items-center justify-between">
-                    <p className="text-[12px] text-white/50">Amount due</p>
-                    <p className="text-[18px] font-bold tabular-nums">{fmt(invoice.total)}</p>
+                  <div className="pt-3 border-t border-black/[0.06] flex items-center justify-between">
+                    <p className="text-[12px] font-medium text-[#6E6E73] uppercase tracking-wider">Amount due</p>
+                    <p className="text-[18px] font-bold text-[#1D1D1F] tabular-nums">{fmt(invoice.total)}</p>
                   </div>
-                  {current.extra_instructions && <p className="text-[11px] text-white/40 mt-2">{current.extra_instructions}</p>}
-                  <p className="text-[11px] text-white/30 mt-1.5">
-                    Include <span className="font-mono text-white/60">{invoice.invoice_number}</span> in the note
+                  {current.extra_instructions && <p className="text-[12px] text-[#6E6E73] mt-2">{current.extra_instructions}</p>}
+                  <p className="text-[12px] text-[#6E6E73] mt-1.5">
+                    Include <span className="font-mono font-semibold text-[#1D1D1F] bg-[#F5F5F7] px-1 py-0.5 rounded border border-black/5">{invoice.invoice_number}</span> in the note
                   </p>
                 </div>
               )}

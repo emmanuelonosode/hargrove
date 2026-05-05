@@ -91,6 +91,25 @@ npm run dev
 
 ---
 
+## Implemented Features & Architecture Notes
+
+### Client Portal & Data
+- **Dashboard (`/portal/profile`):** Acts as the central hub for authenticated clients. It integrates data concurrently from multiple endpoints:
+  - **My Applications:** Tracks the status of rental applications (e.g., `DRAFT`, `PENDING_VERIFICATION`, `REVIEWED`).
+  - **My Payments & Invoices:** Displays payment history, statuses, and outstanding invoices.
+  - **Favorites:** Shows properties the user has saved via the `FavoriteProperty` API.
+- **Favorites System:** Users can save properties by clicking the heart icon on property detail pages.
+
+### Authentication Flow
+- **Seamless Registration:** If a user registers with an intended destination (e.g., `?next=/apply`), the system bypasses the generic onboarding intent selection after email verification, automatically setting a default intent and redirecting them to complete their task.
+- **Tokens:** JWT access tokens (4h) and refresh tokens (14d) are managed securely using localStorage and HttpOnly cookies via `apiFetch()`.
+
+### Payment Architecture
+- **Manual Verification Flow:** To accommodate diverse payment methods (CashApp, Venmo, Zelle, Bank Transfers), users select a method during the rental application or invoice payment, transfer the funds externally, and upload a screenshot/receipt as proof (saved via Cloudinary).
+- **Backend Processing:** The submitted proof creates a `Payment` record with a `PENDING_VERIFICATION` status. Admins review and either verify or reject the payment via the Django admin interface, which triggers corresponding status updates on the linked `RentalApplication` or `Invoice` and fires celery notification emails.
+
+---
+
 ## Key Files & Directories
 - `backend/apps/`: Contains all modular Django applications (accounts, properties, crm, etc.).
 - `backend/config/`: Core Django configuration and URL routing.
