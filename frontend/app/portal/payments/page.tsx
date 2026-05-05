@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import {
   FileText, CheckCircle, Clock, AlertCircle,
   ArrowLeft, Download, Mail, Building2, ChevronDown,
-  Camera, Shield, X, CreditCard, Copy, Check,
+  Camera, Shield, X, CreditCard,
 } from "lucide-react";
 import { apiFetch } from "@/lib/auth";
 import { cn } from "@/lib/utils";
@@ -158,87 +158,6 @@ const FALLBACK_METHODS: PaymentConfig[] = [
   { method: "BANK_TRANSFER", display_name: "Bank Transfer", handle: "info@haskerrealtygroup.com",     extra_instructions: "Contact us for full wire transfer details.",   ...EMPTY_BANK },
 ];
 
-// ── Bank Transfer Details Card ────────────────────────────────────────────────
-function CopyButton({ value }: { value: string }) {
-  const [copied, setCopied] = useState(false);
-  function copy() {
-    navigator.clipboard.writeText(value).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1800);
-    });
-  }
-  return (
-    <button
-      type="button"
-      onClick={copy}
-      className="ml-2 shrink-0 p-1.5 rounded-md hover:bg-black/5 transition-colors"
-      aria-label="Copy"
-    >
-      {copied
-        ? <Check size={14} className="text-[#34C759]" />
-        : <Copy size={14} className="text-[#C7C7CC] hover:text-[#6E6E73]" />
-      }
-    </button>
-  );
-}
-
-function BankRow({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
-  if (!value) return null;
-  return (
-    <div className="flex items-start justify-between gap-3 py-3 border-b border-black/[0.04] last:border-0">
-      <p className="text-[12px] text-[#6E6E73] shrink-0 pt-0.5 w-28">{label}</p>
-      <div className="flex items-center justify-end flex-1 min-w-0">
-        <p className={cn("text-[13px] font-semibold text-[#1D1D1F] text-right break-all", mono && "font-mono tracking-wide")}>{value}</p>
-        {mono && <CopyButton value={value} />}
-      </div>
-    </div>
-  );
-}
-
-function BankTransferCard({ config, invoice }: { config: PaymentConfig; invoice: Invoice }) {
-  return (
-    <div className="rounded-2xl overflow-hidden border border-black/[0.08] bg-white">
-      {/* Header */}
-      <div className="bg-[#F5F5F7] px-5 pt-4 pb-3 flex items-center justify-between gap-3 border-b border-black/[0.04]">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0">{PAYMENT_LOGOS["BANK_TRANSFER"]}</div>
-          <div>
-            <p className="text-[14px] font-bold text-[#1D1D1F] leading-tight">{config.display_name}</p>
-            <p className="text-[10px] font-semibold text-[#6E6E73] uppercase tracking-widest mt-0.5">Wire / Bank Transfer</p>
-          </div>
-        </div>
-        <div className="text-right shrink-0">
-          <p className="text-[10px] font-semibold text-[#6E6E73] uppercase tracking-wider mb-0.5">Amount due</p>
-          <p className="text-[18px] font-bold text-[#1D1D1F] tabular-nums">{fmt(invoice.total)}</p>
-        </div>
-      </div>
-
-      {/* Bank detail rows */}
-      <div className="bg-white px-5">
-        <BankRow label="Recipient"    value={config.recipient_name} />
-        <BankRow label="Bank"         value={config.bank_name} />
-        <BankRow label="Account Type" value={config.account_type} />
-        <BankRow label="Account #"    value={config.account_number} mono />
-        <BankRow label="Routing #"    value={config.routing_number} mono />
-        {config.swift_bic     && <BankRow label="SWIFT / BIC"  value={config.swift_bic} mono />}
-        {config.bank_address  && <BankRow label="Bank Address" value={config.bank_address} />}
-        {config.recipient_address && <BankRow label="Recipient Addr." value={config.recipient_address} />}
-        {config.handle        && <BankRow label="Zelle / Email" value={config.handle} />}
-      </div>
-
-      {/* Footer */}
-      <div className="bg-[#F5F5F7] border-t border-black/[0.04] px-5 py-3.5">
-        {config.extra_instructions && (
-          <p className="text-[12px] text-[#6E6E73] mb-1.5">{config.extra_instructions}</p>
-        )}
-        <p className="text-[12px] text-[#6E6E73]">
-          Include <span className="font-mono font-semibold text-[#1D1D1F] bg-white px-1.5 py-0.5 rounded border border-black/5">{invoice.invoice_number}</span> in the memo/reference field
-        </p>
-      </div>
-    </div>
-  );
-}
-
 // ── Payment Modal ─────────────────────────────────────────────────────────────
 function PaymentModal({
   invoice, paymentConfig, onClose, onSuccess,
@@ -250,10 +169,18 @@ function PaymentModal({
 }) {
   const [step, setStep] = useState<ModalStep>("form");
   const [method, setMethod] = useState<string>("VENMO");
+  const [copied, setCopied] = useState<string | null>(null);
   const [refId, setRefId] = useState("");
   const [file, setProofFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const copy = useCallback((value: string, key: string) => {
+    navigator.clipboard.writeText(value).then(() => {
+      setCopied(key);
+      setTimeout(() => setCopied(null), 1800);
+    });
+  }, []);
 
   useEffect(() => {
     if (step !== "success") return;
@@ -293,6 +220,18 @@ function PaymentModal({
   const current = methods.find((m) => m.method === method) ?? methods[0];
   const isBankTransfer = current.method === "BANK_TRANSFER";
   const hasBankDetails = !!(current.account_number || current.routing_number || current.recipient_name);
+
+  const bankRows = [
+    { label: "Recipient Name",            value: current.recipient_name,    key: "recipient_name" },
+    { label: "Bank Name",                 value: current.bank_name,         key: "bank_name" },
+    { label: "Account Type",              value: current.account_type,      key: "account_type" },
+    { label: "Account Number",            value: current.account_number,    key: "account_number",  copyable: true },
+    { label: "Routing Number (Wire/ABA)", value: current.routing_number,    key: "routing_number",  copyable: true },
+    { label: "SWIFT / BIC Code",          value: current.swift_bic,         key: "swift_bic",       copyable: true },
+    { label: "Bank Address",              value: current.bank_address,      key: "bank_address" },
+    { label: "Recipient Address",         value: current.recipient_address, key: "recipient_address" },
+    { label: "Zelle / Email",             value: isBankTransfer && !hasBankDetails ? current.handle : "", key: "handle", copyable: true },
+  ].filter((r) => r.value);
 
   return (
     <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center">
@@ -334,68 +273,162 @@ function PaymentModal({
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="p-6 space-y-5">
-              {/* Method grid: 3-col on mobile, 5-col on sm+ */}
-              <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-                {methods.map((m) => (
-                  <button
-                    key={m.method}
-                    type="button"
-                    onClick={() => setMethod(m.method)}
-                    className={cn(
-                      "flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all",
-                      method === m.method
-                        ? "border-brand bg-brand/5 shadow-sm"
-                        : "border-transparent bg-[#F5F5F7] opacity-55 hover:opacity-80"
-                    )}
-                  >
-                    <div className="w-9 h-9 rounded-lg overflow-hidden shrink-0">{PAYMENT_LOGOS[m.method]}</div>
-                    <span className={cn("text-[9px] font-bold leading-none text-center", method === m.method ? "text-brand" : "text-[#6E6E73]")}>
-                      {m.display_name}
-                    </span>
-                  </button>
-                ))}
+
+              {/* ── Method selector — full-width radio cards ── */}
+              <div>
+                <p className="text-[10px] font-bold text-[#6E6E73] uppercase tracking-[0.12em] mb-3">Choose payment method</p>
+                <div className="space-y-2">
+                  {methods.map((m) => {
+                    const active = method === m.method;
+                    return (
+                      <button
+                        key={m.method}
+                        type="button"
+                        onClick={() => setMethod(m.method)}
+                        className={cn(
+                          "w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl border-2 transition-all text-left",
+                          active
+                            ? "border-brand bg-brand/[0.04] shadow-sm"
+                            : "border-[#E5E5EA] bg-white hover:border-[#C7C7CC]"
+                        )}
+                      >
+                        <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0 shadow-sm">
+                          {PAYMENT_LOGOS[m.method]}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className={cn("text-[14px] font-semibold leading-tight", active ? "text-brand" : "text-[#1D1D1F]")}>
+                            {m.display_name}
+                          </p>
+                          {(m.handle || m.recipient_name) && (
+                            <p className="text-[12px] text-[#6E6E73] mt-0.5 truncate">
+                              {m.handle || m.recipient_name}
+                            </p>
+                          )}
+                        </div>
+                        <div className={cn(
+                          "w-5 h-5 rounded-full border-2 shrink-0 flex items-center justify-center transition-all",
+                          active ? "border-brand bg-brand" : "border-[#C7C7CC]"
+                        )}>
+                          {active && <div className="w-2 h-2 rounded-full bg-white" />}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
-              {/* Instruction box — bank transfer vs P2P */}
-              {isBankTransfer && hasBankDetails ? (
-                <BankTransferCard config={current} invoice={invoice} />
-              ) : isBankTransfer ? (
-                /* Bank transfer configured with just a handle (e.g. Zelle email) */
-                <div className="bg-white border border-black/[0.08] rounded-2xl p-5">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0">{PAYMENT_LOGOS[method]}</div>
+              {/* ── Payment details card ── */}
+              {isBankTransfer ? (
+                /* Bank Transfer — dark header + stacked rows */
+                <div className="rounded-2xl overflow-hidden border border-[#E5E5EA]">
+                  {/* Dark header */}
+                  <div className="bg-[#1A3557] px-4 py-4 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0">
+                      {PAYMENT_LOGOS["BANK_TRANSFER"]}
+                    </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[10px] font-bold text-[#6E6E73] uppercase tracking-widest mb-0.5">{current.display_name}</p>
-                      <p className="text-[17px] font-bold text-[#1D1D1F] tracking-tight break-all">{current.handle || "Contact us for details"}</p>
+                      <p className="text-[10px] font-bold text-white/50 uppercase tracking-widest">
+                        {hasBankDetails ? "Wire / ACH Transfer" : current.display_name}
+                      </p>
+                      <p className="text-[15px] font-bold text-white leading-tight truncate">
+                        {current.bank_name || "Bank Transfer"}
+                      </p>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <p className="text-[10px] text-white/50 leading-none mb-0.5">Amount due</p>
+                      <p className="text-[18px] font-bold text-white leading-none tabular-nums">{fmt(invoice.total)}</p>
                     </div>
                   </div>
-                  <div className="pt-3 border-t border-black/[0.06] flex items-center justify-between">
-                    <p className="text-[12px] font-medium text-[#6E6E73] uppercase tracking-wider">Amount due</p>
-                    <p className="text-[18px] font-bold text-[#1D1D1F] tabular-nums">{fmt(invoice.total)}</p>
+
+                  {/* Stacked rows: label on own line, value + copy pill below */}
+                  {bankRows.length > 0 && (
+                    <div className="bg-white divide-y divide-[#F2F2F7]">
+                      {bankRows.map((row) => (
+                        <div key={row.key} className="px-4 py-3.5">
+                          <p className="text-[10px] font-bold text-[#8E8E93] uppercase tracking-[0.1em] mb-1.5">
+                            {row.label}
+                          </p>
+                          <div className="flex items-start gap-2.5">
+                            <p className="flex-1 text-[14px] font-semibold text-[#1D1D1F] leading-snug break-words min-w-0">
+                              {row.value}
+                            </p>
+                            {row.copyable && row.value && (
+                              <button
+                                type="button"
+                                onClick={() => copy(row.value!, row.key)}
+                                className={cn(
+                                  "shrink-0 text-[11px] font-bold px-3 py-1.5 rounded-lg min-w-[58px] text-center transition-all duration-150",
+                                  copied === row.key
+                                    ? "bg-[#D1FAE5] text-[#065F46]"
+                                    : "bg-[#F0F0F5] text-[#3C3C43] hover:bg-[#E5E5EA]"
+                                )}
+                                aria-label={`Copy ${row.label}`}
+                              >
+                                {copied === row.key ? "✓ Done" : "Copy"}
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Footer note */}
+                  <div className="bg-[#F8F8FA] border-t border-[#E5E5EA] px-4 py-3">
+                    {current.extra_instructions && (
+                      <p className="text-[12px] text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 mb-2 leading-relaxed">
+                        {current.extra_instructions}
+                      </p>
+                    )}
+                    <p className="text-[12px] text-[#6E6E73]">
+                      Include{" "}
+                      <span className="font-mono font-semibold text-[#1D1D1F] bg-white px-1.5 py-0.5 rounded border border-black/10">
+                        {invoice.invoice_number}
+                      </span>{" "}
+                      in the memo / reference field
+                    </p>
                   </div>
-                  {current.extra_instructions && <p className="text-[12px] text-[#6E6E73] mt-2">{current.extra_instructions}</p>}
-                  <p className="text-[12px] text-[#6E6E73] mt-1.5">
-                    Include <span className="font-mono font-semibold text-[#1D1D1F] bg-[#F5F5F7] px-1 py-0.5 rounded">{invoice.invoice_number}</span> in the memo/note
-                  </p>
                 </div>
               ) : (
-                /* P2P methods: Venmo, PayPal, Cash App, Chime */
-                <div className="bg-white border border-black/[0.08] rounded-2xl p-5">
-                  <p className="text-[10px] font-bold text-[#6E6E73] uppercase tracking-widest mb-3">Send to</p>
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0">{PAYMENT_LOGOS[method]}</div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[19px] font-bold text-[#1D1D1F] tracking-tight truncate">{current.handle}</p>
-                      <p className="text-[12px] font-medium text-[#6E6E73]">{current.display_name}</p>
+                /* P2P — dark send-to card with break-all handle + Copy pill */
+                <div className="bg-[#0B1F3A] rounded-2xl p-5 text-white">
+                  <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-3">Send to</p>
+                  <div className="flex items-start gap-3 mb-4">
+                    <div className="w-11 h-11 rounded-xl overflow-hidden shrink-0 shadow-md mt-0.5">
+                      {PAYMENT_LOGOS[current.method]}
                     </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[20px] font-bold tracking-tight break-all leading-snug">{current.handle}</p>
+                      <p className="text-[12px] text-white/50 mt-0.5">{current.display_name}</p>
+                    </div>
+                    {current.handle && (
+                      <button
+                        type="button"
+                        onClick={() => copy(current.handle, "handle")}
+                        className={cn(
+                          "shrink-0 text-[11px] font-bold px-3 py-1.5 rounded-xl transition-all mt-0.5",
+                          copied === "handle"
+                            ? "bg-green-500/20 text-green-300"
+                            : "bg-white/10 text-white/60 hover:bg-white/20 hover:text-white"
+                        )}
+                      >
+                        {copied === "handle" ? "Copied!" : "Copy"}
+                      </button>
+                    )}
                   </div>
-                  <div className="pt-3 border-t border-black/[0.06] flex items-center justify-between">
-                    <p className="text-[12px] font-medium text-[#6E6E73] uppercase tracking-wider">Amount due</p>
-                    <p className="text-[18px] font-bold text-[#1D1D1F] tabular-nums">{fmt(invoice.total)}</p>
+                  <div className="pt-3 border-t border-white/10 flex items-center justify-between">
+                    <p className="text-[12px] text-white/50">Amount due</p>
+                    <p className="text-[20px] font-bold tabular-nums">{fmt(invoice.total)}</p>
                   </div>
-                  {current.extra_instructions && <p className="text-[12px] text-[#6E6E73] mt-2">{current.extra_instructions}</p>}
-                  <p className="text-[12px] text-[#6E6E73] mt-1.5">
-                    Include <span className="font-mono font-semibold text-[#1D1D1F] bg-[#F5F5F7] px-1 py-0.5 rounded border border-black/5">{invoice.invoice_number}</span> in the note
+                  {current.extra_instructions && (
+                    <p className="text-[12px] text-white/40 mt-3 leading-relaxed">{current.extra_instructions}</p>
+                  )}
+                  <p className="text-[12px] text-white/30 mt-2">
+                    Include{" "}
+                    <span className="font-mono font-semibold text-white/60 bg-white/10 px-1.5 py-0.5 rounded">
+                      {invoice.invoice_number}
+                    </span>{" "}
+                    in the note
                   </p>
                 </div>
               )}
