@@ -59,6 +59,21 @@ const nextConfig: NextConfig = {
   // before the rewrite proxy runs. Without this, POST bodies are lost on 308.
   skipTrailingSlashRedirect: true,
 
+  async redirects() {
+    return [
+      // www → non-www permanent redirect (301).
+      // Without this, Google crawls both www.haskerrealtygroup.com and haskerrealtygroup.com
+      // as separate sites, doubling indexed URLs and causing "Alternate page with proper
+      // canonical tag" errors for every page on the www domain.
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.haskerrealtygroup.com" }],
+        destination: "https://haskerrealtygroup.com/:path*",
+        permanent: true,
+      },
+    ];
+  },
+
   images: {
     remotePatterns: [
       {

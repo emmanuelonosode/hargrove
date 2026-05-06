@@ -193,7 +193,10 @@
       "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\emman\\\\Desktop\\\\Estate\\\\hargrove\\\\backend\" -Recurse -Directory -Filter \"management\")",
       "Bash(Select-Object -ExpandProperty FullName)",
       "Bash(grep -E \"\\\\.py$\")",
-      "Bash(xargs -I {} find {} -type f -name \"*.py\")"
+      "Bash(xargs -I {} find {} -type f -name \"*.py\")",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\emman\\\\Desktop\\\\Estate\\\\hargrove\\\\frontend\\\\app\" -Recurse -Directory)",
+      "Bash(Get-ChildItem -Recurse -Depth 3)",
+      "Bash(Select-Object FullName)"
     ]
   }
 }

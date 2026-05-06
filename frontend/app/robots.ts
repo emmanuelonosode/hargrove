@@ -13,8 +13,12 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        // Use prefix-match paths (no trailing slash needed — robots.txt /portal/ matches /portal and /portal/*)
-      disallow: ["/dashboard", "/portal", "/api", "/_next"],
+        // Disallow private portal routes, internal Next.js paths, and any URL with
+        // query parameters (?). The canonical tags already point Google to the clean
+        // URLs — disallowing ?* stops crawl budget being spent on filter/search variants
+        // like /properties?q=... and /contact?inquiry=... that were causing 9000+
+        // "Alternate page with proper canonical tag" GSC errors.
+        disallow: ["/dashboard", "/portal", "/api", "/_next", "/*?*"],
       },
       {
         // Explicitly allow known LLM/AI crawlers to index the site
