@@ -44,6 +44,7 @@ export function PropertyCard({ property, variant = "default" }: PropertyCardProp
               fill
               className="object-cover group-hover:scale-105 transition-transform duration-300"
               sizes="256px"
+              unoptimized
             />
           )}
           <div className="absolute top-3 left-3 flex gap-1.5">
@@ -103,6 +104,7 @@ export function PropertyCard({ property, variant = "default" }: PropertyCardProp
             fill
             className="object-cover group-hover:scale-105 transition-transform duration-300"
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            unoptimized
           />
         ) : (
           <div className="w-full h-full bg-neutral-200 flex items-center justify-center">

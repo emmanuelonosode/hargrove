@@ -196,7 +196,8 @@
       "Bash(xargs -I {} find {} -type f -name \"*.py\")",
       "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\emman\\\\Desktop\\\\Estate\\\\hargrove\\\\frontend\\\\app\" -Recurse -Directory)",
       "Bash(Get-ChildItem -Recurse -Depth 3)",
-      "Bash(Select-Object FullName)"
+      "Bash(Select-Object FullName)",
+      "Bash(Copy-Item \"C:\\\\Users\\\\emman\\\\Desktop\\\\NYC_Condo_Listings\\\\properties.json\" \"c:\\\\Users\\\\emman\\\\Desktop\\\\Estate\\\\hargrove\\\\backend\\\\apps\\\\properties\\\\management\\\\commands\\\\data\\\\nationwide_condos.json\")"
     ]
   }
 }
