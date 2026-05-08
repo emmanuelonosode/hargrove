@@ -29,17 +29,16 @@ export function CityLeadCapture({ cityName }: Props) {
     setLoading(true);
     setError("");
     try {
-      const [firstName, ...rest] = name.trim().split(" ");
       const res = await fetch(`${API_BASE}/api/v1/leads/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          first_name: firstName,
-          last_name: rest.join(" ") || firstName,
+          full_name: name.trim(),
           email: email.trim(),
           phone: phone.trim() || undefined,
-          source: "city_landing",
-          message: `Interested in rentals in ${cityName}. Submitted via city landing page lead capture.`,
+          source: "CONTACT_FORM",
+          interest_type: "RENT",
+          message: `Interested in affordable rentals${cityName ? ` in ${cityName}` : ""}. Submitted via city landing page.`,
           detected_city: cityName || getBestKnownCity() || undefined,
           ...getStoredUTMs(),
         }),
@@ -65,7 +64,7 @@ export function CityLeadCapture({ cityName }: Props) {
         </div>
         <h3 className="font-serif text-2xl font-bold text-white mb-2">You&apos;re on the list!</h3>
         <p className="text-blue-200 text-sm leading-relaxed">
-          We&apos;ll be in touch within 24 hours with available listings in {cityName}.
+          We&apos;ll be in touch within 24 hours with available listings{cityName ? ` in ${cityName}` : ""}.
         </p>
       </div>
     );
@@ -120,7 +119,7 @@ export function CityLeadCapture({ cityName }: Props) {
           <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
         ) : (
           <>
-            Get {cityName} Listings in My Inbox
+            Get {cityName ? `${cityName} ` : ""}Listings in My Inbox
             <ArrowRight size={15} />
           </>
         )}

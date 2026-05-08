@@ -8,7 +8,10 @@ import { fetchHomepageProperties, fetchProperties, toPropertyCardShape } from "@
 import { fetchAgents } from "@/lib/agents";
 import { fetchPosts } from "@/lib/blog";
 import { formatPrice } from "@/lib/utils";
-import { CITIES } from "@/lib/cities";
+import { CITIES, fetchAllCities, buildGenericCityData, type CityData } from "@/lib/cities";
+import { CityLeadCapture } from "@/components/public/CityLeadCapture";
+import { HomepageLeadForm } from "@/components/public/HomepageLeadForm";
+import { FeaturedPropertiesSection } from "@/components/public/FeaturedPropertiesSection";
 
 export const metadata = {
   title: "Hasker & Co. Realty Group | Affordable Homes to Rent & Buy",
@@ -307,16 +310,23 @@ const HOW_IT_WORKS_SCHEMA = {
 };
 
 export default async function HomePage() {
-  const [featuredRaw, agents, blogFeatured, blogLatest, totalCountRaw] = await Promise.allSettled([
+  const [featuredRaw, agents, blogFeatured, blogLatest, totalCountRaw, allCitiesRaw] = await Promise.allSettled([
     fetchHomepageProperties(),
     fetchAgents(),
     fetchPosts({ is_featured: true }),
     fetchPosts(),
     fetchProperties(),
+    fetchAllCities(),
   ]);
 
-  const featuredProperties =
-    featuredRaw.status === "fulfilled" ? featuredRaw.value.slice(0, 3).map(toPropertyCardShape) : [];
+  // Fill up to 6 slots: homepage-pinned first, then top general results as filler
+  const homepagePinned   = featuredRaw.status === "fulfilled" ? featuredRaw.value : [];
+  const generalResults   = totalCountRaw.status === "fulfilled" ? (totalCountRaw.value.results ?? []) : [];
+  const pinnedIds        = new Set(homepagePinned.map(p => p.id));
+  const featuredProperties = [
+    ...homepagePinned,
+    ...generalResults.filter(p => !pinnedIds.has(p.id)),
+  ].slice(0, 6).map(toPropertyCardShape);
   const teamAgents =
     agents.status === "fulfilled" ? agents.value.slice(0, 3) : [];
   // Use featured posts if any are marked, otherwise fall back to latest published
@@ -325,6 +335,12 @@ export default async function HomePage() {
   const blogPosts = (featuredPostResults.length > 0 ? featuredPostResults : latestPostResults).slice(0, 3);
   const totalProperties =
     totalCountRaw.status === "fulfilled" ? totalCountRaw.value.count : null;
+
+  const dbCities = allCitiesRaw.status === "fulfilled" ? allCitiesRaw.value : [];
+  const mergedCities: CityData[] = [
+    ...Object.values(CITIES),
+    ...dbCities.filter((c) => !CITIES[c.slug]).map((c) => buildGenericCityData(c)),
+  ];
 
   return (
     <main>
@@ -417,26 +433,13 @@ export default async function HomePage() {
                 <MapPin size={10} />
                 Near you:
               </span>
-              {[
-                { label: "Atlanta", slug: "atlanta-ga" },
-                { label: "Charlotte", slug: "charlotte-nc" },
-                { label: "Houston", slug: "houston-tx" },
-                { label: "Dallas", slug: "dallas-tx" },
-                { label: "Nashville", slug: "nashville-tn" },
-                { label: "Phoenix", slug: "phoenix-az" },
-                { label: "Austin", slug: "austin-tx" },
-                { label: "Miami", slug: "miami-fl" },
-                { label: "Denver", slug: "denver-co" },
-                { label: "Seattle", slug: "seattle-wa" },
-                { label: "Las Vegas", slug: "las-vegas-nv" },
-                { label: "Tampa", slug: "tampa-fl" },
-              ].map(({ label, slug }) => (
+              {mergedCities.slice(0, 12).map((c) => (
                 <Link
-                  key={label}
-                  href={`/rentals/${slug}`}
+                  key={c.slug}
+                  href={`/rentals/${c.slug}`}
                   className="text-[11px] text-white/80 hover:text-white border border-white/30 hover:border-white/70 px-3 py-2 rounded-full transition-[color,border-color] duration-200 cursor-pointer"
                 >
-                  {label}
+                  {c.name}
                 </Link>
               ))}
             </div>
@@ -452,6 +455,17 @@ export default async function HomePage() {
               <Button variant="outline-white" size="lg" asChild>
                 <Link href="/contact">Talk to Our Team</Link>
               </Button>
+            </div>
+
+            {/* Inline match form — third conversion path for undecided visitors */}
+            <div
+              className="hero-animate w-full max-w-2xl mt-6"
+              style={{ animationDelay: "540ms" }}
+            >
+              <p className="text-white/40 text-[11px] text-center mb-3 tracking-[0.2em] uppercase font-semibold">
+                Or let us match you — get curated listings in 24 hours
+              </p>
+              <HomepageLeadForm />
             </div>
           </div>
         </div>
@@ -560,72 +574,93 @@ export default async function HomePage() {
       </section>
 
       {/* ─── AVAILABLE RENTALS ─────────────────────────────────── */}
-      <section className="py-16 lg:py-24 bg-brand-light">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between mb-12 gap-4">
-            <div>
-              <p className="text-brand text-xs font-semibold tracking-[0.3em] uppercase mb-3">
-                Move-In Ready
-              </p>
-              <h2 className="font-serif text-4xl font-bold text-brand-dark">Homes Available Now</h2>
-              <p className="text-neutral-500 mt-2 text-sm">Affordable rentals &amp; homes for sale, updated daily and priced honestly.</p>
-            </div>
-            <Button variant="outline" asChild>
-              <Link href="/properties" className="flex items-center gap-2">
-                View All Properties <ArrowRight size={16} />
-              </Link>
-            </Button>
-          </div>
+      <FeaturedPropertiesSection properties={featuredProperties} totalCount={totalProperties} />
 
-          {featuredProperties.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {featuredProperties.map((property) => (
-                <PropertyCard key={property.id} property={property} />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-16 text-neutral-400">
-              <p className="font-sans text-lg font-medium">New listings coming soon.</p>
-              <p className="text-sm mt-2">Check back shortly or browse all available rentals.</p>
-            </div>
-          )}
+      {/* ─── MID-PAGE LEAD CAPTURE ────────────────────────────── */}
+      <section className="bg-brand py-12 lg:py-16">
+        <div className="max-w-2xl mx-auto text-center px-6">
+          <h2 className="text-white font-serif text-2xl font-bold mb-2">
+            Don&apos;t see your city? We&apos;re expanding fast.
+          </h2>
+          <p className="text-white/60 text-sm mb-8">
+            Drop your email and we&apos;ll notify you the moment we list homes in your area.
+          </p>
+          <CityLeadCapture cityName="" />
         </div>
       </section>
 
-      {/* ─── CITIES GRID ───────────────────────────────────────── */}
-      <section className="bg-white border-t border-neutral-100">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 py-16 lg:py-24">
-          <div className="text-center mb-12">
-            <p className="text-brand text-xs font-semibold tracking-[0.3em] uppercase mb-3">
-              Explore Markets
-            </p>
-            <h2 className="font-serif text-4xl font-bold text-brand-dark">
-              Rentals by City
-            </h2>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {Object.values(CITIES)
-              .slice(0, 8)
-              .map((c) => (
+      {/* ─── CITIES HORIZONTAL SCROLL ──────────────────────────── */}
+      <section className="bg-white border-t border-neutral-100 py-16 lg:py-24">
+        {/* Heading — constrained to content column */}
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 mb-8">
+          <p className="text-brand text-xs font-semibold tracking-[0.3em] uppercase mb-3">
+            Explore Markets
+          </p>
+          <h2 className="font-serif text-4xl font-bold text-brand-dark">
+            Rentals by City
+          </h2>
+        </div>
+
+        {/* Full-bleed scroll strip */}
+        <div className="relative">
+          <div
+            className="overflow-x-auto pb-2 snap-x snap-mandatory"
+            style={{ scrollbarWidth: "none" } as React.CSSProperties}
+          >
+            {/* Left padding aligns with the heading; no right padding so last card bleeds */}
+            <div
+              className="flex gap-4 w-max"
+              style={{ paddingLeft: "max(1.5rem, calc((100vw - 80rem) / 2 + 1.5rem))", paddingRight: "2rem" }}
+            >
+              {mergedCities.slice(0, 12).map((c) => (
                 <Link
                   key={c.slug}
                   href={`/rentals/${c.slug}`}
-                  className="group relative aspect-[4/3] rounded-sm overflow-hidden bg-neutral-100 cursor-pointer"
+                  className="group relative shrink-0 w-52 sm:w-60 rounded-sm overflow-hidden bg-neutral-100 snap-start cursor-pointer"
+                  style={{ aspectRatio: "3/4" }}
                 >
                   <Image
                     src={c.heroImage}
-                    alt={`Affordable rentals in ${c.name}`}
+                    alt={`Rentals in ${c.name}`}
                     fill
                     className="object-cover group-hover:scale-105 transition-transform duration-500"
-                    sizes="(max-width: 768px) 50vw, 25vw"
+                    sizes="240px"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                  <div className="absolute bottom-0 left-0 right-0 p-4">
-                    <p className="text-white font-serif font-bold text-lg leading-tight">{c.name}</p>
-                    <p className="text-blue-200 text-xs mt-0.5">From {c.avgRent}/mo</p>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-5">
+                    <p className="text-white font-serif font-bold text-xl leading-tight">{c.name}</p>
+                    <p className="text-white/50 text-xs mt-0.5">{c.state}</p>
+                    <p className="text-blue-200 text-sm font-semibold mt-2">From {c.avgRent}/mo</p>
                   </div>
                 </Link>
               ))}
+
+              {/* CTA card */}
+              <Link
+                href="/properties"
+                className="group shrink-0 w-52 sm:w-60 rounded-sm bg-brand snap-start cursor-pointer flex flex-col items-center justify-center p-7 text-center hover:bg-brand-hover transition-colors duration-200"
+                style={{ aspectRatio: "3/4" }}
+              >
+                <div className="w-14 h-14 rounded-full bg-white/10 flex items-center justify-center mb-5">
+                  <Home size={24} className="text-white" />
+                </div>
+                <p className="text-white font-serif text-xl font-bold mb-2 leading-tight">
+                  Browse All Homes
+                </p>
+                <p className="text-white/50 text-xs mb-7 leading-relaxed">
+                  Every listing, every city
+                </p>
+                <span className="flex items-center gap-2 bg-white text-brand text-xs font-bold px-5 py-3 rounded-sm group-hover:bg-brand-light transition-colors">
+                  View All Properties <ArrowRight size={13} />
+                </span>
+              </Link>
+            </div>
+          </div>
+
+          {/* Right-edge fade + arrow — signals more content to scroll */}
+          <div className="pointer-events-none absolute inset-y-0 right-0 w-28 bg-gradient-to-l from-white via-white/60 to-transparent" />
+          <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white shadow-md border border-neutral-200 flex items-center justify-center z-10">
+            <ArrowRight size={15} className="text-brand" />
           </div>
         </div>
       </section>
