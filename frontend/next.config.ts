@@ -36,8 +36,8 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       // Fonts
       "font-src 'self' https://fonts.gstatic.com",
-      // Images: same origin, Cloudinary, Unsplash, CARTO tiles, Meta Pixel noscript
-      "img-src 'self' data: blob: https://res.cloudinary.com https://images.unsplash.com https://images.invitationhomes.com https://maps.gstatic.com https://maps.googleapis.com https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://unpkg.com https://www.facebook.com https://www.googletagmanager.com",
+      // Images: same origin, Cloudinary, Unsplash, InvitationHomes, Rently CDN + S3, CARTO tiles, Meta Pixel noscript
+      "img-src 'self' data: blob: https://res.cloudinary.com https://images.unsplash.com https://images.invitationhomes.com https://d39tc8gklidfbm.cloudfront.net https://s3.amazonaws.com https://maps.gstatic.com https://maps.googleapis.com https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://unpkg.com https://www.facebook.com https://www.googletagmanager.com",
       // API connections: same origin + backend API + CARTO + Cloudinary + GTM + GA4 + Meta Pixel + IP geolocation
       "connect-src 'self' https://admin.haskerrealtygroup.com https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://api.cloudinary.com https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com https://connect.facebook.net https://www.facebook.com https://ipapi.co",
       // Media
@@ -90,6 +90,17 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "images.invitationhomes.com",
+        pathname: "/**",
+      },
+      // Rently property photos (CloudFront CDN + legacy S3)
+      {
+        protocol: "https",
+        hostname: "d39tc8gklidfbm.cloudfront.net",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "s3.amazonaws.com",
         pathname: "/**",
       },
     ],
