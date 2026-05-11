@@ -42,7 +42,7 @@ export async function generateMetadata(
   }
 
   const title = `Homes for Rent in ${city.name}, ${city.stateCode} — Affordable Rentals | Hasker & Co. Realty Group`;
-  const description = `Find affordable 1–4 bedroom homes and apartments for rent in ${city.name}, ${city.stateCode}. Starting from ${city.avgRent}/mo. No hidden fees, pet-friendly options, 24-hour approval decisions.`;
+  const description = `Find affordable 1–4 bedroom homes and apartments for rent in ${city.name}, ${city.stateCode}. Starting from ${city.avgRent}/mo. All homes inspected and move-in ready. Pet-friendly options, 24-hour approval decisions.`;
   const url = `https://haskerrealtygroup.com/rentals/${slug}`;
 
   return {
@@ -56,7 +56,7 @@ export async function generateMetadata(
       `3 bedroom houses for rent ${city.name}`,
       `pet friendly apartments ${city.name}`,
       `cheap rent ${city.name}`,
-      `no hidden fees rentals ${city.name}`,
+      `move-in ready rentals ${city.name}`,
       `${city.name} rental homes no credit check`,
       `move in ready homes ${city.name}`,
     ],
@@ -81,7 +81,7 @@ export async function generateMetadata(
 
 const TRUST_BADGES = [
   { icon: Clock,       label: "24-Hour Decisions" },
-  { icon: ShieldCheck, label: "No Hidden Fees" },
+  { icon: ShieldCheck, label: "Move-In Ready" },
   { icon: PawPrint,    label: "Pet-Friendly Options" },
   { icon: Star,        label: "4.9★ Trustpilot" },
   { icon: Users,       label: "2,000+ Families Housed" },
@@ -142,7 +142,7 @@ export default async function CityRentalsPage(
     "@context": "https://schema.org",
     "@type": "CollectionPage",
     name: `Affordable Homes for Rent in ${city.name}, ${city.stateCode}`,
-    description: `Browse budget-friendly rental homes and apartments in ${city.name}, ${city.state}. No hidden fees, 24-hour application decisions.`,
+    description: `Browse budget-friendly rental homes and apartments in ${city.name}, ${city.state}. Move-in ready homes, 24-hour application decisions.`,
     url: `https://haskerrealtygroup.com/rentals/${slug}`,
     isPartOf: { "@type": "WebSite", name: "Hasker & Co. Realty Group", url: "https://haskerrealtygroup.com" },
     about: {
@@ -178,7 +178,7 @@ export default async function CityRentalsPage(
         name: `How much does it cost to rent a home in ${city.name}?`,
         acceptedAnswer: {
           "@type": "Answer",
-          text: `The average rent in ${city.name} starts around ${city.avgRent}/month. Hasker & Co. Realty Group offers affordable rentals across ${city.name} with no hidden fees and transparent pricing on every listing.`,
+          text: `The average rent in ${city.name} starts around ${city.avgRent}/month. Hasker & Co. Realty Group offers affordable, move-in ready rentals across ${city.name} with transparent pricing on every listing.`,
         },
       },
       {
@@ -266,7 +266,7 @@ export default async function CityRentalsPage(
             </p>
           )}
           <p className="text-blue-100 text-lg lg:text-xl max-w-2xl mt-4 leading-relaxed hero-animate" style={{ animationDelay: "160ms" }}>
-            {city.tagline} Browse affordable homes and apartments — no hidden fees, decisions in 24 hours.
+            {city.tagline} Browse affordable, move-in ready homes and apartments — decisions in 24 hours.
           </p>
 
           <div className="flex flex-wrap gap-3 mt-8 hero-animate" style={{ animationDelay: "240ms" }}>
@@ -486,7 +486,7 @@ export default async function CityRentalsPage(
             {[
               {
                 q: `How much does it cost to rent a home in ${city.name}?`,
-                a: `The average rent in ${city.name} starts around ${city.avgRent}/month. Hasker & Co. Realty Group offers affordable rentals with no hidden fees and transparent pricing on every listing.`,
+                a: `The average rent in ${city.name} starts around ${city.avgRent}/month. Hasker & Co. Realty Group offers affordable, move-in ready rentals with transparent pricing on every listing.`,
               },
               {
                 q: `How do I apply for a rental in ${city.name}?`,

@@ -7,11 +7,11 @@ export const revalidate = 300;
 export const metadata = {
   title: "Homes to Rent & Buy Across America | Hasker & Co. Realty Group",
   description:
-    "Browse affordable apartments, rental homes, and homes for sale across America — Atlanta, Charlotte, Houston, Miami, Phoenix, Seattle and more. Honest prices, no hidden fees.",
+    "Browse affordable apartments, rental homes, and homes for sale across America — Atlanta, Charlotte, Houston, Miami, Phoenix, Seattle and more. All homes inspected and move-in ready.",
   alternates: { canonical: "https://haskerrealtygroup.com/properties" },
   openGraph: {
     title: "Homes to Rent & Buy Across America | Hasker & Co. Realty Group",
-    description: "Browse affordable rentals and homes for sale. Honest prices, no hidden fees.",
+    description: "Browse affordable rentals and homes for sale. All homes inspected and move-in ready.",
     type: "website",
     url: "https://haskerrealtygroup.com/properties",
   },

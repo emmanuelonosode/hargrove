@@ -74,46 +74,46 @@ export function CityLeadCapture({ cityName }: Props) {
     <form onSubmit={handleSubmit} className="space-y-3" noValidate>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="relative">
-          <User size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none" />
+          <User size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none" />
           <input
             type="text"
             placeholder="Your full name *"
             value={name}
             onChange={(e) => { setName(e.target.value); setError(""); }}
-            className="w-full bg-white/10 border border-white/20 rounded-xl pl-10 pr-4 py-3.5 text-white placeholder-white/40 text-sm outline-none focus:border-brand focus:bg-white/15 transition-all"
+            className="w-full bg-white border border-neutral-200 rounded-xl pl-10 pr-4 py-3.5 text-brand-dark placeholder-neutral-400 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all"
           />
         </div>
         <div className="relative">
-          <Mail size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none" />
+          <Mail size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none" />
           <input
             type="email"
             placeholder="Email address *"
             value={email}
             onChange={(e) => { setEmail(e.target.value); setError(""); }}
-            className="w-full bg-white/10 border border-white/20 rounded-xl pl-10 pr-4 py-3.5 text-white placeholder-white/40 text-sm outline-none focus:border-brand focus:bg-white/15 transition-all"
+            className="w-full bg-white border border-neutral-200 rounded-xl pl-10 pr-4 py-3.5 text-brand-dark placeholder-neutral-400 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all"
           />
         </div>
       </div>
       <div className="relative">
-        <Phone size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none" />
+        <Phone size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none" />
         <input
           type="tel"
           placeholder="Phone number (optional — for faster follow-up)"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
-          className="w-full bg-white/10 border border-white/20 rounded-xl pl-10 pr-4 py-3.5 text-white placeholder-white/40 text-sm outline-none focus:border-brand focus:bg-white/15 transition-all"
+          className="w-full bg-white border border-neutral-200 rounded-xl pl-10 pr-4 py-3.5 text-brand-dark placeholder-neutral-400 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all"
         />
       </div>
       {error && (
-        <p className="text-red-300 text-[13px] flex items-center gap-1.5">
-          <span className="w-1 h-1 rounded-full bg-red-300 shrink-0" />
+        <p className="text-red-400 text-[13px] flex items-center gap-1.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-red-400 shrink-0" />
           {error}
         </p>
       )}
       <button
         type="submit"
         disabled={loading}
-        className="w-full bg-brand text-white font-semibold py-4 rounded-xl hover:bg-brand-hover transition-colors flex items-center justify-center gap-2 disabled:opacity-70 cursor-pointer"
+        className="w-full bg-brand text-white font-bold py-4 rounded-xl hover:bg-brand-hover transition-colors flex items-center justify-center gap-2 disabled:opacity-70 cursor-pointer text-[14px]"
       >
         {loading ? (
           <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -124,7 +124,7 @@ export function CityLeadCapture({ cityName }: Props) {
           </>
         )}
       </button>
-      <p className="text-white/30 text-[11px] text-center">No spam. We respect your privacy. Unsubscribe anytime.</p>
+      <p className="text-neutral-400 text-[11px] text-center">No spam. We respect your privacy. Unsubscribe anytime.</p>
     </form>
   );
 }

@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const specialty = profile?.specialties?.[0] ?? "Housing Specialist";
     const yearsExp = profile?.years_experience ? `${profile.years_experience}+ years experience. ` : "";
     const bioExcerpt = profile?.bio?.slice(0, 100) ?? "";
-    const description = `${agent.full_name} — ${specialty} at Hasker & Co. Realty Group. ${yearsExp}${bioExcerpt} Helping families find affordable rentals with no hidden fees.`.slice(0, 160);
+    const description = `${agent.full_name} — ${specialty} at Hasker & Co. Realty Group. ${yearsExp}${bioExcerpt} Helping families find affordable, move-in ready rentals.`.slice(0, 160);
     return {
       title: `${agent.full_name} — ${specialty} | Hasker & Co. Realty Group`,
       description,

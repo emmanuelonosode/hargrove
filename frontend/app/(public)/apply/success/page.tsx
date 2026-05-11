@@ -4,57 +4,10 @@ import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
-  CheckCircle, Copy, Building2, Clock, Mail,
-  AlertCircle, ArrowRight, Home,
+  CheckCircle, Building2, Clock, Mail,
+  ArrowRight, Home,
 } from "lucide-react";
-import { useState } from "react";
 import { cn } from "@/lib/utils";
-
-// ── Payment account details — update with real bank info ─────────────────────
-const PAYMENT_DETAILS = {
-  bankName: "Chase Bank",
-  accountName: "Hasker & Co. Realty Group LLC",
-  accountNumber: "000123456789",
-  routingNumber: "021000021",
-  amount: "$100.00",
-  memo: "Application Fee",
-};
-
-function CopyField({ label, value }: { label: string; value: string }) {
-  const [copied, setCopied] = useState(false);
-
-  function handleCopy() {
-    navigator.clipboard.writeText(value).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
-  }
-
-  return (
-    <div className="flex items-center justify-between gap-3 px-4 py-3.5 bg-[#F5F5F7] rounded-xl">
-      <div>
-        <p className="text-[10px] font-semibold tracking-[0.07em] uppercase text-[#6E6E73] mb-0.5">{label}</p>
-        <p className="text-[15px] font-semibold text-[#1D1D1F] font-mono tracking-tight">{value}</p>
-      </div>
-      <button
-        onClick={handleCopy}
-        className="shrink-0 flex items-center gap-1.5 text-[11px] font-semibold text-brand hover:text-brand-hover transition-colors px-3 py-1.5 rounded-lg hover:bg-white"
-      >
-        {copied ? (
-          <>
-            <CheckCircle size={13} className="text-[#34C759]" />
-            Copied
-          </>
-        ) : (
-          <>
-            <Copy size={13} />
-            Copy
-          </>
-        )}
-      </button>
-    </div>
-  );
-}
 
 function SuccessContent() {
   const searchParams = useSearchParams();
@@ -63,10 +16,10 @@ function SuccessContent() {
   const refId = `APP-${String(ref).padStart(5, "0")}`;
 
   const steps = [
-    { icon: CheckCircle, title: "Payment Proof Submitted", desc: "Your transfer proof is now being manually verified by our team.", active: true, completed: true },
-    { icon: Clock,       title: "Payment Verification",   desc: "Usually takes 1-2 hours. You'll get an email once confirmed.", active: true, completed: false },
-    { icon: Mail,        title: "Application Review",     desc: "Once verified, we'll review your details and credit history.", active: false, completed: false },
-    { icon: Home,        title: "Lease & Move-In",        desc: "Final steps after your application is approved.", active: false, completed: false },
+    { icon: CheckCircle, title: "Application Received", desc: "Your application has been successfully submitted and is in our system.", active: true, completed: true },
+    { icon: Clock,       title: "Under Review",         desc: "Our team reviews your details within 1 business day. You'll receive an email update.", active: true, completed: false },
+    { icon: Building2,   title: "Decision & Next Steps", desc: "We'll reach out with your decision and any follow-up steps needed.", active: false, completed: false },
+    { icon: Home,        title: "Move-In Day",           desc: "Once approved, we'll coordinate lease signing and your move-in date.", active: false, completed: false },
   ];
 
   return (
@@ -75,14 +28,14 @@ function SuccessContent() {
 
         {/* Confirmation card */}
         <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-8 text-center border-t-4 border-brand">
-          <div className="w-16 h-16 rounded-2xl bg-brand/5 flex items-center justify-center mx-auto mb-6">
-            <Clock size={32} className="text-brand" strokeWidth={2} />
+          <div className="w-16 h-16 rounded-2xl bg-emerald-50 flex items-center justify-center mx-auto mb-6">
+            <CheckCircle size={32} className="text-emerald-500" strokeWidth={2} />
           </div>
           <h1 className="text-[26px] font-semibold tracking-tight text-[#1D1D1F] mb-2">
-            Proof Received!
+            Application Submitted!
           </h1>
           <p className="text-[15px] text-[#6E6E73] leading-relaxed">
-            Thank you, <span className="font-semibold text-[#1D1D1F]">{name}</span>. Your application and payment proof have been successfully received.
+            Thank you, <span className="font-semibold text-[#1D1D1F]">{name}</span>. Your application has been successfully received and is now under review.
           </p>
           <div className="mt-6 inline-flex items-center gap-3 bg-[#F5F5F7] px-5 py-3 rounded-2xl border border-black/[0.03]">
             <div>
@@ -92,7 +45,7 @@ function SuccessContent() {
             <div className="w-px h-8 bg-black/[0.08]" />
             <div className="text-left">
               <p className="text-[10px] text-[#6E6E73] font-bold uppercase tracking-widest">Status</p>
-              <p className="text-[14px] font-bold text-brand">Verifying Payment</p>
+              <p className="text-[14px] font-bold text-brand">Under Review</p>
             </div>
           </div>
         </div>
@@ -100,7 +53,7 @@ function SuccessContent() {
         {/* What happens next */}
         <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-6">
           <h3 className="text-[16px] font-bold text-[#1D1D1F] mb-6 flex items-center gap-2">
-            Your Next Steps
+            What Happens Next
           </h3>
           <div className="space-y-0 relative">
             {steps.map(({ icon: Icon, title, desc, active, completed }, i) => (
@@ -109,8 +62,8 @@ function SuccessContent() {
                 <div className="flex flex-col items-center">
                   <div className={cn(
                     "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 z-10 border transition-all duration-500",
-                    completed ? "bg-[#34C759] border-[#34C759] text-white shadow-[0_0_15px_rgba(52,199,89,0.3)]" : 
-                    active ? "bg-white border-brand text-brand shadow-[0_0_15px_rgba(26,86,219,0.15)]" : 
+                    completed ? "bg-[#34C759] border-[#34C759] text-white shadow-[0_0_15px_rgba(52,199,89,0.3)]" :
+                    active ? "bg-white border-brand text-brand shadow-[0_0_15px_rgba(26,86,219,0.15)]" :
                     "bg-[#F5F5F7] border-transparent text-[#C7C7CC]"
                   )}>
                     {completed ? <CheckCircle size={18} strokeWidth={2.5} /> : <Icon size={18} strokeWidth={2} />}

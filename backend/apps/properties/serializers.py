@@ -3,6 +3,35 @@ from .models import Property, PropertyImage, PropertyAmenity, AmenityCategory
 from apps.accounts.serializers import PublicAgentSerializer
 
 
+def _resolve_image_url(image_field):
+    """
+    Safely extract a full URL from a CloudinaryField value.
+
+    CloudinaryField wraps stored strings in a CloudinaryResource object.
+    In some Cloudinary SDK versions, str(resource) calls build_url() which
+    reconstructs a mangled Cloudinary CDN URL from the stored string — this
+    is why external CDN URLs (e.g. cloudfront.net) get truncated.
+
+    Fix: read .public_id directly (the raw stored string), check it's a
+    full URL, and only fall back to .url (Cloudinary-generated) if it isn't.
+    """
+    if not image_field:
+        return None
+    # CloudinaryResource stores the raw DB value in .public_id
+    raw = getattr(image_field, "public_id", None)
+    if raw and isinstance(raw, str) and raw.startswith("http"):
+        return raw
+    # Fallback: str() — works if SDK returns public_id from __str__
+    val = str(image_field)
+    if val and val.startswith("http"):
+        return val
+    # Last resort: Cloudinary-generated URL (only for native Cloudinary assets)
+    try:
+        return image_field.url
+    except Exception:
+        return None
+
+
 class PropertyImageSerializer(serializers.ModelSerializer):
     image_url = serializers.SerializerMethodField()
 
@@ -11,10 +40,7 @@ class PropertyImageSerializer(serializers.ModelSerializer):
         fields = ["id", "image_url", "caption", "is_primary", "order"]
 
     def get_image_url(self, obj):
-        if not obj.image:
-            return None
-        val = str(obj.image)
-        return val if val.startswith("http") else obj.image.url
+        return _resolve_image_url(obj.image)
 
 
 class PropertyAmenitySerializer(serializers.ModelSerializer):
@@ -44,8 +70,7 @@ class PropertyListSerializer(serializers.ModelSerializer):
         img = next((i for i in images if i.is_primary), None) or next(iter(images), None)
         if not img or not img.image:
             return None
-        val = str(img.image)
-        return val if val.startswith("http") else img.image.url
+        return _resolve_image_url(img.image)
 
     def get_agent_name(self, obj):
         return obj.agent.full_name if obj.agent_id else ""

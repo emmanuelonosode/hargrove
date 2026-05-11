@@ -11,8 +11,8 @@ export const metadata = {
 
 const offices = [
   {
-    city: "Virginia Beach (HQ)",
-    address: "213 Bob Ln\nVirginia Beach, VA 23454",
+    city: "Main Office",
+    address: "204 Colonial Hills Rd\nWinder, GA 30680",
     phone: "",
     email: "info@haskerrealtygroup.com",
     hours: "Mon – Fri: 9am – 6pm ET\nSat: 10am – 4pm ET",

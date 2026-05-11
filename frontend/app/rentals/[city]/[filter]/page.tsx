@@ -67,7 +67,7 @@ export async function generateMetadata(
 
   const filterLabel = getFilterLabel(spec);
   const title = `${filterLabel} Rentals in ${city.name}, ${city.stateCode} | Hasker & Co. Realty Group`;
-  const description = `Find ${filterLabel.toLowerCase()} rentals in ${city.name}, ${city.stateCode}. Transparent pricing, no hidden fees, 24-hour approval decisions. Browse current availability.`;
+  const description = `Find ${filterLabel.toLowerCase()} rentals in ${city.name}, ${city.stateCode}. All homes inspected and move-in ready. 24-hour approval decisions. Browse current availability.`;
   const url = `https://haskerrealtygroup.com/rentals/${slug}/${filter}`;
 
   return {
@@ -143,7 +143,7 @@ export default async function CityFilterPage(
     "@context": "https://schema.org",
     "@type": "CollectionPage",
     name: `${filterLabel} Rentals in ${city.name}, ${city.stateCode}`,
-    description: `Browse ${filterLabel.toLowerCase()} rental listings in ${city.name}, ${city.stateCode}. No hidden fees, 24-hour decisions.`,
+    description: `Browse ${filterLabel.toLowerCase()} rental listings in ${city.name}, ${city.stateCode}. Move-in ready homes, 24-hour decisions.`,
     url: pageUrl,
     isPartOf: { "@type": "WebSite", name: "Hasker & Co. Realty Group", url: "https://haskerrealtygroup.com" },
     about: {
@@ -169,7 +169,7 @@ export default async function CityFilterPage(
       ? [
           {
             q: `How much does a ${spec.count}-bedroom rental cost in ${city.name}?`,
-            a: `${spec.count}-bedroom rentals in ${city.name} start around ${city.avgRent}/month. Hasker & Co. offers transparent pricing with no hidden fees on every listing.`,
+            a: `${spec.count}-bedroom rentals in ${city.name} start around ${city.avgRent}/month. Hasker & Co. offers move-in ready homes with transparent pricing on every listing.`,
           },
           {
             q: `Are ${spec.count}-bedroom homes available to rent in ${city.name}?`,
@@ -179,7 +179,7 @@ export default async function CityFilterPage(
       : [
           {
             q: `Are there ${spec.plural.toLowerCase()} for rent in ${city.name}?`,
-            a: `Yes. Hasker & Co. lists verified ${spec.plural.toLowerCase()} in ${city.name} with transparent pricing and no hidden fees. Current listings are shown above.`,
+            a: `Yes. Hasker & Co. lists verified ${spec.plural.toLowerCase()} in ${city.name} — all inspected and move-in ready, with transparent pricing. Current listings are shown above.`,
           },
           {
             q: `How much does it cost to rent a ${spec.label.toLowerCase()} in ${city.name}?`,

@@ -1,172 +1,25 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useCallback, useRef, type ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   User, MapPin, Calendar, Users, Lock, Eye, EyeOff,
-  ChevronRight, ChevronLeft, Check, AlertCircle, Building2, Shield, RotateCcw, Camera
+  ChevronRight, ChevronLeft, Check, AlertCircle, Building2, Shield, RotateCcw
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { getStoredUTMs, getBestKnownCity, trackEvent, trackMetaEvent } from "@/lib/tracking";
+import { getStoredUTMs, trackEvent, trackMetaEvent } from "@/lib/tracking";
 
 const API_BASE = typeof window !== "undefined"
   ? ""
   : (process.env.NEXT_PUBLIC_API_URL ?? "https://admin.haskerrealtygroup.com");
 const STORAGE_KEY = "hasker_app_draft";
 const SAVED_PROFILE_KEY = "hasker_saved_profile";
-const MAX_PROOF_SIZE = 10 * 1024 * 1024; // 10 MB — frontend gate
-const COMPRESS_THRESHOLD = 1.5 * 1024 * 1024; // compress anything over 1.5 MB
-const COMPRESS_TARGET_MB = 1.5;
+const DRAFT_ID_KEY = "hasker_app_draft_id";
 
-/**
- * Compress an image file to under COMPRESS_TARGET_MB using the Canvas API.
- * Falls back to the original file if compression isn't possible (e.g. non-image).
- */
-async function compressImage(file: File): Promise<File> {
-  if (!file.type.startsWith("image/")) return file;
-  return new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const img = new Image();
-      img.onload = () => {
-        // Scale down if either dimension exceeds 1800px
-        let { width, height } = img;
-        const MAX_DIM = 1800;
-        if (width > MAX_DIM || height > MAX_DIM) {
-          const ratio = Math.min(MAX_DIM / width, MAX_DIM / height);
-          width = Math.round(width * ratio);
-          height = Math.round(height * ratio);
-        }
-        const canvas = document.createElement("canvas");
-        canvas.width = width;
-        canvas.height = height;
-        canvas.getContext("2d")!.drawImage(img, 0, 0, width, height);
-        // Iteratively drop quality until under the target size
-        let quality = 0.82;
-        const attempt = () => {
-          canvas.toBlob((blob) => {
-            if (!blob) { resolve(file); return; }
-            if (blob.size > COMPRESS_TARGET_MB * 1024 * 1024 && quality > 0.15) {
-              quality = parseFloat((quality - 0.08).toFixed(2));
-              attempt();
-            } else {
-              resolve(new File([blob], file.name.replace(/\.[^.]+$/, ".jpg"), {
-                type: "image/jpeg",
-                lastModified: Date.now(),
-              }));
-            }
-          }, "image/jpeg", quality);
-        };
-        attempt();
-      };
-      img.src = ev.target?.result as string;
-    };
-    reader.readAsDataURL(file);
-  });
-}
-
-interface PaymentConfig {
-  method: string;
-  display_name: string;
-  handle: string;
-  extra_instructions: string;
-  // Bank transfer specific
-  recipient_name?: string;
-  bank_name?: string;
-  account_type?: string;
-  account_number?: string;
-  routing_number?: string;
-  swift_bic?: string;
-  bank_address?: string;
-  recipient_address?: string;
-}
-
-const FALLBACK_METHODS: PaymentConfig[] = [
-  { method: "VENMO",         display_name: "Venmo",    handle: "@HaskerRealty",                  extra_instructions: "Include your name in the payment note." },
-  { method: "CASHAPP",       display_name: "CashApp",  handle: "$HaskerRealty",                  extra_instructions: "Include your full name in the CashApp notes." },
-  { method: "PAYPAL",        display_name: "PayPal",   handle: "payments@haskerrealtygroup.com", extra_instructions: 'Use "Friends & Family" to avoid delays.' },
-  { method: "CHIME",         display_name: "Chime",    handle: "@Hasker-Realty",                 extra_instructions: "" },
-  { method: "BANK_TRANSFER", display_name: "Zelle",    handle: "info@haskerrealtygroup.com",     extra_instructions: "" },
-];
-
-// ── Inline SVG payment logos (avoids CSP issues with external URLs) ───────────
-
-function VenmoLogo() {
-  return (
-    <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" className="w-full h-full" aria-hidden="true">
-      <rect width="32" height="32" rx="7" fill="#3D95CE"/>
-      <path d="M22 9c.7 1.2 1 2.6 1 4.3 0 5-4.3 11.5-7.8 15.7H9.1L6.5 9.6l5.6-.5 1.3 10.8c1.2-2.3 2.8-6 2.8-8.5 0-1.4-.2-2.4-.6-3.1L22 9z" fill="white"/>
-    </svg>
-  );
-}
-function CashAppLogo() {
-  return (
-    <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" className="w-full h-full" aria-hidden="true">
-      <rect width="32" height="32" rx="7" fill="#00D64F"/>
-      <path d="M17.2 9.5V8h-2.4v1.6c-2 .4-3.3 1.8-3.3 3.5 0 2 1.7 2.8 3.3 3.4 1.4.5 2.4.9 2.4 1.8 0 .8-.7 1.3-2 1.3-1.3 0-2.5-.6-3.3-1.4l-1 1.5c.8.9 2 1.5 3.9 1.7V24h2.4v-1.6c2.2-.4 3.5-1.9 3.5-3.7 0-2-1.7-2.9-3.4-3.5-1.4-.5-2.2-.9-2.2-1.6 0-.7.6-1.1 1.5-1.1 1.1 0 2.2.5 2.9 1.2l1-1.5c-.9-.8-2.1-1.3-3.3-1.7z" fill="white"/>
-    </svg>
-  );
-}
-function PayPalLogo() {
-  return (
-    <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" className="w-full h-full" aria-hidden="true">
-      <rect width="32" height="32" rx="7" fill="#F4F6F8"/>
-      <path d="M19.8 8H14a.5.5 0 0 0-.5.4L11 23.6c0 .2.1.4.4.4h2.6c.3 0 .5-.2.5-.5l.6-3.7c.1-.3.3-.5.6-.5H17c3.4 0 5.5-1.7 6-4.9.3-1.4 0-2.6-.6-3.4C21.7 9.7 20.9 8 19.8 8zm.5 5c-.3 2-1.7 2-3 2h-.8l.6-3.6c0-.2.2-.3.3-.3h.4c.9 0 1.8 0 2.2.5.3.4.4.9.3 1.4z" fill="#003087"/>
-      <path d="M22.5 13h-2.6c-.2 0-.3.1-.3.3l-.1.5c.5-.7 1.5-1 2.5-1h.2c1.8 0 3 .8 3.4 2.3.7 2.8-1.2 5.2-4 5.2h-.9c-.3 0-.5.2-.6.4l-.6 3.7c0 .2-.2.4-.4.4h-2.4c-.2 0-.4-.2-.3-.4l1.2-7.7" fill="#009CDE"/>
-    </svg>
-  );
-}
-function ChimeLogo() {
-  return (
-    <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" className="w-full h-full" aria-hidden="true">
-      <rect width="32" height="32" rx="7" fill="#1DA462"/>
-      <path d="M16 7C10.5 7 6 11.5 6 17s4.5 10 10 10 10-4.5 10-10S21.5 7 16 7zm.5 15.5c-3 0-5.5-2.5-5.5-5.5s2.5-5.5 5.5-5.5c1.5 0 2.8.6 3.8 1.5l-1.8 1.8c-.5-.5-1.2-.8-2-.8-1.7 0-3 1.3-3 3s1.3 3 3 3c.8 0 1.5-.3 2-.8l1.8 1.8c-1 1-2.3 1.5-3.8 1.5z" fill="white"/>
-    </svg>
-  );
-}
-function ZelleLogo() {
-  return (
-    <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" className="w-full h-full" aria-hidden="true">
-      <rect width="32" height="32" rx="7" fill="#6D1ED4"/>
-      <path d="M24 9H8v3l9.5 8H8v3h16v-3L14.5 12H24V9z" fill="white"/>
-    </svg>
-  );
-}
-
-function BankTransferLogo() {
-  return (
-    <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" className="w-full h-full" aria-hidden="true">
-      <rect width="32" height="32" rx="7" fill="#1A3557"/>
-      <path d="M16 6L6 11h20L16 6zM8 13h2v8H8v-8zm6 0h2v8h-2v-8zm6 0h2v8h-2v-8zM6 23h20v2H6v-2z" fill="white"/>
-    </svg>
-  );
-}
-
-const PAYMENT_LOGOS: Record<string, React.ReactNode> = {
-  VENMO:         <VenmoLogo />,
-  CASHAPP:       <CashAppLogo />,
-  PAYPAL:        <PayPalLogo />,
-  CHIME:         <ChimeLogo />,
-  BANK_TRANSFER: <BankTransferLogo />,
-};
-
-// ── Copy-to-clipboard helper ──────────────────────────────────────────────────
-
-function useCopy(timeout = 2000) {
-  const [copied, setCopied] = useState<string | null>(null);
-  const copy = useCallback((text: string, key: string) => {
-    navigator.clipboard.writeText(text).then(() => {
-      setCopied(key);
-      setTimeout(() => setCopied(null), timeout);
-    }).catch(() => {});
-  }, [timeout]);
-  return { copied, copy };
-}
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /**
  * Recursively flattens DRF error objects into a readable string or map.
@@ -203,26 +56,26 @@ function parseBackendError(data: any): { message: string; fields: Record<string,
   return { message: primaryMessage, fields };
 }
 
-// ── Types ─────────────────────────────────────────────────────────────────────
+// â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface FormData {
-  // Step 1 — Personal
+  // Step 1 â€” Personal
   first_name: string;
   middle_name: string;
   last_name: string;
   email: string;
   cell_phone: string;
   home_phone: string;
-  // Step 2 — Address
+  // Step 2 â€” Address
   present_address: string;
   city: string;
   state: string;
   zip_code: string;
-  // Step 3 — Rental
+  // Step 3 â€” Rental
   move_in_date: string;
   intended_stay_duration: string;
   months_rent_upfront: number;
-  // Step 4 — Household
+  // Step 4 â€” Household
   has_kids: boolean;
   number_of_kids: number;
   has_pets: boolean;
@@ -245,12 +98,12 @@ const empty = (): FormData => ({
   rental_property: null, confirmed: false,
 });
 
-// ── Step config ───────────────────────────────────────────────────────────────
+// â”€â”€ Step config â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-const STEP_LABELS_GUEST = ["Personal", "Address", "Rental", "Household", "Account", "Review", "Payment"];
-const STEP_LABELS_USER  = ["Personal", "Address", "Rental", "Household", "Review", "Payment"];
+const STEP_LABELS_GUEST = ["Personal", "Address", "Rental", "Household", "Account", "Review"];
+const STEP_LABELS_USER  = ["Personal", "Address", "Rental", "Household", "Review"];
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function saveDraft(data: FormData) {
   try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch {}
@@ -348,7 +201,7 @@ function Select({
   );
 }
 
-// ── Toggle primitive ─────────────────────────────────────────────────────────
+// â”€â”€ Toggle primitive â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function Toggle({
   checked,
@@ -388,48 +241,63 @@ function Toggle({
   );
 }
 
-// ── Step Indicator ────────────────────────────────────────────────────────────
+// â”€â”€ Step Indicator â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function StepIndicator({ current, total, labels }: { current: number; total: number; labels: string[] }) {
   return (
-    <div className="flex items-center gap-0">
-      {Array.from({ length: total }).map((_, i) => {
-        const done = i < current;
-        const active = i === current;
-        return (
-          <div key={i} className="flex items-center flex-1 last:flex-none">
-            {/* Circle */}
-            <div className="flex flex-col items-center">
-              <div className={cn(
-                "w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 transition-all duration-300",
-                done && "bg-brand text-white",
-                active && "bg-[#1D1D1F] text-white ring-4 ring-[#1D1D1F]/10",
-                !done && !active && "bg-[#E5E5EA] text-[#6E6E73]"
-              )}>
-                {done ? <Check size={13} strokeWidth={2.5} /> : i + 1}
+    <>
+      {/* Mobile: slim progress bar + step name — less intimidating than numbered circles */}
+      <div className="sm:hidden">
+        <div className="flex items-center justify-between mb-2.5">
+          <span className="text-[13px] font-bold text-[#1D1D1F]">{labels[current]}</span>
+          <span className="text-[11px] text-neutral-400 font-medium">{current + 1} of {total}</span>
+        </div>
+        <div className="h-1.5 bg-neutral-100 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-brand rounded-full transition-all duration-500"
+            style={{ width: `${((current + 1) / total) * 100}%` }}
+          />
+        </div>
+      </div>
+
+      {/* Desktop: numbered circles with labels */}
+      <div className="hidden sm:flex items-center gap-0">
+        {Array.from({ length: total }).map((_, i) => {
+          const done = i < current;
+          const active = i === current;
+          return (
+            <div key={i} className="flex items-center flex-1 last:flex-none">
+              <div className="flex flex-col items-center">
+                <div className={cn(
+                  "w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 transition-all duration-300",
+                  done && "bg-brand text-white",
+                  active && "bg-[#1D1D1F] text-white ring-4 ring-[#1D1D1F]/10",
+                  !done && !active && "bg-[#E5E5EA] text-[#6E6E73]"
+                )}>
+                  {done ? <Check size={13} strokeWidth={2.5} /> : i + 1}
+                </div>
+                <span className={cn(
+                  "text-[9px] font-semibold mt-1 tracking-wide uppercase whitespace-nowrap",
+                  active ? "text-[#1D1D1F]" : done ? "text-brand" : "text-[#C7C7CC]"
+                )}>
+                  {labels[i]}
+                </span>
               </div>
-              <span className={cn(
-                "hidden sm:block text-[9px] font-semibold mt-1 tracking-wide uppercase whitespace-nowrap",
-                active ? "text-[#1D1D1F]" : done ? "text-brand" : "text-[#C7C7CC]"
-              )}>
-                {labels[i]}
-              </span>
+              {i < total - 1 && (
+                <div className={cn(
+                  "flex-1 h-px mx-1 sm:mx-2 mt-0 sm:-mt-4 transition-colors duration-300",
+                  i < current ? "bg-brand" : "bg-[#E5E5EA]"
+                )} />
+              )}
             </div>
-            {/* Connector */}
-            {i < total - 1 && (
-              <div className={cn(
-                "flex-1 h-px mx-1 sm:mx-2 mt-0 sm:-mt-4 transition-colors duration-300",
-                i < current ? "bg-brand" : "bg-[#E5E5EA]"
-              )} />
-            )}
-          </div>
-        );
-      })}
-    </div>
+          );
+        })}
+      </div>
+    </>
   );
 }
 
-// ── Section card ──────────────────────────────────────────────────────────────
+// â”€â”€ Section card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function Section({
   icon: Icon,
@@ -458,7 +326,7 @@ function Section({
   );
 }
 
-// ── Navigation buttons ────────────────────────────────────────────────────────
+// â”€â”€ Navigation buttons â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function NavButtons({
   step,
@@ -500,7 +368,7 @@ function NavButtons({
         {loading ? (
           <span className="flex items-center gap-2">
             <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            Processing…
+            Processingâ€¦
           </span>
         ) : (
           <>
@@ -513,323 +381,8 @@ function NavButtons({
   );
 }
 
-// ── Payment Step (extracted for clarity) ─────────────────────────────────────
 
-interface PaymentStepProps {
-  paymentConfig: PaymentConfig[];
-  selectedMethod: string;
-  setSelectedMethod: (m: string) => void;
-  paymentRef: string;
-  setPaymentRef: (v: string) => void;
-  proofFile: File | null;
-  setProofFile: (f: File | null) => void;
-  autofilledFields: Set<string>;
-  setAutofilledFields: React.Dispatch<React.SetStateAction<Set<string>>>;
-  serverError: string | null;
-}
-
-function PaymentStepContent({
-  paymentConfig,
-  selectedMethod,
-  setSelectedMethod,
-  paymentRef,
-  setPaymentRef,
-  proofFile,
-  setProofFile,
-  autofilledFields,
-  setAutofilledFields,
-  serverError,
-}: PaymentStepProps) {
-  const { copied, copy } = useCopy();
-  const methods = paymentConfig.length > 0 ? paymentConfig : FALLBACK_METHODS;
-  const cfg = methods.find((m) => m.method === selectedMethod) ?? methods[0];
-  const isBankTransfer = cfg.method === "BANK_TRANSFER";
-
-  const refPlaceholder =
-    selectedMethod === "CASHAPP"      ? "Your $CashTag" :
-    selectedMethod === "VENMO"        ? "Your @username" :
-    selectedMethod === "BANK_TRANSFER" ? "Confirmation / wire reference number" :
-    "Confirmation # or email used";
-
-  return (
-    <Section icon={Lock} title="Application Fee" sub="One-time, Refundable · covers processing & background check">
-      <div className="space-y-6">
-
-        {/* ── Fee pill ────────────────────────────────────────────────── */}
-        <div className="flex items-center justify-between px-4 py-4 bg-[#F5F5F7] rounded-2xl">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center shrink-0">
-              <Lock size={16} className="text-brand" />
-            </div>
-            <div>
-              <p className="text-[14px] font-bold text-[#1D1D1F]">Application Fee</p>
-              <p className="text-[11px] text-[#6E6E73]">One-time · refundable</p>
-            </div>
-          </div>
-          <p className="text-[24px] font-bold text-[#1D1D1F] tracking-tight">
-            $100<span className="text-[15px] font-semibold text-[#6E6E73]">.00</span>
-          </p>
-        </div>
-
-        {/* ── Method selector — full-width radio cards ────────────────── */}
-        <div>
-          <p className="text-[10px] font-bold text-[#6E6E73] uppercase tracking-[0.12em] mb-3">
-            Choose payment method
-          </p>
-          <div className="space-y-2">
-            {methods.map((m) => {
-              const active = selectedMethod === m.method;
-              return (
-                <button
-                  key={m.method}
-                  type="button"
-                  onClick={() => setSelectedMethod(m.method)}
-                  className={cn(
-                    "w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl border-2 transition-all text-left",
-                    active
-                      ? "border-brand bg-brand/[0.04] shadow-sm"
-                      : "border-[#E5E5EA] bg-white hover:border-[#C7C7CC]"
-                  )}
-                >
-                  {/* Logo */}
-                  <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0 shadow-sm">
-                    {PAYMENT_LOGOS[m.method] ?? <BankTransferLogo />}
-                  </div>
-
-                  {/* Label */}
-                  <div className="flex-1 min-w-0">
-                    <p className={cn(
-                      "text-[14px] font-semibold leading-tight",
-                      active ? "text-brand" : "text-[#1D1D1F]"
-                    )}>
-                      {m.display_name}
-                    </p>
-                    {(m.handle || m.recipient_name) && (
-                      <p className="text-[12px] text-[#6E6E73] mt-0.5 truncate">
-                        {m.handle || m.recipient_name}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Radio indicator */}
-                  <div className={cn(
-                    "w-5 h-5 rounded-full border-2 shrink-0 flex items-center justify-center transition-all",
-                    active ? "border-brand bg-brand" : "border-[#C7C7CC]"
-                  )}>
-                    {active && <div className="w-2 h-2 rounded-full bg-white" />}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* ── Payment details card ─────────────────────────────────────── */}
-        {isBankTransfer ? (
-          /* Bank Transfer — structured details card */
-          <div className="rounded-2xl overflow-hidden border border-[#E5E5EA]">
-            {/* Header */}
-            <div className="bg-[#1A3557] px-4 py-4 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0">
-                <BankTransferLogo />
-              </div>
-              {/* Bank info — takes all available space, never wraps amount off-screen */}
-              <div className="flex-1 min-w-0">
-                <p className="text-[10px] font-bold text-white/50 uppercase tracking-widest truncate">
-                  Wire / ACH Transfer
-                </p>
-                <p className="text-[15px] font-bold text-white leading-tight truncate">
-                  {cfg.bank_name || "Bank Transfer"}
-                </p>
-              </div>
-              {/* Amount — shrink-0 so it never wraps */}
-              <div className="shrink-0 text-right">
-                <p className="text-[10px] text-white/50 leading-none mb-0.5">Amount due</p>
-                <p className="text-[18px] font-bold text-white leading-none">$100.00</p>
-              </div>
-            </div>
-
-            {/* Details rows — stacked: label above, value + copy below */}
-            <div className="bg-white divide-y divide-[#F2F2F7]">
-              {[
-                { label: "Recipient Name",          value: cfg.recipient_name,    key: "recipient_name" },
-                { label: "Bank Name",               value: cfg.bank_name,         key: "bank_name" },
-                { label: "Account Type",            value: cfg.account_type,      key: "account_type" },
-                { label: "Account Number",          value: cfg.account_number,    key: "account_number",  copyable: true },
-                { label: "Routing Number (Wire/ABA)", value: cfg.routing_number,  key: "routing_number",  copyable: true },
-                { label: "SWIFT / BIC Code",        value: cfg.swift_bic,         key: "swift_bic",       copyable: true },
-                { label: "Bank Address",            value: cfg.bank_address,      key: "bank_address" },
-                { label: "Recipient Address",       value: cfg.recipient_address, key: "recipient_address" },
-              ]
-                .filter((row) => row.value)
-                .map((row) => (
-                  <div key={row.key} className="px-4 py-3.5">
-                    {/* Label — always its own line */}
-                    <p className="text-[10px] font-bold text-[#8E8E93] uppercase tracking-[0.1em] mb-1.5">
-                      {row.label}
-                    </p>
-                    {/* Value + copy on the next line — value gets full remaining width */}
-                    <div className="flex items-start gap-2.5">
-                      <p className="flex-1 text-[14px] font-semibold text-[#1D1D1F] leading-snug break-words min-w-0">
-                        {row.value}
-                      </p>
-                      {row.copyable && row.value && (
-                        <button
-                          type="button"
-                          onClick={() => copy(row.value!, row.key)}
-                          className={cn(
-                            "shrink-0 text-[11px] font-bold px-3 py-1.5 rounded-lg",
-                            "min-w-[58px] text-center cursor-pointer transition-all duration-150",
-                            copied === row.key
-                              ? "bg-[#D1FAE5] text-[#065F46]"
-                              : "bg-[#F0F0F5] text-[#3C3C43] hover:bg-[#E5E5EA]"
-                          )}
-                          aria-label={`Copy ${row.label}`}
-                        >
-                          {copied === row.key ? "✓ Done" : "Copy"}
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))
-              }
-            </div>
-
-            {/* Footer note */}
-            {cfg.extra_instructions && (
-              <div className="bg-amber-50 border-t border-amber-100 px-5 py-3">
-                <p className="text-[12px] text-amber-700 leading-relaxed">{cfg.extra_instructions}</p>
-              </div>
-            )}
-          </div>
-        ) : (
-          /* Venmo / CashApp / PayPal / Chime — dark send-to card */
-          <div className="bg-[#0B1F3A] rounded-2xl p-5 text-white">
-            <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-3">Send to</p>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-11 h-11 rounded-xl overflow-hidden shrink-0 shadow-md">
-                {PAYMENT_LOGOS[cfg.method] ?? <BankTransferLogo />}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-[20px] font-bold tracking-tight break-all">{cfg.handle}</p>
-                <p className="text-[12px] text-white/50 mt-0.5">{cfg.display_name}</p>
-              </div>
-              {cfg.handle && (
-                <button
-                  type="button"
-                  onClick={() => copy(cfg.handle, "handle")}
-                  className={cn(
-                    "shrink-0 text-[11px] font-bold px-3 py-1.5 rounded-xl transition-all",
-                    copied === "handle"
-                      ? "bg-green-500/20 text-green-300"
-                      : "bg-white/10 text-white/60 hover:bg-white/20 hover:text-white"
-                  )}
-                >
-                  {copied === "handle" ? "Copied!" : "Copy"}
-                </button>
-              )}
-            </div>
-            <div className="pt-3 border-t border-white/10 flex items-center justify-between">
-              <p className="text-[12px] text-white/50">Amount due</p>
-              <p className="text-[20px] font-bold">$100.00</p>
-            </div>
-            {cfg.extra_instructions && (
-              <p className="text-[12px] text-white/40 mt-3 leading-relaxed">{cfg.extra_instructions}</p>
-            )}
-          </div>
-        )}
-
-        {/* ── Transaction ref + proof upload ──────────────────────────── */}
-        <div className="space-y-4">
-          <div>
-            <Label>
-              {isBankTransfer ? "Wire confirmation / reference number *" : "Your transaction ref / username *"}
-            </Label>
-            <Input
-              value={paymentRef}
-              onChange={(e) => setPaymentRef(e.target.value)}
-              placeholder={refPlaceholder}
-            />
-          </div>
-
-          <div>
-            <Label>Upload receipt screenshot *</Label>
-            <label className={cn(
-              "flex items-center justify-center gap-3 w-full py-7 rounded-2xl border-2 border-dashed transition-all cursor-pointer",
-              proofFile
-                ? "border-brand bg-brand/5"
-                : "border-[#D1D1D6] hover:border-[#A0A0A8] bg-[#F5F5F7]"
-            )}>
-              <input
-                type="file"
-                accept="image/*"
-                className="sr-only"
-                onChange={async (e) => {
-                  const f = e.target.files?.[0] ?? null;
-                  if (!f) { setProofFile(null); return; }
-                  if (f.size > MAX_PROOF_SIZE) {
-                    toast.error("File too large — please choose an image under 10 MB.");
-                    e.target.value = "";
-                    return;
-                  }
-                  if (f.size > COMPRESS_THRESHOLD) {
-                    const toastId = toast.loading("Optimising image…");
-                    const compressed = await compressImage(f);
-                    toast.dismiss(toastId);
-                    setProofFile(compressed);
-                  } else {
-                    setProofFile(f);
-                  }
-                }}
-              />
-              {proofFile ? (
-                <>
-                  <div className="w-9 h-9 rounded-xl bg-brand/10 flex items-center justify-center shrink-0">
-                    <Check size={17} className="text-brand" strokeWidth={2.5} />
-                  </div>
-                  <div>
-                    <p className="text-[13px] font-semibold text-brand truncate max-w-[200px]">{proofFile.name}</p>
-                    <p className="text-[11px] text-brand/60 mt-0.5">
-                      Tap to change · {(proofFile.size / 1024 / 1024).toFixed(1)} MB
-                    </p>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="w-9 h-9 rounded-xl bg-[#E5E5EA] flex items-center justify-center shrink-0">
-                    <Camera size={18} className="text-[#6E6E73]" />
-                  </div>
-                  <div>
-                    <p className="text-[14px] font-medium text-[#1D1D1F]">Capture or upload receipt</p>
-                    <p className="text-[11px] text-[#6E6E73] mt-0.5">PNG, JPG or screenshot · up to 10 MB</p>
-                  </div>
-                </>
-              )}
-            </label>
-          </div>
-        </div>
-
-        {/* ── Trust note ──────────────────────────────────────────────── */}
-        <div className="flex items-start gap-3 p-4 bg-green-50 rounded-xl border border-green-100">
-          <Shield className="text-green-600 shrink-0 mt-0.5" size={15} />
-          <p className="text-[12px] text-green-700 leading-relaxed">
-            Your proof will be verified manually. You&apos;ll receive a confirmation email once approved —
-            typically within 1–2 business hours.
-          </p>
-        </div>
-
-        {serverError && (
-          <div className="bg-red-50 border border-red-200/60 text-red-600 text-[12px] rounded-xl px-4 py-3 flex items-start gap-2">
-            <AlertCircle size={14} className="shrink-0 mt-0.5" />
-            {serverError}
-          </div>
-        )}
-      </div>
-    </Section>
-  );
-}
-
-// ── Main Component ────────────────────────────────────────────────────────────
+// â”€â”€ Main Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface Props { propertySlug?: string; }
 
@@ -848,12 +401,10 @@ export function RentalApplicationForm({ propertySlug }: Props) {
   const [serverError, setServerError] = useState<string | null>(null);
   const [propertyData, setPropertyData] = useState<any>(null);
   const [autofilledFields, setAutofilledFields] = useState<Set<string>>(new Set());
-
-  // Payment State
-  const [selectedMethod, setSelectedMethod] = useState<string>("CASHAPP");
-  const [paymentRef, setPaymentRef] = useState("");
-  const [proofFile, setProofFile] = useState<File | null>(null);
-  const [paymentConfig, setPaymentConfig] = useState<PaymentConfig[]>([]);
+  const [draftId, setDraftId] = useState<number | null>(() => {
+    try { const s = sessionStorage.getItem(DRAFT_ID_KEY); return s ? parseInt(s, 10) : null; }
+    catch { return null; }
+  });
 
   const hasStartedRef = useRef(false);
   const isSubmittedRef = useRef(false);
@@ -879,13 +430,6 @@ export function RentalApplicationForm({ propertySlug }: Props) {
     }
   }
 
-  useEffect(() => {
-    fetch(`${API_BASE}/api/v1/transactions/payment-config/`)
-      .then((r) => r.ok ? r.json() : [])
-      .then((data) => { if (Array.isArray(data) && data.length > 0) setPaymentConfig(data); })
-      .catch(() => {});
-  }, []);
-
   // LocalStorage fallback for guests
   useEffect(() => {
     if (!user) {
@@ -908,6 +452,57 @@ export function RentalApplicationForm({ propertySlug }: Props) {
     setStep(0);
     setAutofilledFields(new Set());
     toast.info("Form cleared. You can start fresh.");
+  }
+
+  function saveDraftToBackend(currentStep: number, formData: FormData) {
+    if (!formData.email) return;
+    const payload: Record<string, unknown> = { email: formData.email };
+    if (draftId) payload.draft_id = draftId;
+    if (currentStep >= 0) {
+      payload.first_name = formData.first_name;
+      payload.last_name = formData.last_name;
+      payload.middle_name = formData.middle_name;
+      payload.cell_phone = formData.cell_phone;
+      payload.home_phone = formData.home_phone;
+    }
+    if (currentStep >= 1) {
+      payload.present_address = formData.present_address;
+      payload.city = formData.city;
+      payload.state = formData.state;
+      payload.zip_code = formData.zip_code;
+    }
+    if (currentStep >= 2) {
+      payload.move_in_date = formData.move_in_date;
+      payload.intended_stay_duration = formData.intended_stay_duration;
+      payload.months_rent_upfront = formData.months_rent_upfront;
+      if (formData.rental_property) payload.rental_property = formData.rental_property;
+    }
+    if (currentStep >= 3) {
+      payload.has_kids = formData.has_kids;
+      payload.number_of_kids = formData.number_of_kids;
+      payload.has_pets = formData.has_pets;
+      payload.pet_description = formData.pet_description;
+      payload.smokes = formData.smokes;
+      payload.drinks = formData.drinks;
+    }
+    const utms = getStoredUTMs();
+    if (utms.utm_source) payload.utm_source = utms.utm_source;
+    if (utms.utm_medium) payload.utm_medium = utms.utm_medium;
+    if (utms.utm_campaign) payload.utm_campaign = utms.utm_campaign;
+
+    fetch(`${API_BASE}/api/v1/leads/apply/save-draft/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data?.draft_id) {
+          setDraftId(data.draft_id);
+          try { sessionStorage.setItem(DRAFT_ID_KEY, String(data.draft_id)); } catch {}
+        }
+      })
+      .catch(() => {});
   }
 
   // Fetch property details for summary
@@ -962,11 +557,25 @@ export function RentalApplicationForm({ propertySlug }: Props) {
   // Step configuration
   const ACCOUNT_STEP = 4; // only shown when !user
   const REVIEW_STEP = user ? 4 : 5;
-  const PAYMENT_STEP = user ? 5 : 6;
-  const TOTAL_STEPS = user ? 6 : 7;
+  const TOTAL_STEPS = user ? 5 : 6;
 
   // Save draft whenever form changes
   useEffect(() => { saveDraft(form); }, [form]);
+
+  // Exit-intent: notify user their progress is saved when they tab away mid-form
+  useEffect(() => {
+    if (step === 0) return;
+    function onVisibilityChange() {
+      if (document.hidden) {
+        toast.info("Your progress is saved — come back any time to finish.", {
+          duration: 4000,
+          description: "We'll keep your application right where you left off.",
+        });
+      }
+    }
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", onVisibilityChange);
+  }, [step]);
 
   // Pre-fill from authenticated user
   useEffect(() => {
@@ -997,7 +606,7 @@ export function RentalApplicationForm({ propertySlug }: Props) {
       set(field, e.target.value as never);
   }
 
-  // ── Per-step validation ────────────────────────────────────────────────────
+  // â”€â”€ Per-step validation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   function validateStep(s: number): boolean {
     const e: Record<string, string> = {};
@@ -1041,16 +650,18 @@ export function RentalApplicationForm({ propertySlug }: Props) {
 
   function goNext() {
     if (!validateStep(step)) return;
-    if (step === PAYMENT_STEP) { handleSubmit(); return; }
-    
+    if (step === REVIEW_STEP) { handleSubmit(); return; }
+
+    saveDraftToBackend(step, form);
+
     // Skip account step if user is logged in
     if (!user && step === 3) { setStep(ACCOUNT_STEP); return; }
     if (user && step === 3) { setStep(REVIEW_STEP); return; }
-    
+
     setStep((s) => s + 1);
   }
 
-  // ── Auth gate handlers ─────────────────────────────────────────────────────
+  // â”€â”€ Auth gate handlers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   async function handleAuth() {
     setAuthError(null);
@@ -1159,57 +770,43 @@ export function RentalApplicationForm({ propertySlug }: Props) {
     }
   };
 
-  // ── Final submit ───────────────────────────────────────────────────────────
+  // â”€â”€ Final submit â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   async function handleSubmit() {
-    if (!paymentRef.trim()) {
-      toast.error("Please enter your transaction reference (e.g. CashTag or Email)");
-      return;
-    }
-    if (!proofFile) {
-      toast.error("Please upload a screenshot/receipt of your transfer");
-      return;
-    }
-
     setSubmitting(true);
     setServerError(null);
     setErrors({});
 
     try {
-      // Send as multipart FormData so the file is streamed — avoids Django's
-      // 2.5 MB JSON body limit that breaks base64-encoded image uploads.
-      const fd = new FormData();
-      fd.append("first_name", form.first_name);
-      fd.append("middle_name", form.middle_name);
-      fd.append("last_name", form.last_name);
-      fd.append("email", form.email);
-      fd.append("cell_phone", form.cell_phone);
-      fd.append("home_phone", form.home_phone);
-      fd.append("present_address", form.present_address);
-      fd.append("city", form.city);
-      fd.append("state", form.state);
-      fd.append("zip_code", form.zip_code);
-      fd.append("move_in_date", form.move_in_date);
-      fd.append("intended_stay_duration", form.intended_stay_duration);
-      fd.append("months_rent_upfront", String(form.months_rent_upfront));
-      fd.append("has_kids", String(form.has_kids));
-      fd.append("number_of_kids", String(form.number_of_kids));
-      fd.append("has_pets", String(form.has_pets));
-      fd.append("pet_description", form.pet_description);
-      fd.append("smokes", String(form.smokes));
-      fd.append("drinks", String(form.drinks));
-      if (form.rental_property) fd.append("rental_property", form.rental_property);
       const utms = getStoredUTMs();
-      if (utms.utm_source)   fd.append("utm_source",   utms.utm_source);
-      if (utms.utm_medium)   fd.append("utm_medium",   utms.utm_medium);
-      if (utms.utm_campaign) fd.append("utm_campaign", utms.utm_campaign);
-      const detectedCity = getBestKnownCity();
-      if (detectedCity) fd.append("detected_city", detectedCity);
-      fd.append("payment_method", selectedMethod);
-      fd.append("reference_id", paymentRef.trim());
-      fd.append("proof_file", proofFile);
+      const body: Record<string, unknown> = {
+        first_name: form.first_name,
+        middle_name: form.middle_name,
+        last_name: form.last_name,
+        email: form.email,
+        cell_phone: form.cell_phone,
+        home_phone: form.home_phone,
+        present_address: form.present_address,
+        city: form.city,
+        state: form.state,
+        zip_code: form.zip_code,
+        move_in_date: form.move_in_date,
+        intended_stay_duration: form.intended_stay_duration,
+        months_rent_upfront: form.months_rent_upfront,
+        has_kids: form.has_kids,
+        number_of_kids: form.number_of_kids,
+        has_pets: form.has_pets,
+        pet_description: form.pet_description,
+        smokes: form.smokes,
+        drinks: form.drinks,
+        certification_text: form.confirmed ? "I certify this information is accurate." : " ",
+      };
+      if (form.rental_property) body.rental_property = form.rental_property;
+      if (utms.utm_source)   body.utm_source   = utms.utm_source;
+      if (utms.utm_medium)   body.utm_medium   = utms.utm_medium;
+      if (utms.utm_campaign) body.utm_campaign = utms.utm_campaign;
 
-      const headers: Record<string, string> = {};
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
       if (user) {
         const token = localStorage.getItem("access_token");
         if (token) headers.Authorization = `Bearer ${token}`;
@@ -1218,7 +815,7 @@ export function RentalApplicationForm({ propertySlug }: Props) {
       const res = await fetch(`${API_BASE}/api/v1/leads/apply/`, {
         method: "POST",
         headers,
-        body: fd,
+        body: JSON.stringify(body),
       });
 
       if (!res.ok) {
@@ -1250,6 +847,8 @@ export function RentalApplicationForm({ propertySlug }: Props) {
       localStorage.setItem(SAVED_PROFILE_KEY, JSON.stringify(profileToSave));
 
       clearDraft();
+      try { sessionStorage.removeItem(DRAFT_ID_KEY); } catch {}
+      setDraftId(null);
       isSubmittedRef.current = true;
       trackEvent("submit_application", { application_id: data.id });
       trackMetaEvent("Lead", { content_name: "Rental Application Submitted", content_ids: [form.rental_property ?? ""] });
@@ -1263,7 +862,7 @@ export function RentalApplicationForm({ propertySlug }: Props) {
     }
   }
 
-  // ── Step content ───────────────────────────────────────────────────────────
+  // â”€â”€ Step content â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   const stepLabels = user ? STEP_LABELS_USER : STEP_LABELS_GUEST;
 
@@ -1273,7 +872,7 @@ export function RentalApplicationForm({ propertySlug }: Props) {
       <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] px-5 py-5">
         <StepIndicator current={step} total={TOTAL_STEPS} labels={stepLabels} />
       </div>
-      {/* ── Step 0: Personal Info ──────────────────────────────────────── */}
+      {/* â”€â”€ Step 0: Personal Info â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {step === 0 && (
         <Section icon={User} title="Tell us about yourself" sub="Basic personal information for your application">
           <div className="space-y-4">
@@ -1334,7 +933,7 @@ export function RentalApplicationForm({ propertySlug }: Props) {
         </Section>
       )}
 
-      {/* ── Step 1: Current Address ────────────────────────────────────── */}
+      {/* â”€â”€ Step 1: Current Address â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {step === 1 && (
         <Section icon={MapPin} title="Your current address" sub="Where do you currently live?">
           <div className="space-y-4">
@@ -1376,7 +975,7 @@ export function RentalApplicationForm({ propertySlug }: Props) {
         </Section>
       )}
 
-      {/* ── Step 2: Rental Preferences ────────────────────────────────── */}
+      {/* â”€â”€ Step 2: Rental Preferences â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {step === 2 && (
         <Section icon={Calendar} title="Rental preferences" sub="When do you want to move in and for how long?">
           <div className="space-y-4">
@@ -1424,7 +1023,7 @@ export function RentalApplicationForm({ propertySlug }: Props) {
         </Section>
       )}
 
-      {/* ── Step 3: Household ─────────────────────────────────────────── */}
+      {/* â”€â”€ Step 3: Household â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {step === 3 && (
         <Section icon={Users} title="Your household" sub="Tell us who will be living in the property">
           <div className="space-y-1">
@@ -1489,7 +1088,7 @@ export function RentalApplicationForm({ propertySlug }: Props) {
         </Section>
       )}
 
-      {/* ── Step 4: Account Gate (only when not logged in) ────────────── */}
+      {/* â”€â”€ Step 4: Account Gate (only when not logged in) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {step === ACCOUNT_STEP && !user && (
         <>
           <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-5 sm:p-6">
@@ -1662,7 +1261,7 @@ export function RentalApplicationForm({ propertySlug }: Props) {
             )}
           </div>
 
-          {/* Back only — no next button since next is the auth button above */}
+          {/* Back only â€” no next button since next is the auth button above */}
           <button
             type="button"
             onClick={authMode === "verify" ? () => { setAuthMode("login"); setOtpCode(["", "", "", "", "", ""]); setAuthError(null); } : goBack}
@@ -1674,10 +1273,10 @@ export function RentalApplicationForm({ propertySlug }: Props) {
         </>
       )}
 
-      {/* ── Review Step ───────────────────────────────────────────────── */}
+      {/* â”€â”€ Review Step â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {step === REVIEW_STEP && (
         <>
-          <Section icon={Building2} title="Review your application" sub="Confirm everything looks right before moving to payment">
+          <Section icon={Building2} title="Review your application" sub="Confirm everything looks right before submitting">
             <div className="space-y-5">
               
               {/* Property Summary (New) */}
@@ -1700,7 +1299,7 @@ export function RentalApplicationForm({ propertySlug }: Props) {
                   <div className="grid grid-cols-1 gap-4 pt-4 border-t border-white/10">
                     <div>
                       <p className="text-[10px] uppercase text-white/50 mb-0.5">Monthly Rent</p>
-                      <p className="text-[16px] font-bold">${propertyData?.price || "—"}/mo</p>
+                      <p className="text-[16px] font-bold">${propertyData?.price || "â€”"}/mo</p>
                     </div>
                   </div>
                 </div>
@@ -1740,8 +1339,8 @@ export function RentalApplicationForm({ propertySlug }: Props) {
                 {
                   title: "Household",
                   rows: [
-                    ["Children", form.has_kids ? `Yes — ${form.number_of_kids}` : "No"],
-                    ["Pets", form.has_pets ? `Yes — ${form.pet_description}` : "No"],
+                    ["Children", form.has_kids ? `Yes â€” ${form.number_of_kids}` : "No"],
+                    ["Pets", form.has_pets ? `Yes â€” ${form.pet_description}` : "No"],
                     ["Smokes", form.smokes ? "Yes" : "No"],
                     ["Drinks", form.drinks ? "Yes" : "No"],
                   ],
@@ -1762,7 +1361,7 @@ export function RentalApplicationForm({ propertySlug }: Props) {
                   {rows.map(([label, value]) => (
                     <div key={label} className="flex justify-between gap-4 px-4 py-2.5 border-b border-black/[0.04] last:border-0">
                       <p className="text-[12px] text-[#6E6E73] shrink-0">{label}</p>
-                      <p className="text-[12px] font-medium text-[#1D1D1F] text-right">{value || "—"}</p>
+                      <p className="text-[12px] font-medium text-[#1D1D1F] text-right">{value || "â€”"}</p>
                     </div>
                   ))}
                 </div>
@@ -1811,30 +1410,14 @@ export function RentalApplicationForm({ propertySlug }: Props) {
         </>
       )}
 
-      {/* ── Payment Step ──────────────────────────────────────────────── */}
-      {step === PAYMENT_STEP && (
-        <PaymentStepContent
-          paymentConfig={paymentConfig}
-          selectedMethod={selectedMethod}
-          setSelectedMethod={setSelectedMethod}
-          paymentRef={paymentRef}
-          setPaymentRef={setPaymentRef}
-          proofFile={proofFile}
-          setProofFile={setProofFile}
-          autofilledFields={autofilledFields}
-          setAutofilledFields={setAutofilledFields}
-          serverError={serverError}
-        />
-      )}
-
-      {/* ── Navigation ────────────────────────────────────────────────── */}
+      {/* â”€â”€ Navigation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {(step !== ACCOUNT_STEP || user) && (
         <NavButtons
           step={step}
           total={TOTAL_STEPS}
           onBack={goBack}
           onNext={goNext}
-          nextLabel={step === PAYMENT_STEP ? "Pay & Submit" : step === REVIEW_STEP ? "Next" : "Continue"}
+          nextLabel={step === REVIEW_STEP ? "Submit Application" : "Continue"}
           loading={submitting}
         />
       )}

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Lead, LeadActivity, Client, LeadStatus, RentalApplication
+from .models import Lead, LeadActivity, Client, LeadStatus, RentalApplication, ApplicationStatus
 
 
 class LeadCreateSerializer(serializers.ModelSerializer):
@@ -102,9 +102,8 @@ class ClientSerializer(serializers.ModelSerializer):
 
 
 class RentalApplicationCreateSerializer(serializers.ModelSerializer):
-    """Used by the public /apply form."""
+    """Used by the public /apply form (no payment required)."""
 
-    # Accept either a slug string (from the website URL) or a numeric PK
     rental_property = serializers.SlugRelatedField(
         slug_field="slug",
         queryset=__import__("apps.properties.models", fromlist=["Property"]).Property.objects.filter(is_published=True),
@@ -127,23 +126,8 @@ class RentalApplicationCreateSerializer(serializers.ModelSerializer):
             "certification_text",
             "application_fee", "is_fee_paid", "status",
             "utm_source", "utm_medium", "utm_campaign",
-            # Virtual fields for payment proof submission
-            "payment_method", "reference_id", "proof_image", "proof_file"
         ]
         read_only_fields = ["id", "application_fee", "is_fee_paid", "status"]
-
-    payment_method = serializers.CharField(write_only=True, required=False)
-    reference_id   = serializers.CharField(write_only=True, required=False)
-    proof_image    = serializers.CharField(write_only=True, required=False)
-    proof_file     = serializers.FileField(write_only=True, required=False, allow_empty_file=False)
-
-    def create(self, validated_data):
-        # Remove non-model fields used for payment proof
-        validated_data.pop("payment_method", None)
-        validated_data.pop("reference_id", None)
-        validated_data.pop("proof_image", None)
-        validated_data.pop("proof_file", None)
-        return super().create(validated_data)
 
     def validate(self, data):
         if data.get("has_kids") and not data.get("number_of_kids"):
@@ -155,6 +139,47 @@ class RentalApplicationCreateSerializer(serializers.ModelSerializer):
                 {"pet_description": "Please describe your pet(s)."}
             )
         return data
+
+
+class RentalApplicationDraftSerializer(serializers.ModelSerializer):
+    """
+    Used by POST /api/v1/leads/apply/save-draft/
+    All fields optional except email (minimum for admin follow-up).
+    Accepts partial data from any step of the form.
+    """
+
+    rental_property = serializers.SlugRelatedField(
+        slug_field="slug",
+        queryset=__import__("apps.properties.models", fromlist=["Property"]).Property.objects.filter(is_published=True),
+        required=False,
+        allow_null=True,
+    )
+
+    class Meta:
+        model = RentalApplication
+        fields = [
+            "id",
+            "first_name", "middle_name", "last_name",
+            "email", "cell_phone", "home_phone",
+            "has_kids", "number_of_kids",
+            "present_address", "city", "state", "zip_code",
+            "move_in_date", "intended_stay_duration", "months_rent_upfront",
+            "has_pets", "pet_description",
+            "smokes", "drinks",
+            "rental_property",
+            "utm_source", "utm_medium", "utm_campaign",
+        ]
+        extra_kwargs = {f: {"required": False} for f in [
+            "first_name", "middle_name", "last_name",
+            "cell_phone", "home_phone",
+            "has_kids", "number_of_kids",
+            "present_address", "city", "state", "zip_code",
+            "move_in_date", "intended_stay_duration", "months_rent_upfront",
+            "has_pets", "pet_description",
+            "smokes", "drinks",
+            "rental_property",
+            "utm_source", "utm_medium", "utm_campaign",
+        ]}
 
 
 class RentalApplicationLatestProfileSerializer(serializers.ModelSerializer):

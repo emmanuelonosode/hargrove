@@ -5,14 +5,14 @@ import { Home, Clock, Shield, Star, Users } from "lucide-react";
 export const metadata: Metadata = {
   title: "Apply to Rent a Home | Hasker & Co. Realty Group",
   description:
-    "Apply to rent an affordable home with Hasker & Co. Realty Group. Simple online application, reviewed within 24 hours. No hidden fees, no pressure. Fast, honest decisions.",
+    "Apply to rent an affordable home with Hasker & Co. Realty Group. Simple online application, reviewed within 24 hours. No pressure. Fast, honest decisions.",
   keywords: [
     "apply to rent a home", "rental application", "affordable rental application",
     "rent a house", "cheap apartments to rent", "rental application online",
   ],
   openGraph: {
     title: "Apply to Rent a Home | Hasker & Co. Realty Group",
-    description: "Simple rental application reviewed in 24 hours. Affordable homes across 12+ cities. No hidden fees.",
+    description: "Simple rental application reviewed in 24 hours. Affordable, move-in ready homes across 12+ cities.",
     type: "website",
     url: "https://haskerrealtygroup.com/apply",
   },
@@ -34,7 +34,7 @@ const breadcrumb = {
 const TRUST_ITEMS = [
   { icon: Clock, text: "Reviewed within 24 hours" },
   { icon: Shield, text: "Your data is kept confidential" },
-  { icon: Home, text: "No hidden fees — ever" },
+  { icon: Home, text: "Move-in ready — every home is inspected" },
 ];
 
 const STATS = [

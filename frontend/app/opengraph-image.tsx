@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og'
 
 export const runtime = 'edge'
-export const alt = 'Hasker & Co. Realty Group — Quality Homes. No Hidden Fees.'
+export const alt = 'Hasker & Co. Realty Group — Quality Homes. Move-In Ready.'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
@@ -212,7 +212,7 @@ export default function Image() {
             }}
           >
             <div style={{ display: 'flex' }}>Quality Homes.</div>
-            <div style={{ display: 'flex', color: '#93C5FD' }}>No Hidden Fees.</div>
+            <div style={{ display: 'flex', color: '#93C5FD' }}>Move-In Ready.</div>
           </div>
 
           {/* Subheading */}
@@ -228,7 +228,7 @@ export default function Image() {
             }}
           >
             Rent or buy in Atlanta, Charlotte, Houston, Dallas &amp; more.
-            Fast approvals, honest prices.
+            Well-maintained homes, fast approvals.
           </div>
 
           {/* Trustpilot badge */}

@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Star, Home, Users, Clock, CheckCircle, MapPin } from "lucide-react";
-import { SearchBar } from "@/components/public/SearchBar";
+import { ArrowRight, Star, Home, CheckCircle, MapPin } from "lucide-react";
+import { HeroSearch } from "@/components/public/HeroSearch";
 import { PropertyCard } from "@/components/public/PropertyCard";
 import { Button } from "@/components/ui/Button";
 import { fetchHomepageProperties, fetchProperties, toPropertyCardShape } from "@/lib/properties";
@@ -10,13 +10,13 @@ import { fetchPosts } from "@/lib/blog";
 import { formatPrice } from "@/lib/utils";
 import { CITIES, fetchAllCities, buildGenericCityData, type CityData } from "@/lib/cities";
 import { CityLeadCapture } from "@/components/public/CityLeadCapture";
-import { HomepageLeadForm } from "@/components/public/HomepageLeadForm";
 import { FeaturedPropertiesSection } from "@/components/public/FeaturedPropertiesSection";
+import { PreQualifyBanner } from "@/components/public/PreQualifyBanner";
 
 export const metadata = {
   title: "Hasker & Co. Realty Group | Affordable Homes to Rent & Buy",
   description:
-    "Hasker & Co. Realty Group — find affordable homes to rent and buy across Atlanta, Charlotte, Houston, Dallas, Nashville and Phoenix. No hidden fees. Decisions in 24 hrs.",
+    "Hasker & Co. Realty Group — find affordable homes to rent and buy across Atlanta, Charlotte, Houston, Dallas, Nashville and Phoenix. Decisions in 24 hrs.",
   keywords: [
     "affordable homes for rent",
     "cheap apartments near me",
@@ -26,7 +26,7 @@ export const metadata = {
     "rental homes Dallas",
     "affordable housing Nashville",
     "homes for sale affordable",
-    "no hidden fees rental",
+    "move-in ready rental",
     "24 hour rental approval",
     "pet friendly rentals",
     "rent with bad credit",
@@ -37,7 +37,7 @@ export const metadata = {
   ],
   openGraph: {
     title: "Hasker & Co. Realty Group | Affordable Homes to Rent & Buy",
-    description: "Hasker & Co. Realty Group — quality homes at honest prices. No hidden fees. Fast approvals. 12+ cities.",
+    description: "Hasker & Co. Realty Group — quality homes, well-maintained and move-in ready. Fast approvals. 12+ cities.",
     type: "website",
     url: "https://haskerrealtygroup.com",
     images: [{ url: "https://haskerrealtygroup.com/opengraph-image", width: 1200, height: 630, alt: "Hasker & Co. Realty Group — Affordable Homes" }],
@@ -45,7 +45,7 @@ export const metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Hasker & Co. Realty Group | Affordable Homes to Rent & Buy",
-    description: "Hasker & Co. Realty Group — quality homes at honest prices. No hidden fees. Fast approvals. 12+ cities.",
+    description: "Hasker & Co. Realty Group — quality homes, well-maintained and move-in ready. Fast approvals. 12+ cities.",
     images: ["https://haskerrealtygroup.com/opengraph-image"],
     creator: "@haskerrealty",
   },
@@ -96,22 +96,22 @@ const LOCAL_BUSINESS_SCHEMA = {
   logo: `${BASE_URL}/logo.svg`,
   image: `${BASE_URL}/opengraph-image`,
   description:
-    "Hasker & Co. Realty Group — affordable homes to rent and buy. Honest prices, no hidden fees, fast decisions. 2,000+ families housed across 12+ US cities since 2012.",
+    "Hasker & Co. Realty Group — affordable homes to rent and buy. Quality homes, move-in ready, fast decisions. 2,000+ families housed across 12+ US cities since 2012.",
   email: "info@haskerrealtygroup.com",
   priceRange: "$$",
   foundingDate: "2012",
   address: {
     "@type": "PostalAddress",
-    streetAddress: "213 Bob Ln",
-    addressLocality: "Virginia Beach",
-    addressRegion: "VA",
-    postalCode: "23454",
+    streetAddress: "204 Colonial Hills Rd",
+    addressLocality: "Winder",
+    addressRegion: "GA",
+    postalCode: "30680",
     addressCountry: "US",
   },
   geo: {
     "@type": "GeoCoordinates",
-    latitude: 36.7335,
-    longitude: -76.0435,
+    latitude: 33.9940,
+    longitude: -83.7196,
   },
   openingHoursSpecification: [
     { "@type": "OpeningHoursSpecification", dayOfWeek: ["Monday","Tuesday","Wednesday","Thursday","Friday"], opens: "09:00", closes: "18:00" },
@@ -164,10 +164,10 @@ const ORGANIZATION_SCHEMA = {
   email: "info@haskerrealtygroup.com",
   address: {
     "@type": "PostalAddress",
-    streetAddress: "213 Bob Ln",
-    addressLocality: "Virginia Beach",
-    addressRegion: "VA",
-    postalCode: "23454",
+    streetAddress: "204 Colonial Hills Rd",
+    addressLocality: "Winder",
+    addressRegion: "GA",
+    postalCode: "30680",
     addressCountry: "US",
   },
   contactPoint: {
@@ -191,17 +191,17 @@ const FAQ_SCHEMA = {
     {
       "@type": "Question",
       name: "What is Hasker Realty Group?",
-      acceptedAnswer: { "@type": "Answer", text: "Hasker Realty Group — officially named Hasker & Co. Realty Group — is a licensed US real estate company founded in 2012 and headquartered in Virginia Beach, VA. The company specializes in affordable rental homes and budget-friendly properties for sale across 12+ US cities including Atlanta, Charlotte, Houston, Dallas, and Nashville. Website: haskerrealtygroup.com." },
+      acceptedAnswer: { "@type": "Answer", text: "Hasker Realty Group — officially named Hasker & Co. Realty Group — is a licensed US real estate company founded in 2012 and headquartered in Winder, GA. The company specializes in affordable rental homes and budget-friendly properties for sale across 12+ US cities including Atlanta, Charlotte, Houston, Dallas, and Nashville. Website: haskerrealtygroup.com." },
     },
     {
       "@type": "Question",
       name: "Who is Hasker & Co. Realty Group?",
-      acceptedAnswer: { "@type": "Answer", text: "Hasker & Co. Realty Group (also searched as Hasker Realty Group or Hasker Realty) is an affordable housing company based in Virginia Beach, VA. Founded in 2012, they have housed 2,000+ families across 12+ US cities. They are NAR members, BBB A+ accredited, and rated 4.9/5 on Trustpilot. Find them at haskerrealtygroup.com." },
+      acceptedAnswer: { "@type": "Answer", text: "Hasker & Co. Realty Group (also searched as Hasker Realty Group or Hasker Realty) is an affordable housing company based in Winder, GA. Founded in 2012, they have housed 2,000+ families across 12+ US cities. They are NAR members, BBB A+ accredited, and rated 4.9/5 on Trustpilot. Find them at haskerrealtygroup.com." },
     },
     {
       "@type": "Question",
       name: "Where can I find cheap apartments to rent in Atlanta?",
-      acceptedAnswer: { "@type": "Answer", text: "Hasker & Co. Realty Group lists affordable rentals in Atlanta, GA starting from around $950/month. They specialize in budget-friendly housing with no hidden fees and respond to applications within 24 hours. Browse listings at haskerrealtygroup.com/properties." },
+      acceptedAnswer: { "@type": "Answer", text: "Hasker & Co. Realty Group lists affordable rentals in Atlanta, GA starting from around $950/month. They specialize in budget-friendly housing and respond to applications within 24 hours. Browse listings at haskerrealtygroup.com/properties." },
     },
     {
       "@type": "Question",
@@ -211,7 +211,7 @@ const FAQ_SCHEMA = {
     {
       "@type": "Question",
       name: "What is the most affordable way to rent a house in America?",
-      acceptedAnswer: { "@type": "Answer", text: "Hasker & Co. Realty Group focuses exclusively on affordable rentals across 12+ US cities. There are no hidden admin fees. You pay the listed price plus the standard security deposit. Studios start from $800/mo and family homes from $1,400/mo." },
+      acceptedAnswer: { "@type": "Answer", text: "Hasker & Co. Realty Group focuses exclusively on affordable rentals across 12+ US cities. You pay the listed price plus the standard security deposit. Studios start from $800/mo and family homes from $1,400/mo." },
     },
     {
       "@type": "Question",
@@ -274,7 +274,7 @@ const HOW_IT_WORKS_SCHEMA = {
   "@context": "https://schema.org",
   "@type": "HowTo",
   name: "How to Rent a Home with Hasker & Co. Realty Group",
-  description: "Apply for an affordable rental home in 4 simple steps. Decisions within 24 hours, no hidden fees.",
+  description: "Apply for an affordable rental home in 4 simple steps. Decisions within 24 hours.",
   totalTime: "PT30M",
   estimatedCost: { "@type": "MonetaryAmount", currency: "USD", value: "0" },
   step: [
@@ -354,118 +354,79 @@ export default async function HomePage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(HOW_IT_WORKS_SCHEMA) }} />
 
       {/* ─── HERO ──────────────────────────────────────────────── */}
-      <section className="relative min-h-[100svh] flex items-center overflow-hidden">
-        <div className="absolute inset-0">
-          <Image
-            src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=1920&q=90"
-            alt="Beautiful home with warm sunlight — find your perfect rental"
-            fill
-            priority
-            className="object-cover object-center"
-            sizes="100vw"
-          />
+      <section className="relative overflow-hidden bg-[#0D1B2A]" style={{ minHeight: "640px" }}>
+        {/* Background property photo at low opacity */}
+        {featuredProperties[0]?.images?.[0]?.url && (
+          <div className="absolute inset-0">
+            <Image
+              src={featuredProperties[0].images[0].url}
+              alt=""
+              fill
+              className="object-cover opacity-25"
+              sizes="100vw"
+              priority
+            />
+          </div>
+        )}
+        {/* Gradient overlay for depth */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0D1B2A]/70 via-[#0D1B2A]/50 to-[#0D1B2A]/85" />
+
+        {/* Content */}
+        <div className="relative z-10 flex flex-col items-center justify-center text-center px-5 sm:px-8 pt-28 pb-20 sm:pt-32 sm:pb-24 min-h-[640px]">
+
+          {/* Available badge */}
+          <div className="hero-animate inline-flex items-center gap-2 mb-6" style={{ animationDelay: "0ms" }}>
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+            <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-white/70">
+              {totalProperties != null ? `${totalProperties} Properties Available` : "Properties Available"}
+            </span>
+          </div>
+
+          {/* Headline */}
+          <h1
+            className="hero-animate font-black text-white leading-[1.05] tracking-tight mb-4
+                       text-[2.6rem] sm:text-[3.8rem] lg:text-[5rem]"
+            style={{ animationDelay: "80ms" }}
+          >
+            Find Your Next Home
+          </h1>
+
+          <p
+            className="hero-animate text-white/60 text-[15px] sm:text-[17px] leading-relaxed mb-10 max-w-[520px]"
+            style={{ animationDelay: "160ms" }}
+          >
+            Well-maintained, move-in ready homes across 12+ cities.
+            Decisions in 24 hours.
+          </p>
+
+          {/* Search card — full width, prominent */}
           <div
-            className="absolute inset-0"
-            style={{
-              background:
-                "linear-gradient(to bottom, rgba(11,31,58,0.55) 0%, rgba(11,31,58,0.70) 40%, rgba(11,31,58,0.88) 75%, rgba(11,31,58,0.96) 100%)",
-            }}
-          />
-        </div>
+            className="hero-animate w-full max-w-2xl"
+            style={{ animationDelay: "240ms" }}
+          >
+            <HeroSearch />
+          </div>
 
-        <div className="relative z-10 w-full px-5 sm:px-8 pt-24 pb-14 sm:pt-28 sm:pb-20">
-          <div className="max-w-4xl mx-auto flex flex-col items-center text-center">
-            <div
-              className="hero-animate inline-flex items-center gap-2.5 mb-8
-                         bg-white/10 backdrop-blur-sm border border-white/20
-                         rounded-full px-5 py-2.5"
-              style={{ animationDelay: "0ms" }}
-            >
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
-              <span className="text-white/90 text-[11px] font-semibold tracking-[0.2em] uppercase">
-                {totalProperties != null ? `${totalProperties} ${totalProperties === 1 ? "Property" : "Properties"} Available Now` : "Properties Available Now"}
-              </span>
-            </div>
-
-            <h1
-              className="hero-animate text-white font-black leading-[1.05] mb-6
-                         text-[2.5rem] sm:text-5xl md:text-6xl lg:text-[4.5rem] xl:text-[5rem]"
-              style={{ animationDelay: "90ms" }}
-            >
-              Real Homes.<br />
-              Honest Prices.<br />
-              <span className="text-brand">Zero Surprises.</span>
-            </h1>
-
-            {/* Social proof row */}
-            <div
-              className="hero-animate flex flex-wrap justify-center items-center gap-2 mb-8"
-              style={{ animationDelay: "180ms" }}
-            >
-              <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-2">
-                <div className="flex gap-0.5">
-                  {[1,2,3,4,5].map((i) => (
-                    <svg key={i} className="w-3 h-3" viewBox="0 0 24 24" fill="#FBBF24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                  ))}
-                </div>
-                <span className="text-white/90 text-[11px] font-semibold">4.9 · Trusted by 2,400+ Families</span>
-              </div>
-              <div className="hidden sm:flex items-center gap-1.5 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-2">
-                <span className="text-emerald-400 text-[11px] font-bold">BBB A+ Rated</span>
-              </div>
-              <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-2">
-                <span className="text-white/90 text-[11px] font-semibold">24-hr Decisions</span>
-              </div>
-            </div>
-
-            <div
-              className="hero-animate w-full max-w-3xl"
-              style={{ animationDelay: "270ms" }}
-            >
-              <SearchBar className="shadow-2xl shadow-black/30" />
-            </div>
-
-            <div
-              className="hero-animate flex flex-wrap justify-center items-center gap-2 mt-5"
-              style={{ animationDelay: "360ms" }}
-            >
-              <span className="flex items-center gap-1 text-white/50 text-[11px] mr-0.5">
-                <MapPin size={10} />
-                Near you:
-              </span>
-              {mergedCities.slice(0, 12).map((c) => (
-                <Link
-                  key={c.slug}
-                  href={`/rentals/${c.slug}`}
-                  className="text-[11px] text-white/80 hover:text-white border border-white/30 hover:border-white/70 px-3 py-2 rounded-full transition-[color,border-color] duration-200 cursor-pointer"
-                >
-                  {c.name}
-                </Link>
-              ))}
-            </div>
-
-            {/* CTA pair */}
-            <div
-              className="hero-animate flex flex-col sm:flex-row gap-3 mt-8"
-              style={{ animationDelay: "450ms" }}
-            >
-              <Button variant="accent" size="lg" asChild>
-                <Link href="/properties">Browse Available Homes <ArrowRight size={14} /></Link>
-              </Button>
-              <Button variant="outline-white" size="lg" asChild>
-                <Link href="/contact">Talk to Our Team</Link>
-              </Button>
-            </div>
-
-            {/* Inline match form — third conversion path for undecided visitors */}
-            <div
-              className="hero-animate w-full max-w-2xl mt-6"
-              style={{ animationDelay: "540ms" }}
-            >
-              <p className="text-white/40 text-[11px] text-center mb-3 tracking-[0.2em] uppercase font-semibold">
-                Or let us match you — get curated listings in 24 hours
+          {/* Stats row */}
+          <div
+            className="hero-animate flex items-center justify-center gap-8 sm:gap-14 mt-14"
+            style={{ animationDelay: "320ms" }}
+          >
+            <div className="text-center">
+              <p className="text-white font-black text-[2rem] sm:text-[2.25rem] leading-none tabular-nums">
+                {totalProperties ?? "200"}<span className="text-brand">+</span>
               </p>
-              <HomepageLeadForm />
+              <p className="text-white/40 text-[11px] mt-1.5 font-medium uppercase tracking-wide">Listed Homes</p>
+            </div>
+            <div className="w-px h-10 bg-white/15" />
+            <div className="text-center">
+              <p className="text-white font-black text-[2rem] sm:text-[2.25rem] leading-none">2,400<span className="text-brand">+</span></p>
+              <p className="text-white/40 text-[11px] mt-1.5 font-medium uppercase tracking-wide">Families Housed</p>
+            </div>
+            <div className="w-px h-10 bg-white/15" />
+            <div className="text-center">
+              <p className="text-white font-black text-[2rem] sm:text-[2.25rem] leading-none">12<span className="text-brand">+</span></p>
+              <p className="text-white/40 text-[11px] mt-1.5 font-medium uppercase tracking-wide">Cities Served</p>
             </div>
           </div>
         </div>
@@ -573,19 +534,69 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* ─── PRE-QUALIFY BANNER ────────────────────────────────── */}
+      <section className="bg-white border-b border-neutral-100 py-10 lg:py-14">
+        <div className="max-w-5xl mx-auto px-5 sm:px-8">
+          <div className="text-center mb-6">
+            <p className="text-brand text-[11px] font-bold tracking-[0.25em] uppercase mb-2">Free — No Credit Check</p>
+            <h2 className="font-serif text-2xl sm:text-3xl font-bold text-brand-dark">
+              Find out which homes fit your budget in 60 seconds
+            </h2>
+          </div>
+          <PreQualifyBanner />
+        </div>
+      </section>
+
       {/* ─── AVAILABLE RENTALS ─────────────────────────────────── */}
       <FeaturedPropertiesSection properties={featuredProperties} totalCount={totalProperties} />
 
       {/* ─── MID-PAGE LEAD CAPTURE ────────────────────────────── */}
-      <section className="bg-brand py-12 lg:py-16">
-        <div className="max-w-2xl mx-auto text-center px-6">
-          <h2 className="text-white font-serif text-2xl font-bold mb-2">
-            Don&apos;t see your city? We&apos;re expanding fast.
-          </h2>
-          <p className="text-white/60 text-sm mb-8">
-            Drop your email and we&apos;ll notify you the moment we list homes in your area.
-          </p>
-          <CityLeadCapture cityName="" />
+      <section className="bg-[#0D1B2A] py-16 lg:py-24">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+
+            {/* Left — copy */}
+            <div>
+              <div className="inline-flex items-center gap-2 bg-white/10 rounded-full px-4 py-1.5 mb-6">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-white/70">
+                  Expanding Fast
+                </span>
+              </div>
+              <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-white leading-tight mb-5">
+                Don&apos;t see your city yet?
+              </h2>
+              <p className="text-white/60 text-[15px] leading-relaxed mb-8 max-w-md">
+                We&apos;re adding new cities every month. Drop your details and we&apos;ll be the first to reach you the moment homes land in your area.
+              </p>
+              <div className="space-y-3">
+                {[
+                  "First look at new listings before they go public",
+                  "Personalized matches based on your budget",
+                  "No spam — only properties you&apos;ll actually want",
+                ].map((item) => (
+                  <div key={item} className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0">
+                      <CheckCircle size={12} className="text-emerald-400" />
+                    </div>
+                    <span className="text-white/70 text-[13px]" dangerouslySetInnerHTML={{ __html: item }} />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Right — form card */}
+            <div className="bg-white rounded-2xl p-7 lg:p-9 shadow-2xl">
+              <h3 className="font-serif text-xl font-bold text-brand-dark mb-1">
+                Get notified when we expand
+              </h3>
+              <p className="text-neutral-500 text-sm mb-6">
+                Tell us where you&apos;re looking and we&apos;ll do the rest.
+              </p>
+              <CityLeadCapture cityName="" />
+            </div>
+
+          </div>
         </div>
       </section>
 
@@ -711,9 +722,9 @@ export default async function HomePage() {
               <h2 className="font-serif text-4xl lg:text-5xl font-bold text-brand-dark leading-tight mb-6">
                 Good Homes.
                 <br />
-                Fair Prices.
+                Well-Maintained.
                 <br />
-                No Surprises.
+                Move-In Ready.
               </h2>
               <p className="text-neutral-600 leading-relaxed mb-8">
                 Everyone deserves a quality home they can actually afford. Hasker & Co. Realty Group
@@ -818,7 +829,7 @@ export default async function HomePage() {
                   </svg>
                 ),
                 them: "Hidden fees buried in the fine print of your lease.",
-                us: "Every cost disclosed before you sign. No surprises, ever.",
+                us: "Every cost disclosed before you sign. Inspected, every time.",
               },
               {
                 category: "Speed",
@@ -1224,7 +1235,7 @@ export default async function HomePage() {
             Let&apos;s Find It.
           </h2>
           <p className="text-white/60 text-lg leading-relaxed mb-10">
-            Browse verified homes across 12 cities — priced honestly, no hidden fees.
+            Browse verified homes across 12 cities — inspected, maintained, and move-in ready.
             Apply online in 10 minutes.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">

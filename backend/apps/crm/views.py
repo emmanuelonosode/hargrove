@@ -10,12 +10,12 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from apps.accounts.permissions import IsAgentOrAbove, IsManagerOrAbove
 
 logger = logging.getLogger(__name__)
-from .models import Lead, LeadActivity, Client, LeadStatus, RentalApplication
+from .models import Lead, LeadActivity, Client, LeadStatus, RentalApplication, ApplicationStatus
 from .serializers import (
     LeadCreateSerializer, LeadListSerializer, LeadDetailSerializer,
     LeadActivitySerializer, LeadAssignSerializer, ClientSerializer,
     RentalApplicationCreateSerializer, RentalApplicationAdminSerializer,
-    RentalApplicationLatestProfileSerializer,
+    RentalApplicationLatestProfileSerializer, RentalApplicationDraftSerializer,
 )
 
 
@@ -36,6 +36,40 @@ class RentalApplicationLatestProfileView(generics.RetrieveAPIView):
             from django.http import Http404
             raise Http404("No previous application found.")
         return application
+
+
+class SaveDraftView(generics.GenericAPIView):
+    """
+    POST /api/v1/leads/apply/save-draft/
+    Creates or updates a DRAFT RentalApplication so admins can follow up
+    with applicants who didn't complete the form.
+    Body: partial form data + optional draft_id.
+    Response: { draft_id: <int> }
+    Permission: AllowAny — user may not be authenticated yet.
+    """
+    serializer_class = RentalApplicationDraftSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        draft_id = request.data.get("draft_id")
+
+        if draft_id:
+            draft = RentalApplication.objects.filter(
+                pk=draft_id, status=ApplicationStatus.DRAFT
+            ).first()
+            if draft:
+                serializer = self.get_serializer(draft, data=request.data, partial=True)
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+                return Response({"draft_id": draft.id}, status=status.HTTP_200_OK)
+
+        # No valid existing draft — create a new one
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        x_forwarded = request.META.get("HTTP_X_FORWARDED_FOR", "")
+        ip = x_forwarded.split(",")[0].strip() if x_forwarded else request.META.get("REMOTE_ADDR")
+        draft = serializer.save(status=ApplicationStatus.DRAFT, ip_address=ip)
+        return Response({"draft_id": draft.id}, status=status.HTTP_201_CREATED)
 
 
 class LeadListCreateView(generics.ListCreateAPIView):
@@ -218,46 +252,9 @@ class RentalApplicationCreateView(generics.CreateAPIView):
     permission_classes = [permissions.AllowAny]
 
     def perform_create(self, serializer):
-        # Capture client IP
         x_forwarded = self.request.META.get("HTTP_X_FORWARDED_FOR")
         ip = x_forwarded.split(",")[0].strip() if x_forwarded else self.request.META.get("REMOTE_ADDR")
-        
-        # Check for payment proof data
-        payment_method = self.request.data.get("payment_method")
-        reference_id   = self.request.data.get("reference_id")
-        proof_image    = self.request.data.get("proof_image")
-        proof_file     = self.request.FILES.get("proof_file") or self.request.data.get("proof_file")
-        
-        final_proof_url = proof_image or ""
-
-        if proof_file:
-            try:
-                import cloudinary.uploader
-                upload_res = cloudinary.uploader.upload(proof_file)
-                final_proof_url = upload_res.get("secure_url", "")
-            except Exception as e:
-                from rest_framework.exceptions import ValidationError
-                raise ValidationError({"proof_file": f"Cloudinary upload failed: {str(e)}"})
-
-        if payment_method:
-            # If payment info is provided, set status to PENDING_VERIFICATION
-            application = serializer.save(ip_address=ip, status="PENDING_VERIFICATION")
-            
-            # Create a Payment record tied to this application
-            from apps.transactions.models import Payment
-            Payment.objects.create(
-                rental_application=application,
-                amount=application.application_fee,
-                payment_method=payment_method,
-                reference_id=reference_id or "",
-                proof_image=final_proof_url,
-                status="PENDING_VERIFICATION"
-            )
-        else:
-            application = serializer.save(ip_address=ip)
-
-            
-        # Fire immediate applicant confirmation email (independent of PDF)
+        application = serializer.save(ip_address=ip, status=ApplicationStatus.SUBMITTED)
         try:
             from apps.notifications.tasks import send_application_submitted_email, generate_rental_application_pdf
             send_application_submitted_email(application.id)

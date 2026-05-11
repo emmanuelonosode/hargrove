@@ -25,12 +25,60 @@ from decimal import Decimal, InvalidOperation
 import requests
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
+from django.db import connection
 from django.utils.text import slugify
 
 from apps.accounts.models import Role
 from apps.properties.models import (
     AmenityCategory, Property, PropertyAmenity, PropertyImage,
 )
+
+# ── Description cleaning ───────────────────────────────────────────────────────
+_DESC_CLEAN = [
+    (re.compile(r'\bRently\b',              re.I), ''),
+    (re.compile(r'\bhomes\.rently\.com\b',  re.I), ''),
+    (re.compile(r'\$[\d,]+(?:\.\d{2})?(?:/mo(?:nth)?)?\b', re.I), ''),
+    (re.compile(r'rent(?:ing|ed)?\s+for\s+\$[\d,]+', re.I), ''),
+    (re.compile(r'\bapply\s+now\b',         re.I), ''),
+    (re.compile(r'\bapplying\b',            re.I), ''),
+    (re.compile(r'\bapplication\s+fee\b',   re.I), ''),
+    (re.compile(r'\bsubmit\s+an?\s+application\b', re.I), ''),
+    (re.compile(r'\bschedule\s+a\s+(?:self[- ]guided\s+)?(?:tour|showing|viewing)\b', re.I), ''),
+    (re.compile(r'\bself[- ]guided\s+tour\b', re.I), ''),
+    (re.compile(r'\bcontact\s+us\s+to\s+(?:apply|schedule|tour|lease)\b', re.I), ''),
+    (re.compile(r'\bvisit\s+(?:our\s+)?website\b', re.I), ''),
+    (re.compile(r'\s{2,}'),                 ' '),
+]
+
+
+def _clean_desc(text: str) -> str:
+    if not text:
+        return ""
+    for pattern, replacement in _DESC_CLEAN:
+        text = pattern.sub(replacement, text)
+    return text.strip()
+
+
+def _insert_images_raw(property_id: int, urls: list) -> int:
+    """Insert property images via raw SQL, bypassing CloudinaryField entirely.
+
+    CloudinaryField.to_python() recognises cloudfront.net as a Cloudinary CDN
+    domain and mangles the URL at assignment time — before it even reaches the
+    database. Writing directly through the DB cursor stores the string as-is.
+    """
+    clean = [u for u in urls if u and u.startswith("https://")]
+    if not clean:
+        return 0
+    q = connection.ops.quote_name
+    sql = (
+        f"INSERT INTO {q('properties_propertyimage')} "
+        f"({q('property_id')}, {q('image')}, {q('caption')}, {q('is_primary')}, {q('order')}) "
+        f"VALUES (%s, %s, %s, %s, %s)"
+    )
+    rows = [(property_id, url, "", i == 0, i) for i, url in enumerate(clean)]
+    with connection.cursor() as cursor:
+        cursor.executemany(sql, rows)
+    return len(clean)
 
 User = get_user_model()
 
@@ -201,7 +249,9 @@ PROP_TYPE_MAP = {
 TOUR_FIELDS = [
     "virtual_tour_url", "virtual_tour", "tour_url",
     "three_sixty_url", "tour_360", "matterport_url",
-    "video_url", "tour_link",
+    "video_url", "tour_link", "media_tour_url",
+    "inside_maps_url", "insidemaps_url", "zillow_3d_url",
+    "kuula_url", "matterport", "tour",
 ]
 
 
@@ -242,15 +292,24 @@ def _bool(v):
 
 
 def _tour_url(detail: dict) -> tuple[str, str]:
-    """Return (virtual_tour_url, tour_360_url) from a detail dict."""
-    urls = []
+    """Return (virtual_tour_url, tour_360_url) from a detail dict.
+    Checks all known tour field names AND scans every key for tour-related keywords.
+    """
+    found = []
+    # Check known field names first
     for f in TOUR_FIELDS:
         val = _str(detail.get(f, ""))
-        if val and val.startswith("http"):
-            urls.append(val)
-    # First URL → virtual_tour_url, second (if different) → tour_360_url
-    vt = urls[0] if urls else ""
-    t360 = urls[1] if len(urls) > 1 and urls[1] != vt else ""
+        if val and val.startswith("http") and val not in found:
+            found.append(val)
+    # Scan all keys for anything tour-like
+    for key, val in detail.items():
+        if isinstance(val, str) and val.startswith("http"):
+            key_lower = key.lower()
+            if any(kw in key_lower for kw in ("tour", "matterport", "360", "virtual", "inside", "kuula")):
+                if val not in found:
+                    found.append(val)
+    vt   = found[0] if found else ""
+    t360 = found[1] if len(found) > 1 and found[1] != vt else ""
     return vt, t360
 
 
@@ -283,15 +342,56 @@ def _parse_amenities(raw) -> list[tuple[str, str]]:
     return out
 
 
+_CF_BASE = "https://d39tc8gklidfbm.cloudfront.net/images"
+_S3_RE   = re.compile(r"https?://s3\.amazonaws\.com/[^/]+/images/(\d+)/")
+
+
+def _normalize_url(url: str) -> str:
+    """Convert Rently S3 URLs → CloudFront equivalents (CloudinaryField-safe).
+    S3 URLs (https://s3.amazonaws.com/Rently_dev/images/{id}/large_watermarked)
+    get mangled by Django's CloudinaryField because it treats s3.amazonaws.com
+    as a Cloudinary S3-backend host and strips the path. CloudFront URLs are
+    plain CDN links and store/retrieve without issue.
+    """
+    if not url:
+        return ""
+    m = _S3_RE.match(url)
+    if m:
+        return f"{_CF_BASE}/{m.group(1)}/large"
+    # Also normalise thumb → large for the slim listing fallback
+    return url.replace("/thumb", "/large")
+
+
 def _photo_url(pic) -> str:
+    """Extract a clean https:// image URL from a Rently picture entry.
+
+    Rently API picture objects may be strings or dicts.
+    We always prefer large_url > url > medium_url > src.
+    We reject anything that doesn't resolve to a full https:// URL so that
+    CloudinaryField never receives a protocol-relative or partial URL
+    (which would cause build_url() to produce a garbled CDN address).
+    """
     if isinstance(pic, str):
-        return pic.strip()
-    if isinstance(pic, dict):
-        return _str(
-            pic.get("url") or pic.get("large_url") or
+        url = _normalize_url(pic.strip())
+    elif isinstance(pic, dict):
+        raw = _str(
+            pic.get("large_url") or pic.get("url") or
             pic.get("medium_url") or pic.get("src", "")
         )
-    return ""
+        url = _normalize_url(raw)
+    else:
+        return ""
+
+    # Reject protocol-relative, empty, or non-http URLs
+    if not url or not url.startswith("https://"):
+        if url.startswith("//"):
+            url = "https:" + url
+        elif url.startswith("http://"):
+            url = "https://" + url[7:]
+        else:
+            return ""  # Unparseable — skip this image
+
+    return url
 
 
 def _make_slug(pid, address, city, state) -> str:
@@ -345,9 +445,9 @@ class Command(BaseCommand):
 
         # ── Clear ─────────────────────────────────────────────────────────────
         if options["clear"]:
-            qs = Property.objects.filter(listing_type="for-rent")
+            qs = Property.objects.filter(cross_street="rently")
             n = qs.count()
-            self.stdout.write(f"Clearing {n} for-rent properties...")
+            self.stdout.write(f"Clearing {n} Rently-sourced properties...")
             PropertyImage.objects.filter(property__in=qs).delete()
             PropertyAmenity.objects.filter(property__in=qs).delete()
             qs.delete()
@@ -458,25 +558,19 @@ class Command(BaseCommand):
                         bedrooms=min_beds, bathrooms=min_baths, sqft=min_sqft,
                         address=addr_raw, city=city, state=state, zip_code=zipcode,
                         latitude=lat, longitude=lng,
-                        neighborhood=name, condition="good", is_published=True,
+                        neighborhood=name, condition="good",
+                        cross_street="rently", is_published=True,
                     )
                     existing_slugs.add(slug)
                     total_props += 1
 
-                    # All gallery photos
+                    # All gallery photos — use raw SQL to bypass CloudinaryField mangling
                     gallery = comm.get("gallery_photos", [])
-                    img_objs = [
-                        PropertyImage(
-                            property=prop,
-                            image=ph.get("large_url") or ph.get("medium_url", ""),
-                            is_primary=(i == 0), order=i,
-                        )
-                        for i, ph in enumerate(gallery)
-                        if ph.get("large_url") or ph.get("medium_url")
+                    gallery_urls = [
+                        _photo_url(ph)
+                        for ph in gallery
                     ]
-                    if img_objs:
-                        PropertyImage.objects.bulk_create(img_objs, batch_size=500, ignore_conflicts=True)
-                        total_images += len(img_objs)
+                    total_images += _insert_images_raw(prop.id, gallery_urls)
 
                     if total_props % 50 == 0:
                         self.stdout.write(f"   {total_props} properties seeded...")
@@ -505,6 +599,8 @@ class Command(BaseCommand):
                 sqft       = _int(detail.get("size")        or fp.get("size"), 0) or 0
                 rent       = detail.get("price")            or fp.get("rent") or 0
                 year_built = _int(detail.get("year_built")  or detail.get("year"), None)
+                lot_size   = _dec(detail.get("lot_size")    or detail.get("lot"), None)
+                stories    = _int(detail.get("stories")     or detail.get("floors"), None)
                 raw_addr   = _str(detail.get("address")     or detail.get("street_address")
                                   or slim.get("address", ""))
                 city       = _str(detail.get("city")        or slim.get("city", ""))
@@ -512,7 +608,7 @@ class Command(BaseCommand):
                 zipcode    = _str(detail.get("zipcode")     or detail.get("zip", ""))
                 lat        = _dec(detail.get("latitude")    or slim.get("latitude"))
                 lng        = _dec(detail.get("longitude")   or slim.get("longitude"))
-                desc       = _str(detail.get("description") or slim.get("headline", ""))
+                raw_desc   = _str(detail.get("description") or slim.get("headline", ""))
                 deposit    = _dec(detail.get("deposit"), None)
                 prop_type  = PROP_TYPE_MAP.get(_str(slim.get("type", "")).lower(), "residential")
                 neighborhood = _str(detail.get("neighborhood") or detail.get("community_name", ""))
@@ -525,13 +621,19 @@ class Command(BaseCommand):
                 bed_label  = "Studio" if beds == 0 else f"{beds}-Bed"
 
                 title = (
-                    f"{bed_label} Home at {adj_addr}" if adj_addr else
+                    f"{bed_label} Home at {adj_addr}, {city}" if adj_addr and city else
+                    f"{bed_label} Home at {adj_addr}"          if adj_addr else
                     f"{bed_label} Home in {city}, {raw_state}" if city else
                     f"{bed_label} Rental Home"
                 )
+
+                # Clean description — strip Rently branding, prices, apply-now CTAs
+                desc = _clean_desc(raw_desc)
                 if not desc:
                     desc = (
-                        f"A {bed_label.lower()} home available for rent in {city}, {raw_state}."
+                        f"A well-maintained {bed_label.lower()} home available for rent in "
+                        f"{city}, {raw_state}."
+                        + (f" Built in {year_built}." if year_built else "")
                         + (f" Security deposit: ${int(deposit):,}." if deposit else "")
                     )
 
@@ -561,10 +663,9 @@ class Command(BaseCommand):
 
                 has_garage = "garage" in seen_amen
 
-                # ── Photos ────────────────────────────────────────────────────
+                # ── Photos — prefer large_url → url → medium_url ──────────────
                 pictures = detail.get("pictures", [])
                 if not pictures:
-                    # Fallback: listing thumbnail
                     fb = slim.get("picture", "")
                     if fb:
                         pictures = [fb]
@@ -577,13 +678,15 @@ class Command(BaseCommand):
                     price=adj_price, price_label="/mo",
                     bedrooms=beds, bathrooms=baths or Decimal("1"), sqft=sqft,
                     year_built=year_built,
+                    lot_size=lot_size,
+                    stories=stories or 1,
                     garage=1 if has_garage else 0,
                     address=adj_addr, city=city, state=raw_state, zip_code=zipcode,
                     latitude=lat, longitude=lng,
                     neighborhood=neighborhood,
                     virtual_tour_url=vt_url,
                     tour_360_url=t360_url,
-                    condition="good", is_published=True,
+                    condition="good", cross_street="rently", is_published=True,
                 )
                 existing_slugs.add(slug)
 
@@ -599,19 +702,11 @@ class Command(BaseCommand):
                 if amen_objs:
                     PropertyAmenity.objects.bulk_create(amen_objs, batch_size=500, ignore_conflicts=True)
 
-                # Images
-                img_objs = []
-                for i, pic in enumerate(pictures):
-                    url = _photo_url(pic)
-                    if url:
-                        img_objs.append(PropertyImage(
-                            property=prop, image=url,
-                            is_primary=(i == 0), order=i,
-                        ))
-                if img_objs:
-                    PropertyImage.objects.bulk_create(img_objs, batch_size=500, ignore_conflicts=True)
+                # Images — raw SQL to bypass CloudinaryField URL mangling
+                photo_urls = [_photo_url(pic) for pic in pictures]
+                n_images = _insert_images_raw(prop.id, photo_urls)
 
-                return 1, len(amen_objs), len(img_objs)
+                return 1, len(amen_objs), n_images
 
             def _flush(pending: dict):
                 """Fetch details + insert for one batch. Clears pending in-place."""
@@ -670,7 +765,7 @@ class Command(BaseCommand):
                             total_found += 1
                             pending[pid] = {
                                 "floorplan": p.get("floorplan", {}),
-                                "picture":   p.get("picture", ""),
+                                "picture":   _normalize_url(p.get("picture", "")),
                                 "type":      p.get("type", "House"),
                                 "address":   p.get("address", ""),
                                 "city":      p.get("city", ""),
@@ -688,13 +783,11 @@ class Command(BaseCommand):
                 except Exception as e:
                     self.stdout.write(self.style.WARNING(f"\n   {city_name} failed: {e}"))
 
-            # Final partial batch
             if pending and not (limit and total_props >= limit):
                 _flush(pending)
 
             self.stdout.write(f"\n   SFR total found: {total_found}")
 
-        # ── Summary ───────────────────────────────────────────────────────────
         self.stdout.write(self.style.SUCCESS(f"\n{'='*50}"))
         self.stdout.write(self.style.SUCCESS("RENTLY SEED COMPLETE"))
         self.stdout.write(self.style.SUCCESS(f"Properties : {total_props:,}"))

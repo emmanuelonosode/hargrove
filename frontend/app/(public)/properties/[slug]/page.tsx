@@ -75,7 +75,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       property.sqft ? `${Number(property.sqft).toLocaleString()} sqft` : null,
     ].filter(Boolean).join(", ");
     const addrPrefix = streetAddress ? `${fullAddr}. ` : "";
-    const seoDesc = `${addrPrefix}${featureList ? featureList + ". " : ""}Affordable ${typeLabel.toLowerCase()} ${actionLabel} — no hidden fees. Apply online, decision in 24 hours.`;
+    const seoDesc = `${addrPrefix}${featureList ? featureList + ". " : ""}Affordable ${typeLabel.toLowerCase()} ${actionLabel} — inspected and move-in ready. Apply online, decision in 24 hours.`;
 
     const ogImage = property.images?.[0]?.image_url
       ? toOgImageUrl(property.images[0].image_url)
@@ -96,7 +96,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         // City + type keywords
         `${bedsLabel.trim()} ${typeLabel} ${actionLabel} ${property.city}`.trim(),
         `affordable ${typeLabel.toLowerCase()} ${property.city}`,
-        `${property.city} ${typeLabel.toLowerCase()} ${actionLabel} no hidden fees`,
+        `${property.city} ${typeLabel.toLowerCase()} ${actionLabel} move-in ready`,
         `${property.city} ${actionLabel}`,
       ],
       alternates: { canonical: `https://haskerrealtygroup.com/properties/${decodedSlug}` },
@@ -354,24 +354,33 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
 
               {/* Title + badges */}
               <div>
-                <div className="flex flex-wrap gap-2 mb-3">
+                <div className="flex flex-wrap gap-2 mb-4">
                   <Badge variant={listingBadgeVariant}>{listingLabel}</Badge>
                   {property.is_featured && <Badge variant="featured">Featured</Badge>}
                   {property.status === "under-contract" && <Badge variant="under-contract">Under Contract</Badge>}
-                  {(property as any).condition && (
-                    <span className="text-xs font-medium px-2.5 py-0.5 bg-neutral-100 text-neutral-600 rounded-full capitalize">
-                      {(property as any).condition === "new" ? "New Construction" : (property as any).condition}
-                    </span>
-                  )}
+                  {(property as any).condition && (() => {
+                    const cond = (property as any).condition as string;
+                    const label = cond === "new" ? "New Construction" : cond.charAt(0).toUpperCase() + cond.slice(1);
+                    const cls =
+                      cond === "new"       ? "bg-brand/10 text-brand border-brand/20" :
+                      /good|excellent/.test(cond) ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
+                      /fair/.test(cond)    ? "bg-amber-50 text-amber-700 border-amber-200" :
+                                            "bg-neutral-100 text-neutral-600 border-neutral-200";
+                    return (
+                      <span className={`text-xs font-bold px-3 py-1 rounded-full border ${cls}`}>
+                        {label}
+                      </span>
+                    );
+                  })()}
                 </div>
 
-                <h1 className="font-serif text-2xl sm:text-3xl lg:text-4xl font-bold text-brand-dark leading-tight mb-2">
+                <h1 className="font-serif text-2xl sm:text-3xl lg:text-4xl font-bold text-brand-dark leading-tight mb-3">
                   {property.title}
                 </h1>
 
-                <div className="flex items-start gap-1.5 text-neutral-500 text-sm">
-                  <MapPin size={14} className="text-brand shrink-0 mt-0.5" />
-                  <span>
+                <div className="flex items-start gap-2 text-neutral-500 text-sm">
+                  <MapPin size={15} className="text-brand shrink-0 mt-0.5" />
+                  <span className="leading-relaxed">
                     {property.address}
                     {(property as any).cross_street && ` (near ${(property as any).cross_street})`}
                     , {property.city}, {property.state} {property.zip_code}
@@ -382,18 +391,18 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
               {/* ── Key stats bar ── */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {[
-                  { icon: Bed,       label: "Bedrooms",    value: property.bedrooms ?? "—" },
-                  { icon: Bath,      label: "Bathrooms",   value: property.bathrooms ?? "—" },
-                  { icon: Maximize,  label: "Sq Ft",       value: property.sqft ? formatNumber(property.sqft) : "—" },
-                  { icon: Home,      label: "Garage",      value: property.garage ? `${property.garage}-Car` : "None" },
-                ].map(({ icon: Icon, label, value }) => (
-                  <div key={label} className="bg-neutral-50 border border-neutral-100 rounded-lg p-4 flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-md bg-brand/10 flex items-center justify-center shrink-0">
-                      <Icon size={16} className="text-brand" />
+                  { icon: Bed,      label: "Bedrooms",  value: property.bedrooms ?? "—",                           iconCls: "text-blue-600",   bgCls: "bg-blue-50"   },
+                  { icon: Bath,     label: "Bathrooms", value: property.bathrooms ?? "—",                          iconCls: "text-teal-600",   bgCls: "bg-teal-50"   },
+                  { icon: Maximize, label: "Sq Ft",     value: property.sqft ? formatNumber(property.sqft) : "—",  iconCls: "text-amber-600",  bgCls: "bg-amber-50"  },
+                  { icon: Home,     label: "Garage",    value: property.garage ? `${property.garage}-Car` : "None",iconCls: "text-slate-600",  bgCls: "bg-slate-100" },
+                ].map(({ icon: Icon, label, value, iconCls, bgCls }) => (
+                  <div key={label} className="bg-white border border-neutral-200 rounded-xl p-4 flex items-center gap-3.5 shadow-sm">
+                    <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${bgCls}`}>
+                      <Icon size={20} className={iconCls} />
                     </div>
                     <div>
-                      <p className="font-bold text-brand-dark text-lg leading-none">{value}</p>
-                      <p className="text-xs text-neutral-400 uppercase tracking-wide mt-0.5">{label}</p>
+                      <p className="font-black text-brand-dark text-[1.5rem] leading-none">{value}</p>
+                      <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-[0.12em] mt-1">{label}</p>
                     </div>
                   </div>
                 ))}
@@ -403,14 +412,14 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
               {property.description && (
                 <div>
                   <h2 className="font-serif text-2xl font-bold text-brand-dark mb-4">About This Property</h2>
-                  <p className="text-neutral-600 leading-relaxed whitespace-pre-line">{property.description}</p>
+                  <p className="text-neutral-600 text-[15px] leading-[1.8] whitespace-pre-line">{property.description}</p>
                 </div>
               )}
 
               {/* ── Property details grid ── */}
               <div>
                 <h2 className="font-serif text-2xl font-bold text-brand-dark mb-5">Property Details</h2>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-8 gap-y-5">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {[
                     { label: "Property Type",  value: property.type?.charAt(0).toUpperCase() + property.type?.slice(1) },
                     { label: "Listing Type",   value: listingLabel },
@@ -422,9 +431,9 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
                     { label: "ZIP Code",       value: property.zip_code },
                     ...((property as any).condition ? [{ label: "Condition", value: (property as any).condition === "new" ? "New Construction" : (property as any).condition }] : []),
                   ].map(({ label, value }) => (
-                    <div key={label}>
-                      <p className="text-xs font-semibold tracking-widest uppercase text-neutral-400 mb-1">{label}</p>
-                      <p className="text-sm text-brand-dark font-medium capitalize">{String(value)}</p>
+                    <div key={label} className="bg-neutral-50 border border-neutral-100 rounded-xl px-4 py-3.5">
+                      <p className="text-[10px] font-bold tracking-[0.15em] uppercase text-neutral-400 mb-1">{label}</p>
+                      <p className="text-[14px] text-brand-dark font-bold capitalize">{String(value)}</p>
                     </div>
                   ))}
                 </div>
@@ -434,21 +443,24 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
               {amenityCategories.length > 0 ? (
                 <div>
                   <h2 className="font-serif text-2xl font-bold text-brand-dark mb-6">Features &amp; Amenities</h2>
-                  <div className="space-y-6">
+                  <div className="space-y-7">
                     {amenityCategories.map((cat: any) => (
                       <div key={cat.id ?? "other"}>
-                        <p className="text-xs font-semibold tracking-widest uppercase text-brand mb-3 pb-1 border-b border-brand-muted">
+                        <p className="text-[11px] font-bold tracking-[0.2em] uppercase text-neutral-500 mb-3">
                           {cat.name}
                         </p>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-3 gap-x-4">
-                          {cat.amenities.map((a: any) => (
-                            <div key={a.id} className="flex items-center gap-2 text-sm text-neutral-700">
-                              <span className="w-6 h-6 rounded-md bg-brand/10 flex items-center justify-center shrink-0">
-                                <AmenityIcon name={a.name} />
-                              </span>
-                              {a.name}
-                            </div>
-                          ))}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                          {cat.amenities.map((a: any) => {
+                            const { Icon, iconCls, bgCls } = getAmenityConfig(a.name);
+                            return (
+                              <div key={a.id} className="flex items-center gap-3 bg-white border border-neutral-100 rounded-xl px-3.5 py-3 shadow-sm">
+                                <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${bgCls}`}>
+                                  <Icon size={17} className={iconCls} />
+                                </div>
+                                <span className="text-[13px] font-semibold text-brand-dark leading-tight">{a.name}</span>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     ))}
@@ -457,15 +469,18 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
               ) : amenities.length > 0 ? (
                 <div>
                   <h2 className="font-serif text-2xl font-bold text-brand-dark mb-5">Features &amp; Amenities</h2>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    {amenities.map((a) => (
-                      <div key={a.id} className="flex items-center gap-2 text-sm text-neutral-700">
-                        <span className="w-6 h-6 rounded-md bg-brand/10 flex items-center justify-center shrink-0">
-                          <AmenityIcon name={a.name} />
-                        </span>
-                        {a.name}
-                      </div>
-                    ))}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                    {amenities.map((a) => {
+                      const { Icon, iconCls, bgCls } = getAmenityConfig(a.name);
+                      return (
+                        <div key={a.id} className="flex items-center gap-3 bg-white border border-neutral-100 rounded-xl px-3.5 py-3 shadow-sm">
+                          <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${bgCls}`}>
+                            <Icon size={17} className={iconCls} />
+                          </div>
+                          <span className="text-[13px] font-semibold text-brand-dark leading-tight">{a.name}</span>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               ) : null}
@@ -555,10 +570,26 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
 
                   {(property.listing_type === "for-rent" || property.listing_type === "for-lease") && (
                     <>
-                      <p className="text-xs text-amber-600 font-medium flex items-center gap-1.5 mb-3">
+                      <p className="text-xs text-amber-600 font-medium flex items-center gap-1.5 mb-4">
                         <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse inline-block shrink-0" />
                         Properties like this typically rent within 5–7 days
                       </p>
+
+                      {/* Social proof */}
+                      <div className="bg-neutral-50 border border-neutral-100 rounded-lg px-4 py-3 mb-4">
+                        <div className="flex items-center gap-0.5 mb-1">
+                          {[1,2,3,4,5].map((i) => (
+                            <svg key={i} className="w-3 h-3" viewBox="0 0 24 24" fill="#F59E0B">
+                              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            </svg>
+                          ))}
+                        </div>
+                        <p className="text-[12px] text-neutral-600 leading-snug italic">
+                          &ldquo;Approved in less than a day. The whole process was so easy — no paperwork runaround.&rdquo;
+                        </p>
+                        <p className="text-[11px] text-neutral-400 mt-1 font-medium">— Marcus T., {property.city}</p>
+                      </div>
+
                       <Button variant="accent" className="w-full mb-3" asChild>
                         <Link href={`/apply?property=${property.slug}`}>Apply Free — Decision in 24 Hours</Link>
                       </Button>
@@ -694,29 +725,51 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
 }
 
 // ── Amenity icon helper ───────────────────────────────────────────────────────
-function AmenityIcon({ name }: { name: string }) {
+interface AmenityConfig { Icon: LucideIcon; iconCls: string; bgCls: string; }
+
+function getAmenityConfig(name: string): AmenityConfig {
   const n = name.toLowerCase();
-  let Icon: LucideIcon = CheckCircle2;
-
-  if (/granite|quartz|counter|island|kitchen/.test(n))      Icon = Utensils;
-  else if (/dishwasher/.test(n))                             Icon = Utensils;
-  else if (/stainless|appliance|refrigerator/.test(n))      Icon = Refrigerator;
-  else if (/microwave/.test(n))                              Icon = Microwave;
-  else if (/stove|gas|range|oven|fireplace/.test(n))        Icon = Flame;
-  else if (/washer|dryer|laundry|washing/.test(n))          Icon = WashingMachine;
-  else if (/air.condition|central.air|ac\b|hvac/.test(n))   Icon = Wind;
-  else if (/heat|furnace/.test(n))                           Icon = Thermometer;
-  else if (/shower/.test(n))                                 Icon = ShowerHead;
-  else if (/electric|zap|utility|power/.test(n))            Icon = Zap;
-  else if (/wifi|internet|cable/.test(n))                    Icon = Wifi;
-  else if (/pool|swim/.test(n))                              Icon = Waves;
-  else if (/garage|parking|car/.test(n))                     Icon = Car;
-  else if (/yard|fence|patio|outdoor|garden/.test(n))       Icon = Fence;
-  else if (/tree|park|trail|walk/.test(n))                   Icon = TreePine;
-  else if (/gym|fitness|dumbbell|workout/.test(n))           Icon = Dumbbell;
-  else if (/gated|security|guard/.test(n))                   Icon = Shield;
-  else if (/pet|dog|cat|animal/.test(n))                     Icon = PawPrint;
-  else if (/hoa|community|club/.test(n))                     Icon = Home;
-
-  return <Icon size={14} className="text-brand shrink-0" />;
+  if (/granite|quartz|counter|island|kitchen|dishwasher|utensil|cook/.test(n))
+    return { Icon: Utensils,      iconCls: "text-orange-600", bgCls: "bg-orange-100" };
+  if (/refrigerator|fridge/.test(n))
+    return { Icon: Refrigerator,  iconCls: "text-orange-600", bgCls: "bg-orange-100" };
+  if (/microwave/.test(n))
+    return { Icon: Microwave,     iconCls: "text-orange-600", bgCls: "bg-orange-100" };
+  if (/stove|range|oven/.test(n))
+    return { Icon: Flame,         iconCls: "text-rose-600",   bgCls: "bg-rose-100"   };
+  if (/fireplace/.test(n))
+    return { Icon: Flame,         iconCls: "text-red-600",    bgCls: "bg-red-100"    };
+  if (/stainless|appliance/.test(n))
+    return { Icon: Refrigerator,  iconCls: "text-orange-600", bgCls: "bg-orange-100" };
+  if (/washer|dryer|laundry|washing/.test(n))
+    return { Icon: WashingMachine,iconCls: "text-blue-600",   bgCls: "bg-blue-100"   };
+  if (/air.condition|central.air|\bac\b|hvac/.test(n))
+    return { Icon: Wind,          iconCls: "text-cyan-600",   bgCls: "bg-cyan-100"   };
+  if (/heat|furnace|thermostat/.test(n))
+    return { Icon: Thermometer,   iconCls: "text-red-600",    bgCls: "bg-red-100"    };
+  if (/shower|bath/.test(n))
+    return { Icon: ShowerHead,    iconCls: "text-sky-600",    bgCls: "bg-sky-100"    };
+  if (/electric|utility|power/.test(n))
+    return { Icon: Zap,           iconCls: "text-yellow-600", bgCls: "bg-yellow-100" };
+  if (/wifi|internet|cable|network/.test(n))
+    return { Icon: Wifi,          iconCls: "text-violet-600", bgCls: "bg-violet-100" };
+  if (/pool|swim/.test(n))
+    return { Icon: Waves,         iconCls: "text-blue-600",   bgCls: "bg-blue-100"   };
+  if (/garage|parking|car/.test(n))
+    return { Icon: Car,           iconCls: "text-slate-600",  bgCls: "bg-slate-100"  };
+  if (/yard|fence|patio|outdoor|garden|balcony/.test(n))
+    return { Icon: Fence,         iconCls: "text-green-600",  bgCls: "bg-green-100"  };
+  if (/tree|park|trail|walk|nature/.test(n))
+    return { Icon: TreePine,      iconCls: "text-emerald-600",bgCls: "bg-emerald-100"};
+  if (/gym|fitness|dumbbell|workout/.test(n))
+    return { Icon: Dumbbell,      iconCls: "text-amber-600",  bgCls: "bg-amber-100"  };
+  if (/gated|security|guard|camera|alarm/.test(n))
+    return { Icon: Shield,        iconCls: "text-red-600",    bgCls: "bg-red-100"    };
+  if (/pet|dog|cat|animal/.test(n))
+    return { Icon: PawPrint,      iconCls: "text-teal-600",   bgCls: "bg-teal-100"   };
+  if (/gas/.test(n))
+    return { Icon: Flame,         iconCls: "text-rose-600",   bgCls: "bg-rose-100"   };
+  if (/hoa|community|club/.test(n))
+    return { Icon: Home,          iconCls: "text-indigo-600", bgCls: "bg-indigo-100" };
+  return   { Icon: CheckCircle2,  iconCls: "text-brand",      bgCls: "bg-brand/10"   };
 }

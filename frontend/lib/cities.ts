@@ -170,7 +170,7 @@ export function buildGenericCityData(stats: CityStats): CityData {
     avgRent,
     population: "N/A",
     marketHighlight: `${stats.count} active rental listing${stats.count !== 1 ? "s" : ""}`,
-    seoContent: `Hasker & Co. Realty Group offers verified rental listings in ${stats.city}, ${stats.state}. Browse our current inventory of ${stats.count} available propert${stats.count !== 1 ? "ies" : "y"} — no hidden fees, decisions within 24 hours.\n\nOur ${stats.city} listings span a range of bedroom counts and property types to fit any budget. Apply online in under 10 minutes and receive a decision the same business day.`,
+    seoContent: `Hasker & Co. Realty Group offers verified rental listings in ${stats.city}, ${stats.state}. Browse our current inventory of ${stats.count} available propert${stats.count !== 1 ? "ies" : "y"} — all inspected and move-in ready, decisions within 24 hours.\n\nOur ${stats.city} listings span a range of bedroom counts and property types to fit any budget. Apply online in under 10 minutes and receive a decision the same business day.`,
   };
 }
 

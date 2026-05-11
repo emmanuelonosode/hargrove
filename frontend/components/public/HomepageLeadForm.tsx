@@ -51,13 +51,13 @@ export function HomepageLeadForm() {
 
   if (done) {
     return (
-      <div className="flex items-center justify-center gap-3 py-3.5 px-5 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl">
-        <div className="w-6 h-6 rounded-full bg-emerald-400/20 flex items-center justify-center shrink-0">
-          <svg className="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+      <div className="flex items-center gap-3 py-3.5 px-5 bg-neutral-50 border border-neutral-200 rounded-xl">
+        <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+          <svg className="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <p className="text-white/80 text-sm">You&apos;re on the list! We&apos;ll be in touch within 24 hours.</p>
+        <p className="text-neutral-600 text-sm">You&apos;re on the list! We&apos;ll be in touch within 24 hours.</p>
       </div>
     );
   }
@@ -70,14 +70,14 @@ export function HomepageLeadForm() {
           placeholder="Your name"
           value={name}
           onChange={(e) => { setName(e.target.value); setError(""); }}
-          className="flex-1 bg-white/10 border border-white/20 rounded-xl px-4 py-3.5 text-white placeholder-white/40 text-sm outline-none focus:border-brand focus:bg-white/15 transition-all min-w-0"
+          className="flex-1 bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-3.5 text-brand-dark placeholder-neutral-400 text-sm outline-none focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/20 transition-all min-w-0"
         />
         <input
           type="email"
           placeholder="Email address"
           value={email}
           onChange={(e) => { setEmail(e.target.value); setError(""); }}
-          className="flex-1 bg-white/10 border border-white/20 rounded-xl px-4 py-3.5 text-white placeholder-white/40 text-sm outline-none focus:border-brand focus:bg-white/15 transition-all min-w-0"
+          className="flex-1 bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-3.5 text-brand-dark placeholder-neutral-400 text-sm outline-none focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/20 transition-all min-w-0"
         />
         <button
           type="submit"
@@ -92,12 +92,12 @@ export function HomepageLeadForm() {
         </button>
       </div>
       {error && (
-        <p className="text-red-300 text-[12px] mt-2 flex items-center gap-1.5">
-          <span className="w-1 h-1 rounded-full bg-red-300 shrink-0" />
+        <p className="text-red-500 text-[12px] mt-2 flex items-center gap-1.5">
+          <span className="w-1 h-1 rounded-full bg-red-500 shrink-0" />
           {error}
         </p>
       )}
-      <p className="text-white/25 text-[10px] text-center mt-2">No spam. Unsubscribe anytime.</p>
+      <p className="text-neutral-400 text-[10px] mt-2">No spam. Unsubscribe anytime.</p>
     </form>
   );
 }

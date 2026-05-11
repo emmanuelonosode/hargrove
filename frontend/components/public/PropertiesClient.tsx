@@ -1,18 +1,38 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import {
-  Search, ChevronDown, Heart, SlidersHorizontal,
-  List, Map as MapIcon, Layers,
+  Search, ChevronDown, SlidersHorizontal, MapPin, X,
+  List, Map as MapIcon, Layers, BedDouble, DollarSign, ArrowRight,
 } from "lucide-react";
 import { FavoriteButton } from "./FavoriteButton";
 import { captureSearchIntent } from "@/lib/tracking";
 import { PropertiesMapLoader } from "./PropertiesMapLoader";
 import type { MapMarker, MapBounds } from "./PropertiesMap";
 import type { PropertyListItemAPI } from "@/lib/properties";
+
+const LOCATION_SUGGESTIONS = [
+  { city: "Atlanta",      state: "GA" },
+  { city: "Charlotte",    state: "NC" },
+  { city: "Houston",      state: "TX" },
+  { city: "Dallas",       state: "TX" },
+  { city: "Nashville",    state: "TN" },
+  { city: "Phoenix",      state: "AZ" },
+  { city: "Austin",       state: "TX" },
+  { city: "Miami",        state: "FL" },
+  { city: "Denver",       state: "CO" },
+  { city: "Seattle",      state: "WA" },
+  { city: "Las Vegas",    state: "NV" },
+  { city: "Tampa",        state: "FL" },
+  { city: "Orlando",      state: "FL" },
+  { city: "Raleigh",      state: "NC" },
+  { city: "San Antonio",  state: "TX" },
+  { city: "Jacksonville", state: "FL" },
+  { city: "Winder",       state: "GA" },
+];
 
 interface Props {
   initialResults: PropertyListItemAPI[];
@@ -29,30 +49,30 @@ interface Props {
 const PAGE_SIZE = 24;
 
 const PRICE_RANGES = [
-  { label: "Any",          value: "" },
-  { label: "Under $1,000", value: "0-1000" },
-  { label: "$1,000–$1,500",value: "1000-1500" },
-  { label: "$1,500–$2,000",value: "1500-2000" },
-  { label: "$2,000–$2,500",value: "2000-2500" },
-  { label: "$2,500–$3,500",value: "2500-3500" },
-  { label: "$3,500+",      value: "3500" },
+  { label: "Any Price",        value: "" },
+  { label: "Under $800",       value: "0-800" },
+  { label: "$800 – $1,200",    value: "800-1200" },
+  { label: "$1,200 – $1,800",  value: "1200-1800" },
+  { label: "$1,800 – $2,500",  value: "1800-2500" },
+  { label: "$2,500 – $3,500",  value: "2500-3500" },
+  { label: "$3,500+",          value: "3500" },
 ];
 
 const BEDS_OPTIONS = [
-  { label: "Any",    value: "" },
-  { label: "Studio", value: "0" },
-  { label: "1+",     value: "1" },
-  { label: "2+",     value: "2" },
-  { label: "3+",     value: "3" },
-  { label: "4+",     value: "4" },
+  { label: "Any Beds", value: "" },
+  { label: "Studio",   value: "0" },
+  { label: "1+ Bed",   value: "1" },
+  { label: "2+ Beds",  value: "2" },
+  { label: "3+ Beds",  value: "3" },
+  { label: "4+ Beds",  value: "4" },
 ];
 
 const SORT_OPTIONS = [
   { label: "Best Match",   value: "diverse" },
-  { label: "Newest",       value: "newest" },
-  { label: "Price: Low",   value: "price_asc" },
-  { label: "Price: High",  value: "price_desc" },
-  { label: "Most Beds",    value: "beds_desc" },
+  { label: "Newest First", value: "newest" },
+  { label: "Price: Low → High",  value: "price_asc" },
+  { label: "Price: High → Low",  value: "price_desc" },
+  { label: "Most Bedrooms",value: "beds_desc" },
   { label: "Largest",      value: "sqft_desc" },
 ];
 
@@ -69,31 +89,48 @@ export function PropertiesClient({
 }: Props) {
   const router = useRouter();
 
-  // Filter state
-  const [q, setQ] = useState(initialQ);
-  const [beds, setBeds] = useState(initialBeds);
+  const [q, setQ]                   = useState(initialQ);
+  const [beds, setBeds]             = useState(initialBeds);
   const [listingType, setListingType] = useState(initialListingType);
-  const [sort, setSort] = useState(initialSort);
+  const [sort, setSort]             = useState(initialSort);
   const [priceRange, setPriceRange] = useState(
     initialMinPrice ? (initialMaxPrice ? `${initialMinPrice}-${initialMaxPrice}` : initialMinPrice) : ""
   );
 
-  // Map-search state
-  const [mapResults, setMapResults] = useState<PropertyListItemAPI[] | null>(null);
-  const [mapLoading, setMapLoading] = useState(false);
+  const [mapResults, setMapResults]     = useState<PropertyListItemAPI[] | null>(null);
+  const [mapLoading, setMapLoading]     = useState(false);
   const [searchOnMove, setSearchOnMove] = useState(true);
-  const [activeSlug, setActiveSlug] = useState<string | null>(null);
+  const [activeSlug, setActiveSlug]     = useState<string | null>(null);
+  const [mobileView, setMobileView]     = useState<"list" | "map">("list");
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
 
-  // Mobile view
-  const [mobileView, setMobileView] = useState<"list" | "map">("list");
+  const cardRefs      = useRef<Record<string, HTMLDivElement | null>>({});
+  const locationRef   = useRef<HTMLDivElement>(null);
+  const locationInput = useRef<HTMLInputElement>(null);
+  const [locOpen, setLocOpen]   = useState(false);
+  const [locIndex, setLocIndex] = useState(-1);
 
-  const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const locSuggestions = q.trim().length === 0
+    ? LOCATION_SUGGESTIONS.slice(0, 6)
+    : LOCATION_SUGGESTIONS.filter((s) =>
+        s.city.toLowerCase().startsWith(q.trim().toLowerCase()) ||
+        `${s.city}, ${s.state}`.toLowerCase().includes(q.trim().toLowerCase())
+      ).slice(0, 6);
 
-  const results = mapResults ?? initialResults;
+  useEffect(() => {
+    function onOut(e: MouseEvent) {
+      if (locationRef.current && !locationRef.current.contains(e.target as Node)) {
+        setLocOpen(false); setLocIndex(-1);
+      }
+    }
+    document.addEventListener("mousedown", onOut);
+    return () => document.removeEventListener("mousedown", onOut);
+  }, []);
+
+  const results      = mapResults ?? initialResults;
   const displayTotal = mapResults ? mapResults.length : initialTotal;
-  const totalPages = Math.ceil(initialTotal / PAGE_SIZE);
+  const totalPages   = Math.ceil(initialTotal / PAGE_SIZE);
 
-  // ── URL helpers ──────────────────────────────────────────────────────────
   function buildUrl(overrides: Record<string, string | undefined> = {}) {
     const p = new URLSearchParams();
     const [prMin, prMax] = (priceRange || "").split("-");
@@ -122,31 +159,23 @@ export function PropertiesClient({
     navigate();
   };
 
-  // ── Map search ───────────────────────────────────────────────────────────
   const handleBoundsChange = useCallback(async (bounds: MapBounds) => {
     if (!searchOnMove) return;
-    // Skip degenerate bounds (map not yet sized)
     if (bounds.north === bounds.south || bounds.east === bounds.west) return;
-
     setMapLoading(true);
     try {
-      const apiBase = "";
       const p = new URLSearchParams({
         is_published: "true",
-        lat_min: bounds.south.toFixed(6),
-        lat_max: bounds.north.toFixed(6),
-        lng_min: bounds.west.toFixed(6),
-        lng_max: bounds.east.toFixed(6),
+        lat_min: bounds.south.toFixed(6), lat_max: bounds.north.toFixed(6),
+        lng_min: bounds.west.toFixed(6),  lng_max: bounds.east.toFixed(6),
         page_size: "200",
         ...(beds && { beds }),
         ...(listingType && { listing_type: listingType }),
         ...(q && { q }),
       });
-      const res = await fetch(`${apiBase}/api/v1/properties/?${p}`);
+      const res = await fetch(`/api/v1/properties/?${p}`);
       if (res.ok) setMapResults((await res.json()).results);
-    } finally {
-      setMapLoading(false);
-    }
+    } finally { setMapLoading(false); }
   }, [searchOnMove, beds, listingType, q]);
 
   const handleMarkerClick = useCallback((slug: string) => {
@@ -163,110 +192,172 @@ export function PropertiesClient({
       image_url: p.primary_image_url, beds: p.bedrooms, baths: p.bathrooms,
     }));
 
-  const activeFiltersCount = [q, beds, listingType, priceRange].filter(Boolean).length;
+  const activeFiltersCount = [q, beds, priceRange].filter(Boolean).length;
 
   return (
     <div className="pt-20 h-screen overflow-hidden flex flex-col bg-white">
 
-      {/* ── Filter bar ──────────────────────────────────────────────────── */}
-      <div className="shrink-0 bg-white border-b border-neutral-200 z-30">
-        <form onSubmit={handleSearch} className="flex flex-col md:flex-row md:items-center p-3 md:h-16 gap-3 md:gap-2">
+      {/* ── Filter bar ──────────────────────────────────────────────────────── */}
+      <div className="shrink-0 bg-white border-b border-neutral-200 z-30 shadow-sm">
+        <form onSubmit={handleSearch} className="flex flex-col md:flex-row md:items-center px-4 py-3 gap-3">
 
-          <div className="flex gap-2">
-            {/* Location */}
-            <div className="flex items-center gap-2 flex-1 bg-white border border-neutral-300 rounded-xl px-3 h-11 hover:border-neutral-400 transition-colors shadow-sm">
-              <Search size={14} className="text-neutral-400 shrink-0" />
-              <input
-                type="text"
-                placeholder="City, state or zip"
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                className="flex-1 text-sm text-brand-dark placeholder:text-neutral-400 outline-none bg-transparent min-w-0"
-              />
+          {/* Location input */}
+          <div className="flex gap-2 flex-1 min-w-0">
+            <div ref={locationRef} className="relative flex-1 min-w-0">
+              <div className="flex items-center gap-2 bg-white border-2 border-neutral-200 rounded-xl px-3.5 h-11 focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/15 transition-all">
+                <Search size={15} className="text-neutral-400 shrink-0" />
+                <input
+                  ref={locationInput}
+                  type="text"
+                  autoComplete="off"
+                  placeholder="City, ZIP, or neighborhood…"
+                  value={q}
+                  onFocus={() => setLocOpen(true)}
+                  onChange={(e) => { setQ(e.target.value); setLocOpen(true); setLocIndex(-1); }}
+                  onKeyDown={(e) => {
+                    if (!locOpen || locSuggestions.length === 0) return;
+                    if (e.key === "ArrowDown") { e.preventDefault(); setLocIndex((i) => Math.min(i + 1, locSuggestions.length - 1)); }
+                    else if (e.key === "ArrowUp") { e.preventDefault(); setLocIndex((i) => Math.max(i - 1, -1)); }
+                    else if (e.key === "Enter" && locIndex >= 0) {
+                      e.preventDefault();
+                      const s = locSuggestions[locIndex];
+                      setQ(`${s.city}, ${s.state}`);
+                      setLocOpen(false); setLocIndex(-1);
+                      navigate({ q: `${s.city}, ${s.state}` });
+                    } else if (e.key === "Escape") { setLocOpen(false); setLocIndex(-1); }
+                  }}
+                  className="flex-1 text-[14px] text-brand-dark placeholder:text-neutral-400 outline-none bg-transparent min-w-0"
+                />
+                {q && (
+                  <button type="button" onClick={() => { setQ(""); navigate({ q: undefined }); setLocOpen(false); }} className="text-neutral-400 hover:text-neutral-600 shrink-0 transition-colors">
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
+
+              {/* Autocomplete dropdown */}
+              {locOpen && locSuggestions.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-1.5 bg-white rounded-xl border border-neutral-200 shadow-2xl z-50 overflow-hidden">
+                  {q.trim().length === 0 && (
+                    <div className="px-4 py-2.5 border-b border-neutral-100">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-400">Popular cities</p>
+                    </div>
+                  )}
+                  <ul>
+                    {locSuggestions.map((s, i) => (
+                      <li
+                        key={`${s.city}-${s.state}`}
+                        onMouseDown={(e) => { e.preventDefault(); setQ(`${s.city}, ${s.state}`); setLocOpen(false); setLocIndex(-1); navigate({ q: `${s.city}, ${s.state}` }); }}
+                        onMouseEnter={() => setLocIndex(i)}
+                        className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors ${i === locIndex ? "bg-brand/5" : "hover:bg-neutral-50"}`}
+                      >
+                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${i === locIndex ? "bg-brand/10" : "bg-neutral-100"}`}>
+                          <MapPin size={12} className={i === locIndex ? "text-brand" : "text-neutral-400"} />
+                        </div>
+                        <span className={`text-[13px] font-semibold ${i === locIndex ? "text-brand" : "text-brand-dark"}`}>{s.city}</span>
+                        <span className="text-[11px] text-neutral-400">{s.state}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
-            
-            {/* Mobile Filter Toggle (only visible on mobile) */}
-            <button
-              type="button"
-              className="md:hidden flex items-center justify-center w-11 h-11 rounded-xl border border-neutral-300 bg-white text-neutral-600 hover:bg-neutral-50 transition-colors shadow-sm"
-            >
-              <SlidersHorizontal size={18} />
+
+            {/* Mobile: search + filter toggles */}
+            <button type="submit" className="md:hidden flex items-center justify-center w-11 h-11 rounded-xl bg-brand text-white shrink-0 shadow-sm" aria-label="Search">
+              <Search size={16} />
             </button>
+            <div className="relative md:hidden shrink-0">
+              <button
+                type="button"
+                onClick={() => setShowMobileFilters((s) => !s)}
+                className={`flex items-center justify-center w-11 h-11 rounded-xl border-2 transition-colors ${
+                  showMobileFilters || activeFiltersCount > 0
+                    ? "border-brand bg-brand/5 text-brand"
+                    : "border-neutral-200 bg-white text-neutral-500"
+                }`}
+              >
+                <SlidersHorizontal size={16} />
+              </button>
+              {activeFiltersCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-4.5 h-4.5 w-5 h-5 bg-brand text-white text-[10px] font-bold rounded-full flex items-center justify-center pointer-events-none">
+                  {activeFiltersCount}
+                </span>
+              )}
+            </div>
           </div>
 
-          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 md:pb-0">
-            {/* Pricing */}
-            <FilterSelect
+          {/* Filter controls */}
+          <div className={`${showMobileFilters ? "flex" : "hidden"} md:flex items-center gap-2 flex-wrap md:flex-nowrap`}>
+
+            {/* Rent / Buy toggle pills */}
+            <div className="flex items-center gap-1 p-1 bg-neutral-100 rounded-xl shrink-0">
+              {(["", "for-rent", "for-sale"] as const).map((type) => (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() => { setListingType(type); navigate({ listing_type: type || undefined }); }}
+                  className={`px-4 py-1.5 rounded-lg text-[12px] font-bold transition-all whitespace-nowrap ${
+                    listingType === type
+                      ? "bg-white text-brand-dark shadow-sm"
+                      : "text-neutral-500 hover:text-brand-dark"
+                  }`}
+                >
+                  {type === "" ? "All" : type === "for-rent" ? "For Rent" : "For Sale"}
+                </button>
+              ))}
+            </div>
+
+            {/* Price filter */}
+            <FilterPill
+              icon={<DollarSign size={13} />}
               value={priceRange}
+              label="Price"
               onChange={(v) => {
                 setPriceRange(v);
                 const [min, max] = v.split("-");
                 navigate({ minPrice: min || undefined, maxPrice: max || undefined });
               }}
-              label="Pricing"
             >
               {PRICE_RANGES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
-            </FilterSelect>
+            </FilterPill>
 
-            {/* Beds / Baths */}
-            <FilterSelect
+            {/* Beds filter */}
+            <FilterPill
+              icon={<BedDouble size={13} />}
               value={beds}
-              onChange={(v) => { setBeds(v); navigate({ beds: v || undefined }); }}
               label="Beds"
+              onChange={(v) => { setBeds(v); navigate({ beds: v || undefined }); }}
             >
               {BEDS_OPTIONS.map((b) => <option key={b.value} value={b.value}>{b.label}</option>)}
-            </FilterSelect>
+            </FilterPill>
 
-            {/* Type */}
-            <FilterSelect
-              value={listingType}
-              onChange={(v) => { setListingType(v); navigate({ listing_type: v || undefined }); }}
-              label="Type"
-            >
-              <option value="">Type</option>
-              <option value="for-rent">For Rent</option>
-              <option value="for-sale">For Sale</option>
-            </FilterSelect>
-
-            {/* All Filters (Desktop) */}
+            {/* Desktop search button */}
             <button
-              type="button"
-              className={`hidden md:flex items-center gap-1.5 h-11 px-3 rounded-xl border text-xs font-semibold transition-colors whitespace-nowrap shadow-sm ${
-                activeFiltersCount > 0
-                  ? "bg-brand text-white border-brand"
-                  : "border-neutral-300 text-neutral-600 hover:border-neutral-400 bg-white"
-              }`}
+              type="submit"
+              className="hidden md:flex items-center gap-2 h-11 px-5 bg-brand text-white text-[13px] font-bold rounded-xl hover:bg-brand-hover transition-colors shrink-0"
             >
-              <SlidersHorizontal size={14} />
-              Filters
-              {activeFiltersCount > 0 && (
-                <span className="ml-0.5 bg-white/30 rounded-full w-5 h-5 flex items-center justify-center text-[11px] font-bold">
-                  {activeFiltersCount}
-                </span>
-              )}
+              <Search size={14} /> Search
             </button>
 
-            {/* Save search (Desktop) */}
-            <button
-              type="button"
-              className="hidden lg:flex items-center h-11 px-4 text-xs font-semibold text-brand border border-brand/30 rounded-xl hover:bg-blue-50 transition-colors whitespace-nowrap shadow-sm bg-white"
-            >
-              Save search
-            </button>
+            {/* Clear filters */}
+            {activeFiltersCount > 0 && (
+              <a
+                href="/properties"
+                className="shrink-0 flex items-center gap-1.5 h-11 px-3.5 text-[12px] font-bold text-red-500 border-2 border-red-200 rounded-xl hover:bg-red-50 transition-colors whitespace-nowrap bg-white"
+              >
+                <X size={13} /> Clear
+              </a>
+            )}
           </div>
-
-          <button type="submit" className="sr-only">Search</button>
         </form>
       </div>
 
-      {/* ── Main split: Map LEFT, Cards RIGHT ───────────────────────────── */}
+      {/* ── Map + Cards split ─────────────────────────────────────────────── */}
       <div className="flex flex-1 min-h-0">
 
-        {/* ── LEFT: Map ────────────────────────────────────────────────── */}
-        <div
-          className={`${mobileView === "list" ? "hidden" : "flex"} lg:flex flex-col relative flex-1 min-w-0`}
-        >
-          {/* Map — absolutely fills the container */}
+        {/* Map */}
+        <div className={`${mobileView === "list" ? "hidden" : "flex"} lg:flex flex-col relative flex-1 min-w-0`}>
           <div className="absolute inset-0 z-0">
             <PropertiesMapLoader
               markers={markers}
@@ -276,84 +367,72 @@ export function PropertiesClient({
             />
           </div>
 
-          {/* Top overlay row */}
           <div className="relative z-[1000] flex items-start justify-between p-3 pointer-events-none">
-            {/* Map/Satellite toggle */}
-            <div className="flex rounded-lg overflow-hidden shadow-md border border-neutral-200 text-xs font-semibold pointer-events-auto">
-              <button className="bg-white px-3 py-2 text-brand-dark flex items-center gap-1.5 hover:bg-neutral-50 transition-colors">
+            <div className="flex rounded-xl overflow-hidden shadow-md border border-neutral-200 text-xs font-semibold pointer-events-auto bg-white">
+              <button className="bg-white px-3.5 py-2 text-brand-dark flex items-center gap-1.5 hover:bg-neutral-50 transition-colors">
                 <Layers size={12} /> Map
               </button>
-              <button className="bg-neutral-100 px-3 py-2 text-neutral-500 border-l border-neutral-200 hover:bg-neutral-200 transition-colors">
+              <button className="bg-neutral-100 px-3.5 py-2 text-neutral-500 border-l border-neutral-200 hover:bg-neutral-200 transition-colors">
                 Satellite
               </button>
             </div>
-
-            {/* Listing count badge */}
-            <div className="bg-white/95 backdrop-blur-sm shadow-md rounded-lg px-3 py-2 pointer-events-none">
-              <p className="text-xs font-bold text-brand-dark">
+            <div className="bg-white/95 backdrop-blur-sm shadow-md rounded-xl px-4 py-2.5 pointer-events-none border border-neutral-100">
+              <p className="text-[13px] font-bold text-brand-dark">
                 {mapLoading ? "Searching…" : `${displayTotal.toLocaleString()} homes`}
               </p>
-              <p className="text-[10px] text-neutral-400">Pan to explore</p>
+              <p className="text-[10px] text-neutral-400 mt-0.5">Pan to explore</p>
             </div>
           </div>
 
-          {/* Search-as-I-move pill — bottom center */}
           <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-[1000] pointer-events-auto">
-            <label className="flex items-center gap-2 bg-white shadow-xl rounded-full px-5 py-2.5 border border-neutral-200 cursor-pointer select-none hover:bg-neutral-50 transition-colors">
+            <label className="flex items-center gap-2.5 bg-white shadow-xl rounded-full px-5 py-3 border border-neutral-200 cursor-pointer select-none hover:bg-neutral-50 transition-colors">
               <input
                 type="checkbox"
                 checked={searchOnMove}
-                onChange={(e) => {
-                  setSearchOnMove(e.target.checked);
-                  if (!e.target.checked) setMapResults(null);
-                }}
+                onChange={(e) => { setSearchOnMove(e.target.checked); if (!e.target.checked) setMapResults(null); }}
                 className="accent-brand w-4 h-4 cursor-pointer"
               />
-              <span className="text-xs font-bold text-brand-dark whitespace-nowrap">
+              <span className="text-[12px] font-bold text-brand-dark whitespace-nowrap">
                 {searchOnMove ? "Searching as I move" : "Search as I move"}
               </span>
-              {mapLoading && (
-                <span className="w-3 h-3 border-2 border-brand border-t-transparent rounded-full animate-spin shrink-0" />
-              )}
+              {mapLoading && <span className="w-3 h-3 border-2 border-brand border-t-transparent rounded-full animate-spin shrink-0" />}
             </label>
           </div>
         </div>
 
-        {/* ── RIGHT: Cards panel ────────────────────────────────────────── */}
-        <div
-          className={`${mobileView === "map" ? "hidden" : "flex"} lg:flex w-full lg:w-[38%] xl:w-[36%] shrink-0 flex-col border-l border-neutral-200 bg-white`}
-        >
+        {/* Cards panel */}
+        <div className={`${mobileView === "map" ? "hidden" : "flex"} lg:flex w-full lg:w-[40%] xl:w-[38%] shrink-0 flex-col border-l border-neutral-200 bg-white`}>
+
           {/* Panel header */}
-          <div className="shrink-0 px-4 py-2.5 border-b border-neutral-100 flex items-center justify-between gap-3 bg-white">
-            <p className="text-sm font-semibold text-brand-dark">
-              {mapLoading
-                ? "Searching…"
-                : <>{displayTotal.toLocaleString()} <span className="text-neutral-400 font-normal">results found</span></>
-              }
-            </p>
-            <div className="flex items-center gap-2">
+          <div className="shrink-0 px-4 py-3 border-b border-neutral-100 flex items-center justify-between gap-3 bg-white">
+            <div>
+              <p className="text-[15px] font-black text-brand-dark leading-none">
+                {mapLoading ? "Searching…" : displayTotal.toLocaleString()}
+                {!mapLoading && <span className="text-[13px] font-normal text-neutral-400 ml-1.5">homes found</span>}
+              </p>
               {mapResults && (
-                <button onClick={() => setMapResults(null)} className="text-[11px] text-brand hover:underline">
-                  Reset
+                <button onClick={() => setMapResults(null)} className="text-[11px] text-brand hover:underline mt-0.5">
+                  ← Back to all results
                 </button>
               )}
-              {/* Sort */}
-              <div className="relative">
-                <select
-                  value={sort}
-                  onChange={(e) => { setSort(e.target.value); navigate({ sort: e.target.value }); }}
-                  className="appearance-none text-xs font-semibold text-neutral-600 bg-transparent outline-none cursor-pointer pr-4 py-1"
-                >
-                  {SORT_OPTIONS.map((s) => (
-                    <option key={s.value} value={s.value}>{s.label}</option>
-                  ))}
-                </select>
-                <ChevronDown size={12} className="absolute right-0 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none" />
-              </div>
+            </div>
+
+            {/* Sort */}
+            <div className="relative shrink-0">
+              <select
+                value={sort}
+                onChange={(e) => { setSort(e.target.value); navigate({ sort: e.target.value }); }}
+                className="appearance-none text-[12px] font-semibold text-brand-dark bg-neutral-50 border border-neutral-200 rounded-lg outline-none cursor-pointer pl-3 pr-7 py-2 hover:border-brand transition-colors"
+              >
+                {SORT_OPTIONS.map((s) => (
+                  <option key={s.value} value={s.value}>{s.label}</option>
+                ))}
+              </select>
+              <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none" />
             </div>
           </div>
 
-          {/* Card grid */}
+          {/* Card list */}
           <div className="flex-1 overflow-y-auto pb-20 lg:pb-0">
             {mapLoading ? (
               <div className="p-3 grid grid-cols-2 gap-3">
@@ -363,16 +442,23 @@ export function PropertiesClient({
               </div>
             ) : results.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center px-8 py-16">
-                <div className="w-12 h-12 bg-neutral-100 rounded-full flex items-center justify-center mb-3">
-                  <Search size={20} className="text-neutral-300" />
+                <div className="w-16 h-16 bg-neutral-100 rounded-2xl flex items-center justify-center mb-5">
+                  <Search size={24} className="text-neutral-300" />
                 </div>
-                <p className="text-brand-dark font-semibold mb-1">No homes found</p>
-                <p className="text-neutral-400 text-sm mb-4">
-                  Try widening your filters or moving the map to a different area.
+                <p className="text-brand-dark font-black text-[16px] mb-2">No homes match your filters</p>
+                <p className="text-neutral-400 text-[13px] mb-6 max-w-[220px] leading-relaxed">
+                  Try a different location, a wider budget, or remove a filter.
                 </p>
-                <a href="/properties" className="text-sm text-brand font-semibold hover:underline">
-                  Clear all filters
-                </a>
+                <div className="flex flex-col gap-2 w-full max-w-[200px]">
+                  {activeFiltersCount > 0 && (
+                    <a href="/properties" className="w-full py-3 px-4 bg-brand text-white text-[13px] font-bold rounded-xl hover:bg-brand-hover transition-colors text-center">
+                      Clear all filters
+                    </a>
+                  )}
+                  <a href="/contact" className="w-full py-3 px-4 border-2 border-neutral-200 text-brand-dark text-[13px] font-bold rounded-xl hover:bg-neutral-50 transition-colors text-center">
+                    Ask our team
+                  </a>
+                </div>
               </div>
             ) : (
               <div className="p-3 grid grid-cols-2 gap-3">
@@ -383,11 +469,10 @@ export function PropertiesClient({
                     onMouseEnter={() => setActiveSlug(p.slug)}
                     onMouseLeave={() => setActiveSlug(null)}
                   >
-                    <PropertyCard property={p} isActive={activeSlug === p.slug} />
+                    <PanelCard property={p} isActive={activeSlug === p.slug} />
                   </div>
                 ))}
 
-                {/* Pagination (when not in map-search mode) */}
                 {!mapResults && totalPages > 1 && (
                   <div className="col-span-2">
                     <PaginationBar
@@ -403,52 +488,54 @@ export function PropertiesClient({
         </div>
       </div>
 
-      {/* ── Mobile floating toggle button ───────────────────────────────── */}
+      {/* Mobile view toggle */}
       <div className="lg:hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-50">
         <button
           onClick={() => setMobileView(mobileView === "list" ? "map" : "list")}
-          className="flex items-center gap-2.5 bg-brand-dark text-white pl-5 pr-6 py-3.5 rounded-full shadow-2xl text-sm font-bold active:scale-95 transition-transform border-2 border-white/20"
-          style={{ WebkitTapHighlightColor: "transparent" } as React.CSSProperties}
+          className="flex items-center gap-2.5 bg-[#0D1B2A] text-white pl-5 pr-6 py-3.5 rounded-full shadow-2xl text-[13px] font-bold active:scale-95 transition-transform border-2 border-white/10"
         >
-          {mobileView === "list" ? (
-            <><MapIcon size={18} /> Show Map</>
-          ) : (
-            <><List size={18} /> Show Listings</>
-          )}
+          {mobileView === "list" ? <><MapIcon size={17} /> Show Map</> : <><List size={17} /> Show Listings</>}
         </button>
       </div>
     </div>
   );
 }
 
-// ── Filter select ─────────────────────────────────────────────────────────
+// ── Filter pill (icon + select) ───────────────────────────────────────────────
 
-function FilterSelect({
+function FilterPill({
+  icon,
   value,
-  onChange,
   label,
+  onChange,
   children,
 }: {
+  icon: React.ReactNode;
   value: string;
-  onChange: (v: string) => void;
   label: string;
+  onChange: (v: string) => void;
   children: React.ReactNode;
 }) {
   const active = !!value;
   return (
     <div className="relative shrink-0">
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className={`appearance-none h-11 pl-3 pr-8 rounded-lg border text-xs font-semibold outline-none cursor-pointer transition-colors ${
-          active
-            ? "border-brand text-brand bg-blue-50"
-            : "border-neutral-300 text-neutral-600 bg-white hover:border-neutral-400"
-        }`}
-      >
-        <option value="" disabled hidden>{label}</option>
-        {children}
-      </select>
+      <div className={`flex items-center gap-1.5 border-2 rounded-xl h-11 pl-3 pr-8 transition-all ${
+        active
+          ? "border-brand bg-brand/5 text-brand"
+          : "border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300"
+      }`}>
+        <span className={active ? "text-brand" : "text-neutral-400"}>{icon}</span>
+        <select
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className={`appearance-none text-[12px] font-bold outline-none cursor-pointer bg-transparent ${
+            active ? "text-brand" : "text-neutral-700"
+          }`}
+        >
+          <option value="" disabled hidden>{label}</option>
+          {children}
+        </select>
+      </div>
       <ChevronDown
         size={13}
         className={`absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none ${active ? "text-brand" : "text-neutral-400"}`}
@@ -457,116 +544,114 @@ function FilterSelect({
   );
 }
 
-// ── Property card (portrait, IH-style) ───────────────────────────────────
+// ── Panel property card ───────────────────────────────────────────────────────
 
-function PropertyCard({ property, isActive }: { property: PropertyListItemAPI; isActive: boolean }) {
-  const availDate = "Now";
+function PanelCard({ property, isActive }: { property: PropertyListItemAPI; isActive: boolean }) {
+  const isRental = property.listing_type !== "for-sale";
 
   return (
-    <Link
-      href={`/properties/${property.slug}`}
-      className={`flex flex-col rounded-xl overflow-hidden border bg-white group transition-all duration-150 ${
-        isActive
-          ? "border-brand shadow-lg ring-1 ring-brand/20"
-          : "border-neutral-200 hover:shadow-md hover:border-neutral-300"
-      }`}
-    >
+    <div className={`flex flex-col rounded-xl overflow-hidden border bg-white group transition-all duration-150 ${
+      isActive
+        ? "border-brand shadow-lg ring-2 ring-brand/15"
+        : "border-neutral-200 hover:shadow-md hover:border-neutral-300"
+    }`}>
       {/* Photo */}
-      <div className="relative aspect-[4/3] bg-neutral-100 overflow-hidden">
-        {property.primary_image_url ? (
-          <Image
-            src={property.primary_image_url}
-            alt={property.title}
-            fill
-            className="object-cover group-hover:scale-105 transition-transform duration-500"
-            sizes="(max-width: 1024px) 50vw, 20vw"
-            unoptimized
-          />
-        ) : (
-          <div className="w-full h-full bg-neutral-200 flex items-center justify-center">
-            <span className="text-neutral-400 text-xs">No photo</span>
-          </div>
-        )}
-
-        {/* Top badges */}
-        <div className="absolute top-2 left-2 flex flex-col gap-1">
-          {property.is_featured && (
-            <span className="bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-sm uppercase tracking-wide">
-              Featured
-            </span>
+      <Link href={`/properties/${property.slug}`} className="block">
+        <div className="relative aspect-[4/3] bg-neutral-100 overflow-hidden">
+          {property.primary_image_url ? (
+            <Image
+              src={property.primary_image_url}
+              alt={property.title}
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-500"
+              sizes="(max-width: 1024px) 50vw, 20vw"
+              unoptimized
+            />
+          ) : (
+            <div className="w-full h-full bg-neutral-200 flex items-center justify-center">
+              <span className="text-neutral-400 text-xs">No photo</span>
+            </div>
           )}
-        </div>
 
-        {/* Self tour badge */}
-        <div className="absolute top-2 right-10">
-          <span className="bg-white/95 text-brand-dark text-[10px] font-bold px-2 py-0.5 rounded-sm shadow-sm">
-            Self Tour
-          </span>
-        </div>
+          {/* Listing type badge */}
+          <div className="absolute top-2 left-2">
+            <span className={`text-[10px] font-black px-2 py-1 rounded-lg uppercase tracking-wide ${
+              property.listing_type === "for-sale"
+                ? "bg-emerald-500 text-white"
+                : "bg-brand text-white"
+            }`}>
+              {property.listing_type === "for-sale" ? "For Sale" : "For Rent"}
+            </span>
+          </div>
 
-        {/* Heart */}
-        <div className="absolute top-2 right-2">
-          <div className="w-9 h-9 bg-white/90 rounded-full flex items-center justify-center text-neutral-400 hover:text-red-500 transition-colors shadow-sm overflow-hidden">
-            <FavoriteButton propertyId={property.id} size={14} className="hover:scale-110 active:scale-90 transition-transform" />
+          {property.is_featured && (
+            <div className="absolute top-2 right-10">
+              <span className="bg-amber-500 text-white text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wide">
+                Featured
+              </span>
+            </div>
+          )}
+
+          {/* Heart */}
+          <div
+            className="absolute top-2 right-2 z-10"
+            onClick={(e) => e.preventDefault()}
+          >
+            <div className="w-8 h-8 bg-white/95 rounded-full flex items-center justify-center shadow-sm">
+              <FavoriteButton propertyId={property.id} size={13} className="hover:scale-110 active:scale-90 transition-transform" />
+            </div>
+          </div>
+
+          {/* Available now pill — bottom */}
+          <div className="absolute bottom-2 right-2">
+            <span className="flex items-center gap-1 bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-1 rounded-full">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block shrink-0" />
+              Available
+            </span>
           </div>
         </div>
-
-        {/* Listing type badge */}
-        <div className="absolute bottom-2 left-2">
-          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-sm uppercase tracking-wide ${
-            property.listing_type === "for-sale"
-              ? "bg-green-600 text-white"
-              : "bg-brand text-white"
-          }`}>
-            {property.listing_type === "for-sale" ? "For Sale" : "For Rent"}
-          </span>
-        </div>
-      </div>
+      </Link>
 
       {/* Body */}
-      <div className="p-2.5 flex flex-col gap-0.5">
-        {/* Price */}
-        <div className="flex items-baseline gap-1">
-          <span className="text-sm font-bold text-brand-dark">
+      <div className="p-3 flex flex-col gap-1">
+        {/* Price row */}
+        <div className="flex items-baseline justify-between gap-1">
+          <p className="text-[16px] font-black text-brand-dark leading-none">
             ${property.price.toLocaleString()}
-          </span>
-          <span className="text-xs text-neutral-400">
-            {property.listing_type === "for-sale" ? "" : "/mo"}
-          </span>
+            {isRental && <span className="text-[11px] font-semibold text-neutral-400">/mo</span>}
+          </p>
         </div>
 
-        {property.listing_type !== "for-sale" && (
-          <p className="text-xs text-neutral-400">12 month lease</p>
-        )}
-
         {/* Beds · Baths · Sqft */}
-        <p className="text-xs text-neutral-600 font-medium">
+        <p className="text-[12px] font-semibold text-neutral-600">
           {property.bedrooms === 0
             ? "Studio"
-            : `${property.bedrooms} ${property.bedrooms === 1 ? "bed" : "beds"}`}{" "}
-          · {property.bathrooms} {property.bathrooms === 1 ? "bath" : "baths"}
+            : `${property.bedrooms} bd`}
+          {" · "}{property.bathrooms} ba
           {property.sqft > 0 && ` · ${property.sqft.toLocaleString()} sqft`}
         </p>
 
         {/* Address */}
-        {property.address && (
-          <p className="text-xs text-neutral-400 truncate">{property.address}</p>
-        )}
-        <p className="text-xs text-neutral-400 truncate">
-          {property.city}, {property.state}
+        <p className="text-[11px] text-neutral-400 truncate leading-tight">
+          {property.address ? `${property.address}, ` : ""}{property.city}, {property.state}
         </p>
 
-        {/* Availability */}
-        <p className="text-xs font-bold text-neutral-600 mt-0.5 uppercase tracking-wide">
-          Available:{" "}
-          <span className="text-green-600">{availDate}</span>
-        </p>
+        {/* Apply CTA — rentals only */}
+        {isRental && (
+          <Link
+            href={`/apply?property=${property.slug}`}
+            onClick={(e) => e.stopPropagation()}
+            className="mt-1.5 flex items-center justify-center gap-1.5 w-full py-2 bg-brand text-white text-[11px] font-bold rounded-lg hover:bg-brand-hover transition-colors"
+          >
+            Apply Now <ArrowRight size={11} />
+          </Link>
+        )}
       </div>
-    </Link>
+    </div>
   );
 }
 
-// ── Pagination ────────────────────────────────────────────────────────────
+// ── Pagination ────────────────────────────────────────────────────────────────
 
 function PaginationBar({
   currentPage,
@@ -582,32 +667,32 @@ function PaginationBar({
   for (let i = Math.max(1, currentPage - delta); i <= Math.min(totalPages, currentPage + delta); i++) {
     pages.push(i);
   }
-  const cls = "px-4 py-3 text-xs rounded-lg border transition-colors min-h-[44px] flex items-center justify-center";
-  const inactive = "border-neutral-200 text-neutral-500 hover:border-brand hover:text-brand";
-  const active = "bg-brand text-white border-brand";
+  const base = "px-4 py-3 text-[12px] font-semibold rounded-xl border-2 transition-colors min-h-[44px] flex items-center justify-center";
+  const inactive = "border-neutral-200 text-neutral-500 hover:border-brand hover:text-brand bg-white";
+  const active   = "bg-brand text-white border-brand";
 
   return (
-    <div className="flex items-center justify-center gap-1.5 py-4 flex-wrap">
+    <div className="flex items-center justify-center gap-1.5 py-5 flex-wrap">
       {currentPage > 1 && (
-        <a href={buildHref(currentPage - 1)} className={`${cls} ${inactive}`}>← Prev</a>
+        <a href={buildHref(currentPage - 1)} className={`${base} ${inactive}`}>← Prev</a>
       )}
       {pages[0] > 1 && (
         <>
-          <a href={buildHref(1)} className={`${cls} ${inactive}`}>1</a>
-          {pages[0] > 2 && <span className="text-neutral-300 text-xs">…</span>}
+          <a href={buildHref(1)} className={`${base} ${inactive}`}>1</a>
+          {pages[0] > 2 && <span className="text-neutral-300 text-xs px-1">…</span>}
         </>
       )}
       {pages.map((p) => (
-        <a key={p} href={buildHref(p)} className={`${cls} ${p === currentPage ? active : inactive}`}>{p}</a>
+        <a key={p} href={buildHref(p)} className={`${base} ${p === currentPage ? active : inactive}`}>{p}</a>
       ))}
       {pages[pages.length - 1] < totalPages && (
         <>
-          {pages[pages.length - 1] < totalPages - 1 && <span className="text-neutral-300 text-xs">…</span>}
-          <a href={buildHref(totalPages)} className={`${cls} ${inactive}`}>{totalPages}</a>
+          {pages[pages.length - 1] < totalPages - 1 && <span className="text-neutral-300 text-xs px-1">…</span>}
+          <a href={buildHref(totalPages)} className={`${base} ${inactive}`}>{totalPages}</a>
         </>
       )}
       {currentPage < totalPages && (
-        <a href={buildHref(currentPage + 1)} className={`${cls} ${inactive}`}>Next →</a>
+        <a href={buildHref(currentPage + 1)} className={`${base} ${inactive}`}>Next →</a>
       )}
     </div>
   );

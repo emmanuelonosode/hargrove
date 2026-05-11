@@ -79,7 +79,7 @@ export function Footer() {
               </Link>
             </div>
             <p className="text-neutral-400 text-sm leading-relaxed max-w-xs">
-              Affordable homes to rent and buy. Honest prices, no hidden fees, fast decisions.
+              Well-maintained homes, ready to move in. Honest prices, fast decisions.
               We&apos;ve housed 2,000+ families across 12+ cities since 2012.
             </p>
 
@@ -94,9 +94,9 @@ export function Footer() {
               <div className="flex items-start gap-3 text-sm text-neutral-400">
                 <MapPin size={15} className="text-brand mt-0.5 shrink-0" />
                 <span>
-                  213 Bob Ln
+                  204 Colonial Hills Rd
                   <br />
-                  Virginia Beach, VA 23454
+                  Winder, GA 30680
                 </span>
               </div>
             </div>
@@ -194,9 +194,8 @@ export function Footer() {
           </div>
           {/* Legal disclosure */}
           <p className="text-[11px] text-neutral-500 leading-relaxed max-w-4xl">
-            <span className="font-semibold text-neutral-400">Hasker &amp; Co. Realty Group</span> is licensed in the Commonwealth of Virginia &mdash; Firm License&nbsp;
-            <span className="font-mono text-neutral-400">#[VREB-XXXXXXXX]</span>. Main office: 213 Bob Ln, Virginia Beach, VA 23454.
-            We operate in compliance with the Virginia Real Estate Board (VREB) and the Department of Professional and Occupational Regulation (DPOR).
+            <span className="font-semibold text-neutral-400">Hasker &amp; Co. Realty Group</span> is a licensed real estate company &mdash; License&nbsp;
+            <span className="font-mono text-neutral-400">#[LICENSE]</span>. Main office: 204 Colonial Hills Rd, Winder, GA 30680.
             All advertising conforms to the Fair Housing Act. &ldquo;REALTOR&reg;&rdquo; is a registered collective membership mark identifying real estate professionals
             who are members of the National Association of REALTORS&reg; and subscribe to its Code of Ethics.
           </p>

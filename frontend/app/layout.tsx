@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     template: "%s | Hasker & Co. Realty Group",
   },
   description:
-    "Find affordable rental apartments and homes across Atlanta, Charlotte, Houston, Dallas, Nashville & more. No hidden fees, fast approvals, 500+ units available.",
+    "Find affordable rental apartments and homes across Atlanta, Charlotte, Houston, Dallas, Nashville & more. Move-in ready homes, fast approvals, 500+ units available.",
   keywords: [
     // ── Brand ──────────────────────────────────────────────────────
     "Hasker Realty Group",
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     "affordable apartments",
     "cheap houses to rent",
     "low cost homes",
-    "rental homes no hidden fees",
+    "move-in ready rental homes",
     "fast rental approval",
     "family homes for rent",
     "24 hour rental approval",
@@ -93,13 +93,13 @@ export const metadata: Metadata = {
     url: "https://haskerrealtygroup.com",
     siteName: "Hasker & Co. Realty Group",
     title: "Hasker & Co. Realty Group | Affordable Rental Homes & Apartments",
-    description: "Discover quality, affordable rental homes and apartments with no hidden fees and fast approvals.",
+    description: "Discover quality, affordable rental homes and apartments — move-in ready, fast approvals.",
   },
   twitter: {
     card: "summary_large_image",
     title: "Hasker & Co. Realty Group | Affordable Rental Homes & Apartments",
     description:
-      "Find affordable rental apartments and homes across Atlanta, Charlotte, Houston, Dallas, Nashville & more. No hidden fees, fast approvals.",
+      "Find affordable rental apartments and homes across Atlanta, Charlotte, Houston, Dallas, Nashville & more. Move-in ready homes, fast approvals.",
     creator: "@haskerrealty",
   },
   icons: {
@@ -159,7 +159,7 @@ const jsonLd = {
         "caption": "Hasker & Co. Realty Group"
       },
       "image": { "@id": "https://haskerrealtygroup.com/#logo" },
-      "description": "Hasker & Co. Realty Group is a licensed US real estate company founded in 2012, specializing in affordable rental homes and budget-friendly properties for sale across 12+ US cities. No hidden fees, 24-hour application decisions, 2,000+ families housed.",
+      "description": "Hasker & Co. Realty Group is a licensed US real estate company founded in 2012, specializing in affordable rental homes and budget-friendly properties for sale across 12+ US cities. Well-maintained, move-in ready homes. 24-hour application decisions. 2,000+ families housed.",
       "foundingDate": "2012",
       "telephone": "+14045550182",
       "email": "info@haskerrealtygroup.com",
@@ -194,7 +194,7 @@ const jsonLd = {
         "https://twitter.com/haskerrealty",
         "https://haskerrealtygroup.com"
       ],
-      "slogan": "Quality Homes. Honest Prices. No Surprises.",
+      "slogan": "Quality Homes. Well-Maintained. Move-In Ready.",
       "numberOfEmployees": { "@type": "QuantitativeValue", "minValue": 10, "maxValue": 50 },
       "award": [
         "BBB A+ Accredited Business",
@@ -235,7 +235,7 @@ const jsonLd = {
         {
           "@type": "Offer",
           "itemOffered": { "@type": "Service", "name": "Affordable Home Rentals",
-            "description": "Quality, affordable rental homes and apartments with fast approvals and no hidden fees." }
+            "description": "Quality, affordable rental homes and apartments — inspected, move-in ready, fast approvals." }
         },
         {
           "@type": "Offer",
@@ -256,7 +256,7 @@ const jsonLd = {
       "url": "https://haskerrealtygroup.com",
       "name": "Hasker & Co. Realty Group",
       "alternateName": ["Hasker Realty Group", "Hasker Realty", "Hasker and Co Realty Group"],
-      "description": "Official website of Hasker & Co. Realty Group — affordable rental homes and properties for sale across 12+ US cities. Founded 2012. No hidden fees.",
+      "description": "Official website of Hasker & Co. Realty Group — affordable rental homes and properties for sale across 12+ US cities. Founded 2012. Move-in ready homes.",
       "publisher": { "@id": "https://haskerrealtygroup.com/#organization" },
       "potentialAction": {
         "@type": "SearchAction",

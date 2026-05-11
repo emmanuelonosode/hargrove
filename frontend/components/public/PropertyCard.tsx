@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { Bed, Bath, Maximize, MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { FavoriteButton } from "@/components/public/FavoriteButton";
@@ -13,7 +14,16 @@ interface PropertyCardProps {
   variant?: "default" | "compact" | "horizontal";
 }
 
+function daysListed(dateStr: string): string {
+  const days = Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
+  if (days <= 0) return "Listed today";
+  if (days === 1) return "Listed yesterday";
+  if (days <= 7) return `Listed ${days} days ago`;
+  return `Listed ${Math.floor(days / 7)}w ago`;
+}
+
 export function PropertyCard({ property, variant = "default" }: PropertyCardProps) {
+  const router = useRouter();
   const primaryImage = property.images.find((i) => i.isPrimary) ?? property.images[0];
 
   const listingBadgeVariant =
@@ -29,6 +39,8 @@ export function PropertyCard({ property, variant = "default" }: PropertyCardProp
       : property.listingType === "for-rent"
       ? "For Rent"
       : "For Lease";
+
+  const isRental = property.listingType === "for-rent" || property.listingType === "for-lease";
 
   if (variant === "horizontal") {
     return (
@@ -91,9 +103,9 @@ export function PropertyCard({ property, variant = "default" }: PropertyCardProp
   }
 
   return (
-    <Link
-      href={`/properties/${property.slug}`}
-      className="group flex flex-col bg-white border border-neutral-100 rounded-sm overflow-hidden hover:shadow-xl transition-shadow duration-200 active:scale-[0.99]"
+    <div
+      onClick={() => router.push(`/properties/${property.slug}`)}
+      className="group flex flex-col bg-white border border-neutral-100 rounded-sm overflow-hidden hover:shadow-xl transition-shadow duration-200 active:scale-[0.99] cursor-pointer"
     >
       {/* Image */}
       <div className="relative aspect-[4/3] overflow-hidden bg-neutral-100">
@@ -121,10 +133,10 @@ export function PropertyCard({ property, variant = "default" }: PropertyCardProp
           )}
         </div>
 
-        {/* Wishlist */}
+        {/* Wishlist — stopPropagation so it doesn't trigger card navigation */}
         <div
           className="absolute top-3 right-3 w-11 h-11 rounded-full bg-white/90 flex items-center justify-center shadow-sm"
-          onClick={(e) => e.preventDefault()}
+          onClick={(e) => e.stopPropagation()}
         >
           <FavoriteButton propertyId={Number(property.id)} size={17} className="min-w-0 min-h-0" />
         </div>
@@ -173,11 +185,32 @@ export function PropertyCard({ property, variant = "default" }: PropertyCardProp
               ? formatPrice(property.price, { perMonth: true })
               : formatPrice(property.price, { compact: true })}
           </p>
-          <span className="text-xs text-neutral-400">
-            {property.yearBuilt && `Est. ${property.yearBuilt}`}
+          <span className="text-[11px] text-neutral-400">
+            {property.createdAt ? daysListed(property.createdAt) : property.yearBuilt ? `Est. ${property.yearBuilt}` : ""}
           </span>
         </div>
+
+        {/* Urgency signal for rentals */}
+        {isRental && (
+          <p className="text-[11px] text-amber-600 font-medium flex items-center gap-1.5 mt-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse shrink-0" />
+            Typically rents within 5–7 days
+          </p>
+        )}
+
+        {/* Apply Now CTA — only for rental listings */}
+        {isRental && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              router.push(`/apply?property=${property.slug}`);
+            }}
+            className="mt-4 w-full py-2.5 bg-brand text-white text-[13px] font-bold rounded-md hover:bg-brand-hover transition-colors cursor-pointer"
+          >
+            Apply Now — It&apos;s Free
+          </button>
+        )}
       </div>
-    </Link>
+    </div>
   );
 }
