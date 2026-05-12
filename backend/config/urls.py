@@ -36,6 +36,10 @@ urlpatterns = [
     path("api/v1/documents/", include("apps.documents.urls")),
     path("api/v1/maintenance/", include("apps.maintenance.urls")),
 
+    # ── Hasker Mailer Integration ───────────────────────────────────────────
+    # Secure sync API — protected by X-Mailer-Key header
+    path("api/v1/mailer/", include("apps.crm.mailer_urls")),
+
 ]
 
 if settings.DEBUG:

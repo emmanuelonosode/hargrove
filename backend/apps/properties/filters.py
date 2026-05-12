@@ -1,3 +1,4 @@
+import re
 import django_filters
 from django.db.models import Q
 from .models import Property
@@ -30,8 +31,51 @@ class PropertyFilter(django_filters.FilterSet):
             "year_built": ["gte", "lte"],
         }
 
+    def __init__(self, data=None, queryset=None, *, request=None, prefix=None):
+        if data is not None:
+            # Create a mutable copy of the QueryDict/dict
+            data = data.copy()
+            q_val = data.get("q", "")
+            
+            if q_val:
+                original_q = q_val
+                
+                # 1. Parse Bedrooms (e.g. "2 bed", "3 bedrooms", "1 bd")
+                bed_match = re.search(r'(\d+)\s*(?:bed|beds|bedroom|bedrooms|bd|bds)\b', q_val, re.IGNORECASE)
+                if bed_match and not data.get("beds"):
+                    data["beds"] = bed_match.group(1)
+                    q_val = q_val[:bed_match.start()] + q_val[bed_match.end():]
+                
+                # 2. Parse Price ("under 2000", "< 1500", "max 2000", "cheap")
+                price_match = re.search(r'(?:under|<|max)\s*\$?\s*(\d{3,})', q_val, re.IGNORECASE)
+                if price_match and not data.get("max_price"):
+                    data["max_price"] = price_match.group(1)
+                    q_val = q_val[:price_match.start()] + q_val[price_match.end():]
+                
+                if re.search(r'\b(?:cheap|affordable)\b', q_val, re.IGNORECASE):
+                    if not data.get("sort"):
+                        data["sort"] = "price_asc"
+                    q_val = re.sub(r'\b(?:cheap|affordable)\b', '', q_val, flags=re.IGNORECASE)
+
+                # 3. Parse Garage/Parking ("garage", "parking")
+                if re.search(r'\b(?:garage|parking)\b', q_val, re.IGNORECASE) and not data.get("garage__gte"):
+                    data["garage__gte"] = "1"
+                    q_val = re.sub(r'\b(?:garage|parking)\b', '', q_val, flags=re.IGNORECASE)
+                
+                # 4. Cleanup remaining stop words
+                q_val = re.sub(r'\b(?:with|a|an|in|for)\b', ' ', q_val, flags=re.IGNORECASE)
+                q_val = re.sub(r'\s+', ' ', q_val).strip()
+
+                if q_val != original_q:
+                    if q_val:
+                        data["q"] = q_val
+                    else:
+                        data.pop("q", None)
+
+        super().__init__(data, queryset, request=request, prefix=prefix)
+
     def search_filter(self, queryset, name, value):
-        return queryset.filter(
+        q_obj = (
             Q(title__icontains=value)
             | Q(address__icontains=value)
             | Q(city__icontains=value)
@@ -39,6 +83,14 @@ class PropertyFilter(django_filters.FilterSet):
             | Q(state__icontains=value)
             | Q(zip_code__icontains=value)
         )
+        
+        if ',' in value:
+            parts = [p.strip() for p in value.split(',', 1)]
+            if len(parts) == 2:
+                q_obj |= (Q(city__icontains=parts[0]) & Q(state__icontains=parts[1]))
+                q_obj |= (Q(address__icontains=parts[0]) & Q(city__icontains=parts[1]))
+
+        return queryset.filter(q_obj)
 
     lat_min = django_filters.NumberFilter(field_name="latitude", lookup_expr="gte")
     lat_max = django_filters.NumberFilter(field_name="latitude", lookup_expr="lte")

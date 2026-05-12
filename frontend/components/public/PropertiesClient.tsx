@@ -203,64 +203,23 @@ export function PropertiesClient({
 
           {/* Location input */}
           <div className="flex gap-2 flex-1 min-w-0">
-            <div ref={locationRef} className="relative flex-1 min-w-0">
+            <div className="relative flex-1 min-w-0">
               <div className="flex items-center gap-2 bg-white border-2 border-neutral-200 rounded-xl px-3.5 h-11 focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/15 transition-all">
                 <Search size={15} className="text-neutral-400 shrink-0" />
                 <input
-                  ref={locationInput}
                   type="text"
                   autoComplete="off"
                   placeholder="City, ZIP, or neighborhood…"
                   value={q}
-                  onFocus={() => setLocOpen(true)}
-                  onChange={(e) => { setQ(e.target.value); setLocOpen(true); setLocIndex(-1); }}
-                  onKeyDown={(e) => {
-                    if (!locOpen || locSuggestions.length === 0) return;
-                    if (e.key === "ArrowDown") { e.preventDefault(); setLocIndex((i) => Math.min(i + 1, locSuggestions.length - 1)); }
-                    else if (e.key === "ArrowUp") { e.preventDefault(); setLocIndex((i) => Math.max(i - 1, -1)); }
-                    else if (e.key === "Enter" && locIndex >= 0) {
-                      e.preventDefault();
-                      const s = locSuggestions[locIndex];
-                      setQ(`${s.city}, ${s.state}`);
-                      setLocOpen(false); setLocIndex(-1);
-                      navigate({ q: `${s.city}, ${s.state}` });
-                    } else if (e.key === "Escape") { setLocOpen(false); setLocIndex(-1); }
-                  }}
+                  onChange={(e) => setQ(e.target.value)}
                   className="flex-1 text-[14px] text-brand-dark placeholder:text-neutral-400 outline-none bg-transparent min-w-0"
                 />
                 {q && (
-                  <button type="button" onClick={() => { setQ(""); navigate({ q: undefined }); setLocOpen(false); }} className="text-neutral-400 hover:text-neutral-600 shrink-0 transition-colors">
+                  <button type="button" onClick={() => { setQ(""); navigate({ q: undefined }); }} className="text-neutral-400 hover:text-neutral-600 shrink-0 transition-colors">
                     <X size={14} />
                   </button>
                 )}
               </div>
-
-              {/* Autocomplete dropdown */}
-              {locOpen && locSuggestions.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-1.5 bg-white rounded-xl border border-neutral-200 shadow-2xl z-50 overflow-hidden">
-                  {q.trim().length === 0 && (
-                    <div className="px-4 py-2.5 border-b border-neutral-100">
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-400">Popular cities</p>
-                    </div>
-                  )}
-                  <ul>
-                    {locSuggestions.map((s, i) => (
-                      <li
-                        key={`${s.city}-${s.state}`}
-                        onMouseDown={(e) => { e.preventDefault(); setQ(`${s.city}, ${s.state}`); setLocOpen(false); setLocIndex(-1); navigate({ q: `${s.city}, ${s.state}` }); }}
-                        onMouseEnter={() => setLocIndex(i)}
-                        className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors ${i === locIndex ? "bg-brand/5" : "hover:bg-neutral-50"}`}
-                      >
-                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${i === locIndex ? "bg-brand/10" : "bg-neutral-100"}`}>
-                          <MapPin size={12} className={i === locIndex ? "text-brand" : "text-neutral-400"} />
-                        </div>
-                        <span className={`text-[13px] font-semibold ${i === locIndex ? "text-brand" : "text-brand-dark"}`}>{s.city}</span>
-                        <span className="text-[11px] text-neutral-400">{s.state}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
             </div>
 
             {/* Mobile: search + filter toggles */}
@@ -642,6 +601,62 @@ function PanelCard({ property, isActive }: { property: PropertyListItemAPI; isAc
             href={`/apply?property=${property.slug}`}
             onClick={(e) => e.stopPropagation()}
             className="mt-1.5 flex items-center justify-center gap-1.5 w-full py-2 bg-brand text-white text-[11px] font-bold rounded-lg hover:bg-brand-hover transition-colors"
+          >
+            Apply Now <ArrowRight size={11} />
+          </Link>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Pagination ────────────────────────────────────────────────────────────────
+
+function PaginationBar({
+  currentPage,
+  totalPages,
+  buildHref,
+}: {
+  currentPage: number;
+  totalPages: number;
+  buildHref: (page: number) => string;
+}) {
+  const delta = 1;
+  const pages: number[] = [];
+  for (let i = Math.max(1, currentPage - delta); i <= Math.min(totalPages, currentPage + delta); i++) {
+    pages.push(i);
+  }
+  const base = "px-4 py-3 text-[12px] font-semibold rounded-xl border-2 transition-colors min-h-[44px] flex items-center justify-center";
+  const inactive = "border-neutral-200 text-neutral-500 hover:border-brand hover:text-brand bg-white";
+  const active   = "bg-brand text-white border-brand";
+
+  return (
+    <div className="flex items-center justify-center gap-1.5 py-5 flex-wrap">
+      {currentPage > 1 && (
+        <a href={buildHref(currentPage - 1)} className={`${base} ${inactive}`}>← Prev</a>
+      )}
+      {pages[0] > 1 && (
+        <>
+          <a href={buildHref(1)} className={`${base} ${inactive}`}>1</a>
+          {pages[0] > 2 && <span className="text-neutral-300 text-xs px-1">…</span>}
+        </>
+      )}
+      {pages.map((p) => (
+        <a key={p} href={buildHref(p)} className={`${base} ${p === currentPage ? active : inactive}`}>{p}</a>
+      ))}
+      {pages[pages.length - 1] < totalPages && (
+        <>
+          {pages[pages.length - 1] < totalPages - 1 && <span className="text-neutral-300 text-xs px-1">…</span>}
+          <a href={buildHref(totalPages)} className={`${base} ${inactive}`}>{totalPages}</a>
+        </>
+      )}
+      {currentPage < totalPages && (
+        <a href={buildHref(currentPage + 1)} className={`${base} ${inactive}`}>Next →</a>
+      )}
+    </div>
+  );
+}
+r transition-colors"
           >
             Apply Now <ArrowRight size={11} />
           </Link>

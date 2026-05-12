@@ -227,6 +227,13 @@ DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="info@haskerrealtygrou
 # ── Frontend ───────────────────────────────────────────────────────────────────
 FRONTEND_URL = config("FRONTEND_URL", default="http://localhost:3003")
 
+# ── Hasker Mailer Integration ──────────────────────────────────────────────────
+# Shared secret key for the /api/v1/mailer/* sync endpoints
+MAILER_SYNC_KEY = config("MAILER_SYNC_KEY", default="")
+# Base URL of the deployed Hasker Mailer application
+MAILER_APP_URL = config("MAILER_APP_URL", default="http://localhost:3001")
+
+
 # ── Django Unfold Admin ────────────────────────────────────────────────────────
 UNFOLD = {
     "SITE_TITLE": "Hasker & Co. Realty Group",
