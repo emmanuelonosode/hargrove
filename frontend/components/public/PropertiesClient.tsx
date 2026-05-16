@@ -446,7 +446,7 @@ export function PropertiesClient({
                 {results.map((p) => (
                   <div
                     key={p.slug}
-                    className="h-full"
+                    className="flex flex-col"
                     ref={(el) => { cardRefs.current[p.slug] = el; }}
                     onMouseEnter={() => setActiveSlug(p.slug)}
                     onMouseLeave={() => setActiveSlug(null)}
@@ -534,14 +534,14 @@ function PanelCard({ property, isActive }: { property: PropertyListItemAPI; isAc
   const applyHref  = `/apply?property=${property.slug}`;
 
   return (
-    <article className={`h-full flex flex-col rounded-xl overflow-hidden border bg-white group transition-all duration-150 ${
+    <article className={`flex flex-col flex-1 rounded-xl overflow-hidden border bg-white group transition-all duration-150 ${
       isActive
         ? "border-brand shadow-lg ring-2 ring-brand/15"
         : "border-neutral-200 hover:shadow-md hover:border-neutral-300"
     }`}>
 
       {/* Photo — image link at z-0, overlays at z-10 */}
-      <div className="relative aspect-[4/3] bg-neutral-100 overflow-hidden">
+      <div className="relative h-[160px] shrink-0 bg-neutral-100 overflow-hidden">
         {/* Card navigation link under everything */}
         <Link href={detailHref} className="absolute inset-0 z-0 block" aria-label={`View ${property.title}`}>
           {property.primary_image_url ? (
