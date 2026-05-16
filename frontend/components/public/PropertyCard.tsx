@@ -13,13 +13,6 @@ interface PropertyCardProps {
   variant?: "default" | "compact" | "horizontal";
 }
 
-function daysListed(dateStr: string): string {
-  const days = Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
-  if (days <= 0) return "Listed today";
-  if (days === 1) return "Listed yesterday";
-  if (days <= 7) return `Listed ${days} days ago`;
-  return `Listed ${Math.floor(days / 7)}w ago`;
-}
 
 export function PropertyCard({ property, variant = "default" }: PropertyCardProps) {
   const primaryImage = property.images.find((i) => i.isPrimary) ?? property.images[0];
@@ -88,9 +81,6 @@ export function PropertyCard({ property, variant = "default" }: PropertyCardProp
               {property.address}, {property.city}, {property.state}
             </p>
           </div>
-          {property.createdAt && (
-            <p className="text-[11px] text-neutral-400 mt-2">{daysListed(property.createdAt)}</p>
-          )}
         </Link>
       </article>
     );
@@ -176,13 +166,6 @@ export function PropertyCard({ property, variant = "default" }: PropertyCardProp
             ? `${property.neighborhood} · ${property.city}, ${property.state}`
             : `${property.city}, ${property.state} ${property.zip}`}
         </p>
-
-        {/* Days listed */}
-        {property.createdAt && (
-          <p className="text-[11px] text-neutral-400 mt-2">
-            {daysListed(property.createdAt)}
-          </p>
-        )}
 
         {/* Urgency signal */}
         {isRental && (

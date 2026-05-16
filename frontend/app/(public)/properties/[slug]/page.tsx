@@ -686,12 +686,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
               <p className="text-xs font-semibold uppercase tracking-wider text-neutral-400">{listingLabel}</p>
               <p className="font-serif text-xl font-bold text-brand-dark leading-tight">{priceDisplay}</p>
             </div>
-            <FavoriteButton
-              propertyId={property.id}
-              size={18}
-              className="shrink-0 w-11 h-11 rounded-lg border border-neutral-200 bg-neutral-50 hover:border-[#FF3B30]/30 hover:bg-[#FFF5F5]"
-            />
-            <a
+            <
               href="#schedule-form"
               className="shrink-0 h-11 px-5 bg-brand-dark text-white text-sm font-semibold rounded-lg flex items-center gap-1.5 hover:bg-brand transition-colors"
             >
