@@ -11,7 +11,6 @@ import { formatPrice } from "@/lib/utils";
 import { CITIES, fetchAllCities, buildGenericCityData, type CityData } from "@/lib/cities";
 import { CityLeadCapture } from "@/components/public/CityLeadCapture";
 import { FeaturedPropertiesSection } from "@/components/public/FeaturedPropertiesSection";
-import { PreQualifyBanner } from "@/components/public/PreQualifyBanner";
 
 export const metadata = {
   title: "Hasker & Co. Realty Group | Affordable Homes to Rent & Buy",
@@ -354,81 +353,65 @@ export default async function HomePage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(HOW_IT_WORKS_SCHEMA) }} />
 
       {/* ─── HERO ──────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden bg-[#0D1B2A]" style={{ minHeight: "640px" }}>
-        {/* Background property photo at low opacity */}
-        {featuredProperties[0]?.images?.[0]?.url && (
-          <div className="absolute inset-0">
-            <Image
-              src={featuredProperties[0].images[0].url}
-              alt=""
-              fill
-              className="object-cover opacity-25"
-              sizes="100vw"
-              priority
-            />
-          </div>
-        )}
-        {/* Gradient overlay for depth */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0D1B2A]/70 via-[#0D1B2A]/50 to-[#0D1B2A]/85" />
+      <section className="relative flex items-center justify-center overflow-hidden" style={{ minHeight: "92vh" }}>
 
-        {/* Content */}
-        <div className="relative z-10 flex flex-col items-center justify-center text-center px-5 sm:px-8 pt-28 pb-20 sm:pt-32 sm:pb-24 min-h-[640px]">
+        {/* Full-bleed background photo */}
+        <Image
+          src="https://images.unsplash.com/photo-1560184897-ae75f418493e?w=1920&q=90"
+          alt="Beautiful home available through Hasker & Co. Realty Group"
+          fill
+          className="object-cover object-center"
+          sizes="100vw"
+          priority
+        />
+
+        {/* Gentle overlay — light at top, slightly deeper at center so text reads clearly */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/45 to-black/55" />
+
+        {/* Centered content */}
+        <div className="relative z-10 w-full flex flex-col items-center text-center px-5 sm:px-8 pt-24 pb-16">
 
           {/* Available badge */}
           <div className="hero-animate inline-flex items-center gap-2 mb-6" style={{ animationDelay: "0ms" }}>
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
-            <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-white/70">
-              {totalProperties != null ? `${totalProperties} Properties Available` : "Properties Available"}
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+            <span className="text-[11px] font-semibold tracking-[0.22em] uppercase text-white/70">
+              {totalProperties != null ? `${totalProperties} Homes Available` : "Homes Available Now"}
             </span>
           </div>
 
           {/* Headline */}
           <h1
-            className="hero-animate font-black text-white leading-[1.05] tracking-tight mb-4
-                       text-[2.6rem] sm:text-[3.8rem] lg:text-[5rem]"
-            style={{ animationDelay: "80ms" }}
+            className="hero-animate font-serif font-bold text-white leading-[1.08] tracking-tight mb-4
+                       text-[2.75rem] sm:text-[3.75rem] lg:text-[4.5rem]"
+            style={{ animationDelay: "70ms" }}
           >
-            Find Your Next Home
+            Comfortable Living,<br className="hidden sm:block" /> Within Your Budget.
           </h1>
 
+          {/* Subheadline */}
           <p
-            className="hero-animate text-white/60 text-[15px] sm:text-[17px] leading-relaxed mb-10 max-w-[520px]"
-            style={{ animationDelay: "160ms" }}
+            className="hero-animate text-white/75 text-[16px] sm:text-[17px] leading-relaxed mb-9 max-w-[500px]"
+            style={{ animationDelay: "140ms" }}
           >
-            Well-maintained, move-in ready homes across 12+ cities.
-            Decisions in 24 hours.
+            Well-maintained rentals across 12+ cities. No hidden fees. Decisions in 24 hours.
           </p>
 
-          {/* Search card — full width, prominent */}
+          {/* Search card */}
           <div
             className="hero-animate w-full max-w-2xl"
-            style={{ animationDelay: "240ms" }}
+            style={{ animationDelay: "200ms" }}
           >
             <HeroSearch />
           </div>
 
-          {/* Stats row */}
-          <div
-            className="hero-animate flex items-center justify-center gap-8 sm:gap-14 mt-14"
-            style={{ animationDelay: "320ms" }}
+          {/* Trust micro-line */}
+          <p
+            className="hero-animate text-white/50 text-[12px] tracking-wide mt-5"
+            style={{ animationDelay: "270ms" }}
           >
-            <div className="text-center">
-              <p className="text-white font-black text-[2rem] sm:text-[2.25rem] leading-none tabular-nums">
-                {totalProperties ?? "200"}<span className="text-brand">+</span>
-              </p>
-              <p className="text-white/40 text-[11px] mt-1.5 font-medium uppercase tracking-wide">Listed Homes</p>
-            </div>
-            <div className="w-px h-10 bg-white/15" />
-            <div className="text-center">
-              <p className="text-white font-black text-[2rem] sm:text-[2.25rem] leading-none">2,400<span className="text-brand">+</span></p>
-              <p className="text-white/40 text-[11px] mt-1.5 font-medium uppercase tracking-wide">Families Housed</p>
-            </div>
-            <div className="w-px h-10 bg-white/15" />
-            <div className="text-center">
-              <p className="text-white font-black text-[2rem] sm:text-[2.25rem] leading-none">12<span className="text-brand">+</span></p>
-              <p className="text-white/40 text-[11px] mt-1.5 font-medium uppercase tracking-wide">Cities Served</p>
-            </div>
-          </div>
+            2,400+ families housed · No hidden fees · BBB A+ Accredited
+          </p>
+
         </div>
       </section>
 
@@ -534,18 +517,6 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ─── PRE-QUALIFY BANNER ────────────────────────────────── */}
-      <section className="bg-white border-b border-neutral-100 py-10 lg:py-14">
-        <div className="max-w-5xl mx-auto px-5 sm:px-8">
-          <div className="text-center mb-6">
-            <p className="text-brand text-[11px] font-bold tracking-[0.25em] uppercase mb-2">Free — No Credit Check</p>
-            <h2 className="font-serif text-2xl sm:text-3xl font-bold text-brand-dark">
-              Find out which homes fit your budget in 60 seconds
-            </h2>
-          </div>
-          <PreQualifyBanner />
-        </div>
-      </section>
 
       {/* ─── AVAILABLE RENTALS ─────────────────────────────────── */}
       <FeaturedPropertiesSection properties={featuredProperties} totalCount={totalProperties} />

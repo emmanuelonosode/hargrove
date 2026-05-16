@@ -2,13 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Search, MapPin, X } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Search, X } from "lucide-react";
 
 export function HeroSearch() {
   const router = useRouter();
   const [listingType, setListingType] = useState<"for-rent" | "for-sale">("for-rent");
-  const [location, setLocation]       = useState("");
+  const [location, setLocation] = useState("");
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -19,61 +18,58 @@ export function HeroSearch() {
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.25)] overflow-visible">
-      {/* Listing type tabs */}
-      <div className="flex border-b border-neutral-100">
+    <div className="w-full">
+
+      {/* Type toggle — floats above the bar, feels part of the hero */}
+      <div className="flex items-center gap-2 mb-3">
         {(["for-rent", "for-sale"] as const).map((type) => (
           <button
             key={type}
             type="button"
             onClick={() => setListingType(type)}
-            className={cn(
-              "flex-1 py-3.5 text-[13px] font-bold transition-all",
+            className={`px-5 py-2 rounded-full text-[13px] font-semibold transition-all duration-150 cursor-pointer ${
               listingType === type
-                ? "text-brand border-b-2 border-brand -mb-px"
-                : "text-neutral-400 hover:text-neutral-600"
-            )}
+                ? "bg-white text-brand shadow-md"
+                : "bg-white/15 text-white/80 hover:bg-white/25 backdrop-blur-sm"
+            }`}
           >
             {type === "for-rent" ? "For Rent" : "For Sale"}
           </button>
         ))}
       </div>
 
-      {/* Search row */}
-      <form onSubmit={handleSearch} className="flex gap-0 p-3">
-        <div className="relative flex-1">
-          <MapPin
-            size={16}
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none z-10"
-          />
-          <input
-            type="text"
-            placeholder="Enter city, neighborhood, or ZIP code"
-            value={location}
-            autoComplete="off"
-            onChange={(e) => setLocation(e.target.value)}
-            className="w-full pl-11 pr-10 py-4 rounded-xl border border-neutral-200 bg-neutral-50
-                       text-[15px] text-brand-dark placeholder-neutral-400 outline-none
-                       focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/20 transition-all"
-          />
-          {location && (
-            <button
-              type="button"
-              onClick={() => setLocation("")}
-              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 transition-colors z-10"
-              aria-label="Clear"
-            >
-              <X size={15} />
-            </button>
-          )}
-        </div>
+      {/* Single unified search bar */}
+      <form
+        onSubmit={handleSearch}
+        className="flex items-center bg-white rounded-2xl shadow-[0_8px_48px_rgba(0,0,0,0.22)] overflow-hidden h-[60px] sm:h-[64px]"
+      >
+        <Search size={18} className="ml-5 text-neutral-400 shrink-0" />
+
+        <input
+          type="text"
+          placeholder="City, neighborhood, or ZIP…"
+          value={location}
+          autoComplete="off"
+          onChange={(e) => setLocation(e.target.value)}
+          className="flex-1 px-3 text-[15px] sm:text-[16px] text-neutral-800 placeholder-neutral-400 outline-none bg-transparent min-w-0"
+        />
+
+        {location && (
+          <button
+            type="button"
+            onClick={() => setLocation("")}
+            aria-label="Clear"
+            className="p-2 text-neutral-400 hover:text-neutral-600 transition-colors shrink-0 cursor-pointer"
+          >
+            <X size={15} />
+          </button>
+        )}
 
         <button
           type="submit"
-          className="ml-3 flex items-center gap-2 px-8 py-4 bg-brand text-white font-bold text-[15px] rounded-xl hover:bg-brand-hover transition-colors shrink-0 cursor-pointer"
+          className="m-2 px-6 sm:px-8 h-[44px] sm:h-[48px] bg-brand hover:bg-brand-hover text-white font-bold text-[14px] rounded-xl transition-colors duration-150 shrink-0 cursor-pointer whitespace-nowrap"
         >
-          <Search size={18} />
-          <span>Search</span>
+          Search
         </button>
       </form>
     </div>

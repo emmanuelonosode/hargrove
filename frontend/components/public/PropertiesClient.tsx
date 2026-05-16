@@ -5,34 +5,15 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import {
-  Search, ChevronDown, SlidersHorizontal, MapPin, X,
+  Search, ChevronDown, MapPin, X,
   List, Map as MapIcon, Layers, BedDouble, DollarSign, ArrowRight,
 } from "lucide-react";
 import { FavoriteButton } from "./FavoriteButton";
 import { captureSearchIntent } from "@/lib/tracking";
 import { PropertiesMapLoader } from "./PropertiesMapLoader";
+import { fetchAllCities } from "@/lib/cities";
 import type { MapMarker, MapBounds } from "./PropertiesMap";
 import type { PropertyListItemAPI } from "@/lib/properties";
-
-const LOCATION_SUGGESTIONS = [
-  { city: "Atlanta",      state: "GA" },
-  { city: "Charlotte",    state: "NC" },
-  { city: "Houston",      state: "TX" },
-  { city: "Dallas",       state: "TX" },
-  { city: "Nashville",    state: "TN" },
-  { city: "Phoenix",      state: "AZ" },
-  { city: "Austin",       state: "TX" },
-  { city: "Miami",        state: "FL" },
-  { city: "Denver",       state: "CO" },
-  { city: "Seattle",      state: "WA" },
-  { city: "Las Vegas",    state: "NV" },
-  { city: "Tampa",        state: "FL" },
-  { city: "Orlando",      state: "FL" },
-  { city: "Raleigh",      state: "NC" },
-  { city: "San Antonio",  state: "TX" },
-  { city: "Jacksonville", state: "FL" },
-  { city: "Winder",       state: "GA" },
-];
 
 interface Props {
   initialResults: PropertyListItemAPI[];
@@ -102,29 +83,37 @@ export function PropertiesClient({
   const [searchOnMove, setSearchOnMove] = useState(true);
   const [activeSlug, setActiveSlug]     = useState<string | null>(null);
   const [mobileView, setMobileView]     = useState<"list" | "map">("list");
-  const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   const cardRefs      = useRef<Record<string, HTMLDivElement | null>>({});
   const locationRef   = useRef<HTMLDivElement>(null);
   const locationInput = useRef<HTMLInputElement>(null);
   const [locOpen, setLocOpen]   = useState(false);
   const [locIndex, setLocIndex] = useState(-1);
+  const [liveCities, setLiveCities] = useState<{ city: string; state: string }[]>([]);
+
+  useEffect(() => {
+    fetchAllCities().then((cities) => {
+      setLiveCities(cities.map((c) => ({ city: c.city, state: c.state })));
+    }).catch(() => {});
+  }, []);
+
+  const cityPool = liveCities.length > 0 ? liveCities : [];
 
   const locSuggestions = q.trim().length === 0
-    ? LOCATION_SUGGESTIONS.slice(0, 6)
-    : LOCATION_SUGGESTIONS.filter((s) =>
+    ? cityPool.slice(0, 6)
+    : cityPool.filter((s) =>
         s.city.toLowerCase().startsWith(q.trim().toLowerCase()) ||
         `${s.city}, ${s.state}`.toLowerCase().includes(q.trim().toLowerCase())
       ).slice(0, 6);
 
   useEffect(() => {
-    function onOut(e: MouseEvent) {
+    function onOut(e: PointerEvent) {
       if (locationRef.current && !locationRef.current.contains(e.target as Node)) {
         setLocOpen(false); setLocIndex(-1);
       }
     }
-    document.addEventListener("mousedown", onOut);
-    return () => document.removeEventListener("mousedown", onOut);
+    document.addEventListener("pointerdown", onOut);
+    return () => document.removeEventListener("pointerdown", onOut);
   }, []);
 
   const results      = mapResults ?? initialResults;
@@ -185,10 +174,11 @@ export function PropertiesClient({
   }, []);
 
   const markers: MapMarker[] = results
+    .map((p) => ({ ...p, latitude: Number(p.latitude), longitude: Number(p.longitude) }))
     .filter((p) => Number.isFinite(p.latitude) && Number.isFinite(p.longitude) && p.latitude !== 0 && p.longitude !== 0)
     .map((p) => ({
       slug: p.slug, title: p.title, price: p.price, price_label: p.price_label,
-      city: p.city, state: p.state, lat: p.latitude!, lng: p.longitude!,
+      city: p.city, state: p.state, lat: p.latitude, lng: p.longitude,
       image_url: p.primary_image_url, beds: p.bedrooms, baths: p.bathrooms,
     }));
 
@@ -199,70 +189,110 @@ export function PropertiesClient({
 
       {/* ── Filter bar ──────────────────────────────────────────────────────── */}
       <div className="shrink-0 bg-white border-b border-neutral-200 z-30 shadow-sm">
-        <form onSubmit={handleSearch} className="flex flex-col md:flex-row md:items-center px-4 py-3 gap-3">
+        <form onSubmit={handleSearch}>
 
-          {/* Location input */}
-          <div className="flex gap-2 flex-1 min-w-0">
-            <div className="relative flex-1 min-w-0">
+          {/* Row 1: Location search input */}
+          <div className="flex items-center gap-2 px-4 pt-3 pb-2">
+            <div className="relative flex-1 min-w-0" ref={locationRef}>
               <div className="flex items-center gap-2 bg-white border-2 border-neutral-200 rounded-xl px-3.5 h-11 focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/15 transition-all">
                 <Search size={15} className="text-neutral-400 shrink-0" />
                 <input
+                  ref={locationInput}
                   type="text"
                   autoComplete="off"
                   placeholder="City, ZIP, or neighborhood…"
                   value={q}
-                  onChange={(e) => setQ(e.target.value)}
-                  className="flex-1 text-[14px] text-brand-dark placeholder:text-neutral-400 outline-none bg-transparent min-w-0"
+                  onChange={(e) => { setQ(e.target.value); setLocOpen(true); setLocIndex(-1); }}
+                  onFocus={() => setLocOpen(true)}
+                  onKeyDown={(e) => {
+                    if (!locOpen || locSuggestions.length === 0) return;
+                    if (e.key === "ArrowDown") { e.preventDefault(); setLocIndex((i) => Math.min(i + 1, locSuggestions.length - 1)); }
+                    else if (e.key === "ArrowUp") { e.preventDefault(); setLocIndex((i) => Math.max(i - 1, -1)); }
+                    else if (e.key === "Enter" && locIndex >= 0) {
+                      e.preventDefault();
+                      const s = locSuggestions[locIndex];
+                      const val = `${s.city}, ${s.state}`;
+                      setQ(val); setLocOpen(false); setLocIndex(-1);
+                      navigate({ q: val });
+                    } else if (e.key === "Escape") { setLocOpen(false); setLocIndex(-1); }
+                  }}
+                  className="flex-1 text-[15px] text-brand-dark placeholder:text-neutral-400 outline-none bg-transparent min-w-0"
                 />
                 {q && (
-                  <button type="button" onClick={() => { setQ(""); navigate({ q: undefined }); }} className="text-neutral-400 hover:text-neutral-600 shrink-0 transition-colors">
+                  <button
+                    type="button"
+                    onClick={() => { setQ(""); setLocOpen(false); navigate({ q: undefined }); }}
+                    className="text-neutral-400 hover:text-neutral-600 shrink-0 transition-colors p-1.5 -mr-1"
+                    aria-label="Clear search"
+                  >
                     <X size={14} />
                   </button>
                 )}
               </div>
-            </div>
 
-            {/* Mobile: search + filter toggles */}
-            <button type="submit" className="md:hidden flex items-center justify-center w-11 h-11 rounded-xl bg-brand text-white shrink-0 shadow-sm" aria-label="Search">
-              <Search size={16} />
-            </button>
-            <div className="relative md:hidden shrink-0">
-              <button
-                type="button"
-                onClick={() => setShowMobileFilters((s) => !s)}
-                className={`flex items-center justify-center w-11 h-11 rounded-xl border-2 transition-colors ${
-                  showMobileFilters || activeFiltersCount > 0
-                    ? "border-brand bg-brand/5 text-brand"
-                    : "border-neutral-200 bg-white text-neutral-500"
-                }`}
-              >
-                <SlidersHorizontal size={16} />
-              </button>
-              {activeFiltersCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-4.5 h-4.5 w-5 h-5 bg-brand text-white text-[10px] font-bold rounded-full flex items-center justify-center pointer-events-none">
-                  {activeFiltersCount}
-                </span>
+              {/* Suggestions dropdown */}
+              {locOpen && locSuggestions.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-1.5 bg-white rounded-xl border border-neutral-200 shadow-2xl z-50 overflow-hidden">
+                  <div className="max-h-[240px] overflow-y-auto overscroll-contain">
+                    {q.trim().length === 0 && (
+                      <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest px-4 pt-3 pb-2">
+                        Popular Cities
+                      </p>
+                    )}
+                    {locSuggestions.map((s, i) => (
+                      <button
+                        key={`${s.city}-${s.state}`}
+                        type="button"
+                        onPointerDown={(e) => {
+                          e.preventDefault();
+                          const val = `${s.city}, ${s.state}`;
+                          setQ(val); setLocOpen(false); setLocIndex(-1);
+                          navigate({ q: val });
+                        }}
+                        className={`w-full flex items-center gap-3 px-4 text-left transition-colors cursor-pointer min-h-[52px] ${
+                          i === locIndex
+                            ? "bg-brand/5 text-brand"
+                            : "text-neutral-700 hover:bg-neutral-50 active:bg-neutral-100"
+                        }`}
+                      >
+                        <MapPin size={15} className={`shrink-0 ${i === locIndex ? "text-brand" : "text-neutral-400"}`} />
+                        <span className="text-[14px] font-semibold">{s.city}</span>
+                        <span className="text-[13px] text-neutral-400 ml-auto pr-1">{s.state}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
+
+            {/* Search button — icon on mobile, icon + label on desktop */}
+            <button
+              type="submit"
+              aria-label="Search"
+              className="flex items-center justify-center gap-2 h-11 w-11 md:w-auto md:px-5 bg-brand hover:bg-brand-hover text-white rounded-xl transition-colors shrink-0 shadow-sm"
+            >
+              <Search size={16} />
+              <span className="hidden md:inline text-[13px] font-bold">Search</span>
+            </button>
           </div>
 
-          {/* Filter controls */}
-          <div className={`${showMobileFilters ? "flex" : "hidden"} md:flex items-center gap-2 flex-wrap md:flex-nowrap`}>
+          {/* Row 2: Filter chips — always visible, horizontal scroll on mobile */}
+          <div className="flex items-center gap-2 overflow-x-auto px-4 pb-3 scrollbar-none">
 
-            {/* Rent / Buy toggle pills */}
-            <div className="flex items-center gap-1 p-1 bg-neutral-100 rounded-xl shrink-0">
+            {/* Rent / Buy / All toggle */}
+            <div className="flex items-center gap-0.5 p-1 bg-neutral-100 rounded-xl shrink-0">
               {(["", "for-rent", "for-sale"] as const).map((type) => (
                 <button
                   key={type}
                   type="button"
                   onClick={() => { setListingType(type); navigate({ listing_type: type || undefined }); }}
-                  className={`px-4 py-1.5 rounded-lg text-[12px] font-bold transition-all whitespace-nowrap ${
+                  className={`px-3.5 py-1.5 rounded-lg text-[12px] font-bold transition-all whitespace-nowrap ${
                     listingType === type
                       ? "bg-white text-brand-dark shadow-sm"
                       : "text-neutral-500 hover:text-brand-dark"
                   }`}
                 >
-                  {type === "" ? "All" : type === "for-rent" ? "For Rent" : "For Sale"}
+                  {type === "" ? "All" : type === "for-rent" ? "Rent" : "Sale"}
                 </button>
               ))}
             </div>
@@ -291,19 +321,11 @@ export function PropertiesClient({
               {BEDS_OPTIONS.map((b) => <option key={b.value} value={b.value}>{b.label}</option>)}
             </FilterPill>
 
-            {/* Desktop search button */}
-            <button
-              type="submit"
-              className="hidden md:flex items-center gap-2 h-11 px-5 bg-brand text-white text-[13px] font-bold rounded-xl hover:bg-brand-hover transition-colors shrink-0"
-            >
-              <Search size={14} /> Search
-            </button>
-
             {/* Clear filters */}
             {activeFiltersCount > 0 && (
               <a
                 href="/properties"
-                className="shrink-0 flex items-center gap-1.5 h-11 px-3.5 text-[12px] font-bold text-red-500 border-2 border-red-200 rounded-xl hover:bg-red-50 transition-colors whitespace-nowrap bg-white"
+                className="shrink-0 flex items-center gap-1.5 h-9 px-4 text-[12px] font-bold text-red-500 border-2 border-red-200 rounded-xl hover:bg-red-50 active:bg-red-100 transition-colors whitespace-nowrap bg-white"
               >
                 <X size={13} /> Clear
               </a>
@@ -392,11 +414,11 @@ export function PropertiesClient({
           </div>
 
           {/* Card list */}
-          <div className="flex-1 overflow-y-auto pb-20 lg:pb-0">
+          <div className="flex-1 overflow-y-auto pb-28 lg:pb-4">
             {mapLoading ? (
-              <div className="p-3 grid grid-cols-2 gap-3">
+              <div className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {[...Array(6)].map((_, i) => (
-                  <div key={i} className="aspect-[3/4] bg-neutral-100 rounded-xl animate-pulse" />
+                  <div key={i} className="h-[220px] sm:aspect-[3/4] sm:h-auto bg-neutral-100 rounded-xl animate-pulse" />
                 ))}
               </div>
             ) : results.length === 0 ? (
@@ -420,10 +442,11 @@ export function PropertiesClient({
                 </div>
               </div>
             ) : (
-              <div className="p-3 grid grid-cols-2 gap-3">
+              <div className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {results.map((p) => (
                   <div
                     key={p.slug}
+                    className="h-full"
                     ref={(el) => { cardRefs.current[p.slug] = el; }}
                     onMouseEnter={() => setActiveSlug(p.slug)}
                     onMouseLeave={() => setActiveSlug(null)}
@@ -448,10 +471,10 @@ export function PropertiesClient({
       </div>
 
       {/* Mobile view toggle */}
-      <div className="lg:hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-50">
+      <div className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50" style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
         <button
           onClick={() => setMobileView(mobileView === "list" ? "map" : "list")}
-          className="flex items-center gap-2.5 bg-[#0D1B2A] text-white pl-5 pr-6 py-3.5 rounded-full shadow-2xl text-[13px] font-bold active:scale-95 transition-transform border-2 border-white/10"
+          className="flex items-center gap-2.5 bg-[#0D1B2A] text-white pl-5 pr-6 py-4 rounded-full shadow-2xl text-[13px] font-bold active:scale-95 transition-transform border border-white/10"
         >
           {mobileView === "list" ? <><MapIcon size={17} /> Show Map</> : <><List size={17} /> Show Listings</>}
         </button>
@@ -506,107 +529,97 @@ function FilterPill({
 // ── Panel property card ───────────────────────────────────────────────────────
 
 function PanelCard({ property, isActive }: { property: PropertyListItemAPI; isActive: boolean }) {
-  const isRental = property.listing_type !== "for-sale";
+  const isRental   = property.listing_type !== "for-sale";
+  const detailHref = `/properties/${property.slug}`;
+  const applyHref  = `/apply?property=${property.slug}`;
 
   return (
-    <div className={`flex flex-col rounded-xl overflow-hidden border bg-white group transition-all duration-150 ${
+    <article className={`h-full flex flex-col rounded-xl overflow-hidden border bg-white group transition-all duration-150 ${
       isActive
         ? "border-brand shadow-lg ring-2 ring-brand/15"
         : "border-neutral-200 hover:shadow-md hover:border-neutral-300"
     }`}>
-      {/* Photo */}
-      <Link href={`/properties/${property.slug}`} className="block">
-        <div className="relative aspect-[4/3] bg-neutral-100 overflow-hidden">
+
+      {/* Photo — image link at z-0, overlays at z-10 */}
+      <div className="relative aspect-[4/3] bg-neutral-100 overflow-hidden">
+        {/* Card navigation link under everything */}
+        <Link href={detailHref} className="absolute inset-0 z-0 block" aria-label={`View ${property.title}`}>
           {property.primary_image_url ? (
             <Image
               src={property.primary_image_url}
               alt={property.title}
               fill
               className="object-cover group-hover:scale-105 transition-transform duration-500"
-              sizes="(max-width: 1024px) 50vw, 20vw"
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 20vw"
               unoptimized
             />
           ) : (
-            <div className="w-full h-full bg-neutral-200 flex items-center justify-center">
+            <div className="w-full h-full bg-neutral-100 flex items-center justify-center">
               <span className="text-neutral-400 text-xs">No photo</span>
             </div>
           )}
+        </Link>
 
-          {/* Listing type badge */}
-          <div className="absolute top-2 left-2">
-            <span className={`text-[10px] font-black px-2 py-1 rounded-lg uppercase tracking-wide ${
-              property.listing_type === "for-sale"
-                ? "bg-emerald-500 text-white"
-                : "bg-brand text-white"
-            }`}>
-              {property.listing_type === "for-sale" ? "For Sale" : "For Rent"}
-            </span>
-          </div>
-
+        {/* Badges — non-interactive */}
+        <div className="absolute top-2 left-2 z-10 flex gap-1 pointer-events-none">
+          <span className={`text-[10px] font-black px-2 py-1 rounded-lg uppercase tracking-wide ${
+            property.listing_type === "for-sale"
+              ? "bg-emerald-500 text-white"
+              : "bg-brand text-white"
+          }`}>
+            {property.listing_type === "for-sale" ? "For Sale" : "For Rent"}
+          </span>
           {property.is_featured && (
-            <div className="absolute top-2 right-10">
-              <span className="bg-amber-500 text-white text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wide">
-                Featured
-              </span>
-            </div>
-          )}
-
-          {/* Heart */}
-          <div
-            className="absolute top-2 right-2 z-10"
-            onClick={(e) => e.preventDefault()}
-          >
-            <div className="w-8 h-8 bg-white/95 rounded-full flex items-center justify-center shadow-sm">
-              <FavoriteButton propertyId={property.id} size={13} className="hover:scale-110 active:scale-90 transition-transform" />
-            </div>
-          </div>
-
-          {/* Available now pill — bottom */}
-          <div className="absolute bottom-2 right-2">
-            <span className="flex items-center gap-1 bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-1 rounded-full">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block shrink-0" />
-              Available
+            <span className="bg-amber-500 text-white text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wide">
+              Featured
             </span>
-          </div>
-        </div>
-      </Link>
-
-      {/* Body */}
-      <div className="p-3 flex flex-col gap-1">
-        {/* Price row */}
-        <div className="flex items-baseline justify-between gap-1">
-          <p className="text-[16px] font-black text-brand-dark leading-none">
-            ${property.price.toLocaleString()}
-            {isRental && <span className="text-[11px] font-semibold text-neutral-400">/mo</span>}
-          </p>
+          )}
         </div>
 
-        {/* Beds · Baths · Sqft */}
+        {/* Favorite — z-10, fully independent from the card link */}
+        <div className="absolute top-2 right-2 z-10 w-8 h-8 bg-white/95 rounded-full flex items-center justify-center shadow-sm">
+          <FavoriteButton propertyId={property.id} size={13} className="hover:scale-110 active:scale-90 transition-transform" />
+        </div>
+
+        {/* Available pill */}
+        <div className="absolute bottom-2 right-2 z-10 pointer-events-none">
+          <span className="flex items-center gap-1 bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-1 rounded-full">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block shrink-0" />
+            Available
+          </span>
+        </div>
+      </div>
+
+      {/* Body — fully linked to property detail */}
+      <Link href={detailHref} className="p-3 flex flex-col gap-1 flex-1">
+        <p className="text-[16px] font-black text-brand-dark leading-none">
+          ${property.price.toLocaleString()}
+          {isRental && <span className="text-[11px] font-semibold text-neutral-400">/mo</span>}
+        </p>
+
         <p className="text-[12px] font-semibold text-neutral-600">
-          {property.bedrooms === 0
-            ? "Studio"
-            : `${property.bedrooms} bd`}
+          {property.bedrooms === 0 ? "Studio" : `${property.bedrooms} bd`}
           {" · "}{property.bathrooms} ba
           {property.sqft > 0 && ` · ${property.sqft.toLocaleString()} sqft`}
         </p>
 
-        {/* Address */}
         <p className="text-[11px] text-neutral-400 truncate leading-tight">
           {property.address ? `${property.address}, ` : ""}{property.city}, {property.state}
         </p>
+      </Link>
 
-        {/* Apply CTA — rentals only */}
-        {isRental && (
+      {/* Apply — fully independent, outside the body link */}
+      {isRental && (
+        <div className="px-3 pb-3">
           <Link
-            href={`/apply?property=${property.slug}`}
-            onClick={(e) => e.stopPropagation()}
-            className="mt-1.5 flex items-center justify-center gap-1.5 w-full py-2 bg-brand text-white text-[11px] font-bold rounded-lg hover:bg-brand-hover transition-colors"
+            href={applyHref}
+            className="flex items-center justify-center gap-1.5 w-full py-3 sm:py-2 bg-brand hover:bg-brand-hover active:bg-brand-hover text-white text-[12px] sm:text-[11px] font-bold rounded-lg transition-colors duration-150"
           >
             Apply Now <ArrowRight size={11} />
           </Link>
-        )}
-      </div>
-    </div>
+        </div>
+      )}
+    </article>
   );
 }
 

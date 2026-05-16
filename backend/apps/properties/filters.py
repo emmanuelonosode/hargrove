@@ -74,6 +74,23 @@ class PropertyFilter(django_filters.FilterSet):
 
         super().__init__(data, queryset, request=request, prefix=prefix)
 
+    # Maps lowercase full state names to 2-letter abbreviations
+    _STATE_ABBR = {
+        "alabama": "AL", "alaska": "AK", "arizona": "AZ", "arkansas": "AR",
+        "california": "CA", "colorado": "CO", "connecticut": "CT", "delaware": "DE",
+        "florida": "FL", "georgia": "GA", "hawaii": "HI", "idaho": "ID",
+        "illinois": "IL", "indiana": "IN", "iowa": "IA", "kansas": "KS",
+        "kentucky": "KY", "louisiana": "LA", "maine": "ME", "maryland": "MD",
+        "massachusetts": "MA", "michigan": "MI", "minnesota": "MN", "mississippi": "MS",
+        "missouri": "MO", "montana": "MT", "nebraska": "NE", "nevada": "NV",
+        "new hampshire": "NH", "new jersey": "NJ", "new mexico": "NM", "new york": "NY",
+        "north carolina": "NC", "north dakota": "ND", "ohio": "OH", "oklahoma": "OK",
+        "oregon": "OR", "pennsylvania": "PA", "rhode island": "RI", "south carolina": "SC",
+        "south dakota": "SD", "tennessee": "TN", "texas": "TX", "utah": "UT",
+        "vermont": "VT", "virginia": "VA", "washington": "WA", "west virginia": "WV",
+        "wisconsin": "WI", "wyoming": "WY",
+    }
+
     def search_filter(self, queryset, name, value):
         q_obj = (
             Q(title__icontains=value)
@@ -83,12 +100,43 @@ class PropertyFilter(django_filters.FilterSet):
             | Q(state__icontains=value)
             | Q(zip_code__icontains=value)
         )
-        
+
+        # "Atlanta, GA" or "Atlanta, Georgia" — comma-separated
         if ',' in value:
             parts = [p.strip() for p in value.split(',', 1)]
             if len(parts) == 2:
-                q_obj |= (Q(city__icontains=parts[0]) & Q(state__icontains=parts[1]))
-                q_obj |= (Q(address__icontains=parts[0]) & Q(city__icontains=parts[1]))
+                city_part, state_part = parts[0], parts[1]
+                q_obj |= (Q(city__icontains=city_part) & Q(state__icontains=state_part))
+                q_obj |= (Q(address__icontains=city_part) & Q(city__icontains=state_part))
+                # Also resolve full state name after the comma ("Atlanta, Georgia")
+                state_abbr = self._STATE_ABBR.get(state_part.lower())
+                if state_abbr:
+                    q_obj |= (Q(city__icontains=city_part) & Q(state__iexact=state_abbr))
+        else:
+            words = value.strip().split()
+
+            # "Atlanta GA" — city + 2-letter abbreviation, no comma
+            if len(words) >= 2:
+                last = words[-1]
+                if re.match(r'^[A-Za-z]{2}$', last):
+                    city_part = " ".join(words[:-1])
+                    state_part = last.upper()
+                    q_obj |= (Q(city__icontains=city_part) & Q(state__iexact=state_part))
+
+            # "Atlanta Georgia" — city + full state name (1 or 2 word state)
+            for n in (2, 1):
+                if len(words) > n:
+                    state_guess = " ".join(words[-n:]).lower()
+                    abbr = self._STATE_ABBR.get(state_guess)
+                    if abbr:
+                        city_guess = " ".join(words[:-n])
+                        q_obj |= (Q(city__icontains=city_guess) & Q(state__iexact=abbr))
+                        break
+
+            # "Georgia" alone — full state name with no city
+            state_abbr = self._STATE_ABBR.get(value.strip().lower())
+            if state_abbr:
+                q_obj |= Q(state__iexact=state_abbr)
 
         return queryset.filter(q_obj)
 

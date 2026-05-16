@@ -53,6 +53,10 @@ class PropertyListSerializer(serializers.ModelSerializer):
     """Lightweight serializer for list views."""
     primary_image_url = serializers.SerializerMethodField()
     agent_name = serializers.SerializerMethodField()
+    # DecimalField serializes as a string by default; override so the map's
+    # Number.isFinite() check receives actual JSON numbers, not "33.749000".
+    latitude = serializers.FloatField(read_only=True, allow_null=True)
+    longitude = serializers.FloatField(read_only=True, allow_null=True)
 
     class Meta:
         model = Property
@@ -95,6 +99,8 @@ class PropertyDetailSerializer(serializers.ModelSerializer):
     amenities = PropertyAmenitySerializer(many=True, read_only=True)
     amenity_categories = serializers.SerializerMethodField()
     agent = PublicAgentSerializer(read_only=True)
+    latitude = serializers.FloatField(read_only=True, allow_null=True)
+    longitude = serializers.FloatField(read_only=True, allow_null=True)
     agent_id = serializers.PrimaryKeyRelatedField(
         queryset=__import__("apps.accounts.models", fromlist=["CustomUser"]).CustomUser.objects.filter(role="AGENT"),
         source="agent",

@@ -2,8 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { Bed, Bath, Maximize, MapPin } from "lucide-react";
+import { Bed, Bath, Maximize, MapPin, Home } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { FavoriteButton } from "@/components/public/FavoriteButton";
 import { formatPrice, formatNumber } from "@/lib/utils";
@@ -23,7 +22,6 @@ function daysListed(dateStr: string): string {
 }
 
 export function PropertyCard({ property, variant = "default" }: PropertyCardProps) {
-  const router = useRouter();
   const primaryImage = property.images.find((i) => i.isPrimary) ?? property.images[0];
 
   const listingBadgeVariant =
@@ -42,90 +40,88 @@ export function PropertyCard({ property, variant = "default" }: PropertyCardProp
 
   const isRental = property.listingType === "for-rent" || property.listingType === "for-lease";
 
+  const detailHref = `/properties/${property.slug}`;
+  const applyHref  = `/apply?property=${property.slug}`;
+
+  // ─── Horizontal variant ────────────────────────────────────────────
   if (variant === "horizontal") {
     return (
-      <Link
-        href={`/properties/${property.slug}`}
-        className="group flex bg-white border border-neutral-100 rounded-sm overflow-hidden hover:shadow-lg transition-shadow duration-200 active:scale-[0.99]"
-      >
-        <div className="relative w-36 sm:w-56 shrink-0 overflow-hidden">
-          {primaryImage && (
+      <article className="group flex bg-white border border-neutral-200 rounded-2xl overflow-hidden hover:shadow-md hover:border-neutral-300 transition-all duration-200">
+        {/* Image */}
+        <div className="relative w-36 sm:w-52 shrink-0 overflow-hidden bg-neutral-100">
+          <Link href={detailHref} className="absolute inset-0 z-0 block" tabIndex={-1} aria-hidden="true" />
+          {primaryImage ? (
             <Image
               src={primaryImage.url}
               alt={property.title}
               fill
               className="object-cover group-hover:scale-105 transition-transform duration-300"
-              sizes="256px"
+              sizes="208px"
               unoptimized
             />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <Home size={24} className="text-neutral-300" />
+            </div>
           )}
-          <div className="absolute top-3 left-3 flex gap-1.5">
+          <div className="absolute top-2.5 left-2.5 z-10 pointer-events-none flex gap-1.5">
             <Badge variant={listingBadgeVariant}>{listingLabel}</Badge>
-            {property.isFeatured && <Badge variant="featured">Featured</Badge>}
           </div>
         </div>
-        <div className="flex flex-col justify-between p-5 flex-1">
-          <div>
-            <p className="text-brand text-xs font-medium tracking-wide uppercase mb-1">
-              {property.neighborhood ?? property.city}
-            </p>
-            <h3 className="font-sans text-lg text-brand-dark font-semibold leading-snug line-clamp-2 group-hover:text-brand transition-colors">
-              {property.title}
-            </h3>
-            <div className="flex items-center gap-1 mt-2 text-neutral-500 text-xs">
-              <MapPin size={12} />
-              <span>
-                {property.address}, {property.city}, {property.state}
-              </span>
-            </div>
-          </div>
-          <div>
-            <div className="flex gap-4 text-sm text-neutral-600 mt-4 mb-3">
-              <span className="flex items-center gap-1">
-                <Bed size={14} /> {property.bedrooms} bd
-              </span>
-              <span className="flex items-center gap-1">
-                <Bath size={14} /> {property.bathrooms} ba
-              </span>
-              <span className="flex items-center gap-1">
-                <Maximize size={14} /> {formatNumber(property.sqft)} sqft
-              </span>
-            </div>
-            <p className="font-sans text-xl font-bold text-brand-dark">
-              {property.listingType === "for-rent"
+
+        {/* Body */}
+        <Link href={detailHref} className="flex flex-col justify-between p-4 flex-1 min-w-0">
+          <div className="min-w-0">
+            <p className="font-bold text-[1.2rem] text-neutral-900 leading-none mb-2">
+              {isRental
                 ? formatPrice(property.price, { perMonth: true })
                 : formatPrice(property.price, { compact: true })}
             </p>
+            <div className="flex items-center gap-1 text-[12px] text-neutral-500 mb-2">
+              <span className="font-medium text-neutral-700">{property.bedrooms}</span> bd
+              <span className="text-neutral-300 mx-1">·</span>
+              <span className="font-medium text-neutral-700">{property.bathrooms}</span> ba
+              <span className="text-neutral-300 mx-1">·</span>
+              <span className="font-medium text-neutral-700">{formatNumber(property.sqft)}</span> sqft
+            </div>
+            <p className="text-[12px] text-neutral-500 truncate">
+              {property.address}, {property.city}, {property.state}
+            </p>
           </div>
-        </div>
-      </Link>
+          {property.createdAt && (
+            <p className="text-[11px] text-neutral-400 mt-2">{daysListed(property.createdAt)}</p>
+          )}
+        </Link>
+      </article>
     );
   }
 
+  // ─── Default / compact variant ─────────────────────────────────────
   return (
-    <div
-      onClick={() => router.push(`/properties/${property.slug}`)}
-      className="group flex flex-col bg-white border border-neutral-100 rounded-sm overflow-hidden hover:shadow-xl transition-shadow duration-200 active:scale-[0.99] cursor-pointer"
-    >
-      {/* Image */}
-      <div className="relative aspect-[4/3] overflow-hidden bg-neutral-100">
-        {primaryImage ? (
-          <Image
-            src={primaryImage.url}
-            alt={property.title}
-            fill
-            className="object-cover group-hover:scale-105 transition-transform duration-300"
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            unoptimized
-          />
-        ) : (
-          <div className="w-full h-full bg-neutral-200 flex items-center justify-center">
-            <span className="text-neutral-400 text-sm">No image</span>
-          </div>
-        )}
+    <article className="group flex flex-col bg-white border border-neutral-200 rounded-2xl overflow-hidden hover:shadow-lg hover:border-neutral-300 transition-all duration-200">
 
-        {/* Badges */}
-        <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
+      {/* Image — linked to property detail */}
+      <div className="relative aspect-[3/2] overflow-hidden bg-neutral-100">
+        {/* The image link sits at z-0 so z-10 elements (buttons) stay above it */}
+        <Link href={detailHref} className="absolute inset-0 z-0 block" aria-label={`View ${property.title}`}>
+          {primaryImage ? (
+            <Image
+              src={primaryImage.url}
+              alt={property.title}
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-500"
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              unoptimized
+            />
+          ) : (
+            <div className="w-full h-full bg-neutral-100 flex items-center justify-center">
+              <Home size={36} className="text-neutral-300" />
+            </div>
+          )}
+        </Link>
+
+        {/* Badges — non-interactive, pointer-events-none */}
+        <div className="absolute top-3 left-3 z-10 flex flex-wrap gap-1.5 pointer-events-none">
           <Badge variant={listingBadgeVariant}>{listingLabel}</Badge>
           {property.isFeatured && <Badge variant="featured">Featured</Badge>}
           {property.status === "under-contract" && (
@@ -133,84 +129,81 @@ export function PropertyCard({ property, variant = "default" }: PropertyCardProp
           )}
         </div>
 
-        {/* Wishlist — stopPropagation so it doesn't trigger card navigation */}
-        <div
-          className="absolute top-3 right-3 w-11 h-11 rounded-full bg-white/90 flex items-center justify-center shadow-sm"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <FavoriteButton propertyId={Number(property.id)} size={17} className="min-w-0 min-h-0" />
+        {/* Favorite — z-10, fully interactive, independent of card link */}
+        <div className="absolute top-3 right-3 z-10 w-9 h-9 rounded-full bg-white/95 shadow-sm flex items-center justify-center">
+          <FavoriteButton propertyId={Number(property.id)} size={16} className="min-w-0 min-h-0" />
         </div>
 
         {/* Image count */}
         {property.images.length > 1 && (
-          <div className="absolute bottom-3 right-3 bg-black/60 text-white text-xs px-2 py-1 rounded-sm">
+          <div className="absolute bottom-3 right-3 z-10 pointer-events-none bg-black/55 text-white text-[11px] font-medium px-2 py-0.5 rounded-md">
             1 / {property.images.length}
           </div>
         )}
       </div>
 
-      {/* Body */}
-      <div className="flex flex-col p-5 flex-1">
-        <p className="text-brand text-xs font-semibold tracking-widest uppercase mb-1.5">
-          {property.neighborhood ?? `${property.city}, ${property.state}`}
+      {/* Info — linked to property detail */}
+      <Link href={detailHref} className="flex flex-col p-4 flex-1 min-w-0">
+
+        {/* Price — most important, shown first */}
+        <p className="font-bold text-[1.35rem] leading-none text-neutral-900">
+          {isRental
+            ? formatPrice(property.price, { perMonth: true })
+            : formatPrice(property.price, { compact: true })}
+          {isRental && (
+            <span className="text-[0.8rem] font-normal text-neutral-400 ml-1">/mo</span>
+          )}
         </p>
-        <h3 className="font-sans text-lg font-semibold text-brand-dark leading-snug line-clamp-2 group-hover:text-brand transition-colors mb-2">
-          {property.title}
-        </h3>
-        <div className="flex items-center gap-1 text-neutral-500 text-xs mb-4">
-          <MapPin size={11} />
-          <span className="truncate">
-            {property.address}, {property.state} {property.zip}
-          </span>
+
+        {/* Specs */}
+        <div className="flex items-center gap-0.5 text-[13px] text-neutral-500 mt-2">
+          <span className="font-semibold text-neutral-700">{property.bedrooms}</span>
+          <span className="mr-1"> bd</span>
+          <span className="text-neutral-300 mx-1">·</span>
+          <span className="font-semibold text-neutral-700">{property.bathrooms}</span>
+          <span className="mr-1"> ba</span>
+          <span className="text-neutral-300 mx-1">·</span>
+          <span className="font-semibold text-neutral-700">{formatNumber(property.sqft)}</span>
+          <span> sqft</span>
         </div>
 
-        <div className="flex items-center gap-4 text-sm text-neutral-600 pb-4 border-b border-neutral-100">
-          <span className="flex items-center gap-1.5">
-            <Bed size={14} className="text-neutral-400" />
-            {property.bedrooms}
-          </span>
-          <span className="flex items-center gap-1.5">
-            <Bath size={14} className="text-neutral-400" />
-            {property.bathrooms}
-          </span>
-          <span className="flex items-center gap-1.5">
-            <Maximize size={14} className="text-neutral-400" />
-            {formatNumber(property.sqft)} sqft
-          </span>
-        </div>
+        {/* Address */}
+        <p className="text-[13px] text-neutral-500 truncate mt-2">
+          {property.address}
+        </p>
+        <p className="text-[12px] text-neutral-400 truncate mt-0.5">
+          {property.neighborhood
+            ? `${property.neighborhood} · ${property.city}, ${property.state}`
+            : `${property.city}, ${property.state} ${property.zip}`}
+        </p>
 
-        <div className="flex items-end justify-between mt-4">
-          <p className="font-sans text-2xl font-bold text-brand-dark">
-            {property.listingType === "for-rent"
-              ? formatPrice(property.price, { perMonth: true })
-              : formatPrice(property.price, { compact: true })}
+        {/* Days listed */}
+        {property.createdAt && (
+          <p className="text-[11px] text-neutral-400 mt-2">
+            {daysListed(property.createdAt)}
           </p>
-          <span className="text-[11px] text-neutral-400">
-            {property.createdAt ? daysListed(property.createdAt) : property.yearBuilt ? `Est. ${property.yearBuilt}` : ""}
-          </span>
-        </div>
+        )}
 
-        {/* Urgency signal for rentals */}
+        {/* Urgency signal */}
         {isRental && (
-          <p className="text-[11px] text-amber-600 font-medium flex items-center gap-1.5 mt-2">
+          <p className="flex items-center gap-1.5 text-[11px] text-amber-600 font-medium mt-2">
             <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse shrink-0" />
             Typically rents within 5–7 days
           </p>
         )}
+      </Link>
 
-        {/* Apply Now CTA — only for rental listings */}
-        {isRental && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              router.push(`/apply?property=${property.slug}`);
-            }}
-            className="mt-4 w-full py-2.5 bg-brand text-white text-[13px] font-bold rounded-md hover:bg-brand-hover transition-colors cursor-pointer"
+      {/* Apply CTA — completely outside the card link, always independently clickable */}
+      {isRental && (
+        <div className="px-4 pb-4">
+          <Link
+            href={applyHref}
+            className="flex items-center justify-center w-full py-3 bg-brand hover:bg-brand-hover text-white text-[13px] font-bold rounded-xl transition-colors duration-150"
           >
             Apply Now — It&apos;s Free
-          </button>
-        )}
-      </div>
-    </div>
+          </Link>
+        </div>
+      )}
+    </article>
   );
 }
