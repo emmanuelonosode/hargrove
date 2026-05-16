@@ -687,7 +687,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
               <p className="font-serif text-xl font-bold text-brand-dark leading-tight">{priceDisplay}</p>
             </div>
             <a
-              href="#schedule-form"
+              href="#schedule-form-mobile"
               className="shrink-0 h-11 px-5 bg-brand-dark text-white text-sm font-semibold rounded-lg flex items-center gap-1.5 hover:bg-brand transition-colors"
             >
               <Calendar size={14} /> Tour
