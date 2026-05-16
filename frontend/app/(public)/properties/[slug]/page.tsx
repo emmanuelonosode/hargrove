@@ -542,7 +542,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
               )}
 
               {/* ── Mobile inquiry form (inline, not fixed) ── */}
-              <div id="schedule-form-mobile" className="lg:hidden">
+              <div id="schedule-form-mobile" className="lg:hidden scroll-mt-24">
                 <h2 className="font-serif text-2xl font-bold text-brand-dark mb-1">Schedule a Viewing</h2>
                 <p className="text-neutral-500 text-sm mb-5">Response within 24 hours.</p>
                 <div className="bg-brand-dark text-white rounded-xl p-5">
