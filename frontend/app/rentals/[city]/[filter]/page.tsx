@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+﻿import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import type { Metadata } from "next";
@@ -158,7 +158,7 @@ export default async function CityFilterPage(
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home",       item: "https://haskerrealtygroup.com" },
-      { "@type": "ListItem", position: 2, name: "Properties", item: "https://haskerrealtygroup.com/properties" },
+      { "@type": "ListItem", position: 2, name: "Properties", item: "https://haskerrealtygroup.com/homes-for-rent" },
       { "@type": "ListItem", position: 3, name: `${city.name}, ${city.stateCode}`, item: `https://haskerrealtygroup.com/rentals/${slug}` },
       { "@type": "ListItem", position: 4, name: filterLabel,  item: pageUrl },
     ],
@@ -221,7 +221,7 @@ export default async function CityFilterPage(
             <ol className="flex items-center gap-2 text-xs text-blue-200">
               <li><Link href="/" className="hover:text-white transition-colors">Home</Link></li>
               <li className="text-blue-400">/</li>
-              <li><Link href="/properties" className="hover:text-white transition-colors">Properties</Link></li>
+              <li><Link href="/homes-for-rent" className="hover:text-white transition-colors">Properties</Link></li>
               <li className="text-blue-400">/</li>
               <li><Link href={`/rentals/${slug}`} className="hover:text-white transition-colors">{city.name}, {city.stateCode}</Link></li>
               <li className="text-blue-400">/</li>
@@ -243,7 +243,7 @@ export default async function CityFilterPage(
 
           <div className="flex flex-wrap gap-3 mt-6">
             <Button variant="accent" size="lg" asChild>
-              <Link href={`/properties?q=${encodeURIComponent(city.name)}&type=${spec.kind === "property_type" ? spec.apiType : ""}&beds=${spec.kind === "bedroom" ? spec.count : ""}`}>
+              <Link href={`/homes-for-rent?q=${encodeURIComponent(city.name)}&type=${spec.kind === "property_type" ? spec.apiType : ""}&beds=${spec.kind === "bedroom" ? spec.count : ""}`}>
                 Browse {filterLabel} Listings
                 <ArrowRight size={16} />
               </Link>
@@ -291,7 +291,7 @@ export default async function CityFilterPage(
             </div>
             {totalCount > 12 && (
               <Link
-                href={`/properties?q=${encodeURIComponent(city.name)}`}
+                href={`/homes-for-rent?q=${encodeURIComponent(city.name)}`}
                 className="hidden sm:flex items-center gap-2 text-sm text-brand font-medium hover:underline"
               >
                 View all {totalCount} listings
@@ -320,7 +320,7 @@ export default async function CityFilterPage(
                   <Link href={`/rentals/${slug}`}>All {city.name} Rentals</Link>
                 </Button>
                 <Button variant="outline-blue" asChild>
-                  <Link href="/properties">Browse All Cities</Link>
+                  <Link href="/homes-for-rent">Browse All Cities</Link>
                 </Button>
               </div>
             </div>

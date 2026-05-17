@@ -1,4 +1,4 @@
-import { ImageResponse } from "next/og";
+﻿import { ImageResponse } from "next/og";
 import { fetchPropertyBySlug } from "@/lib/properties";
 
 export const runtime = "edge";

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import "leaflet/dist/leaflet.css";
 import { useEffect, useRef, type MutableRefObject } from "react";
@@ -62,7 +62,7 @@ function makeBubble(L: any, price: number, label: string, active: boolean) {
 
 function buildPopup(m: MapMarker) {
   return `
-    <a href="/properties/${m.slug}"
+    <a href="/homes-for-rent/${m.slug}"
        style="text-decoration:none;color:inherit;display:block;font-family:system-ui,sans-serif;">
       ${m.image_url
         ? `<img src="${m.image_url}" style="width:248px;height:148px;object-fit:cover;
@@ -145,7 +145,7 @@ export function PropertiesMap({ markers, center, activeSlug, onMarkerClick, onBo
 
         dot.on("mouseover", () => {
           dot.bindPopup(
-            `<a href="/properties/${p.slug}"
+            `<a href="/homes-for-rent/${p.slug}"
                 style="text-decoration:none;color:inherit;display:block;font-family:system-ui;min-width:160px">
               <div style="font-size:15px;font-weight:800;color:${BLUE}">
                 $${Number(p.price).toLocaleString()}${p.price_label ?? ""}
@@ -163,7 +163,7 @@ export function PropertiesMap({ markers, center, activeSlug, onMarkerClick, onBo
           ).openPopup();
         });
 
-        dot.on("click", () => { window.location.href = `/properties/${p.slug}`; });
+        dot.on("click", () => { window.location.href = `/homes-for-rent/${p.slug}`; });
         dot.addTo(layer);
       });
 

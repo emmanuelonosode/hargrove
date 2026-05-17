@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -14,7 +14,7 @@ export function HeroSearch() {
     const params = new URLSearchParams();
     params.set("listing_type", listingType);
     if (location.trim()) params.set("q", location.trim());
-    router.push(`/properties?${params.toString()}`);
+    router.push(`/homes-for-rent?${params.toString()}`);
   }
 
   return (

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import Image from "next/image";
@@ -33,7 +33,7 @@ export function PropertyCard({ property, variant = "default" }: PropertyCardProp
 
   const isRental = property.listingType === "for-rent" || property.listingType === "for-lease";
 
-  const detailHref = `/properties/${property.slug}`;
+  const detailHref = `/homes-for-rent/${property.slug}`;
   const applyHref  = `/apply?property=${property.slug}`;
 
   // ─── Horizontal variant ────────────────────────────────────────────

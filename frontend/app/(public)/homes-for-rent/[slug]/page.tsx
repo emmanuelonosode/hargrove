@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+﻿import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -99,12 +99,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         `${property.city} ${typeLabel.toLowerCase()} ${actionLabel} move-in ready`,
         `${property.city} ${actionLabel}`,
       ],
-      alternates: { canonical: `https://haskerrealtygroup.com/properties/${decodedSlug}` },
+      alternates: { canonical: `https://haskerrealtygroup.com/homes-for-rent/${decodedSlug}` },
       openGraph: {
         title: `${seoTitle} | Hasker & Co. Realty Group`,
         description: seoDesc.slice(0, 160),
         type: "website",
-        url: `https://haskerrealtygroup.com/properties/${decodedSlug}`,
+        url: `https://haskerrealtygroup.com/homes-for-rent/${decodedSlug}`,
         images: [{ url: ogImage, width: 1200, height: 630, alt: seoTitle }],
       },
       twitter: {
@@ -204,7 +204,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: "https://haskerrealtygroup.com" },
-      { "@type": "ListItem", position: 2, name: "Properties", item: "https://haskerrealtygroup.com/properties" },
+      { "@type": "ListItem", position: 2, name: "Properties", item: "https://haskerrealtygroup.com/homes-for-rent" },
       {
         "@type": "ListItem",
         position: 3,
@@ -212,7 +212,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
         name: property.address
           ? `${property.address}, ${property.city}, ${property.state}`
           : property.title,
-        item: `https://haskerrealtygroup.com/properties/${decodedSlug}`,
+        item: `https://haskerrealtygroup.com/homes-for-rent/${decodedSlug}`,
       },
     ],
   };
@@ -226,7 +226,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
       : property.title,
     alternateName: property.title,
     description: property.description ?? "",
-    url: `https://haskerrealtygroup.com/properties/${property.slug}`,
+    url: `https://haskerrealtygroup.com/homes-for-rent/${property.slug}`,
     image: images.length > 0
       ? images.map((img) => ({
           "@type": "ImageObject",
@@ -347,7 +347,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
               <nav className="flex items-center gap-2 text-xs text-neutral-400">
                 <Link href="/" className="hover:text-brand transition-colors">Home</Link>
                 <span>/</span>
-                <Link href="/properties" className="hover:text-brand transition-colors">Properties</Link>
+                <Link href="/homes-for-rent" className="hover:text-brand transition-colors">Properties</Link>
                 <span>/</span>
                 <span className="text-neutral-600 truncate">{property.city}, {property.state}</span>
               </nav>
@@ -663,7 +663,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
                   <h2 className="font-serif text-2xl font-bold text-brand-dark">More Affordable Homes in {property.city}</h2>
                   <p className="text-xs text-neutral-500 mt-1">Browse and compare — no account needed</p>
                 </div>
-                <Link href={`/properties?q=${encodeURIComponent(property.city)}&listing_type=${property.listing_type}`} className="text-sm text-brand hover:underline">
+                <Link href={`/homes-for-rent?q=${encodeURIComponent(property.city)}&listing_type=${property.listing_type}`} className="text-sm text-brand hover:underline">
                   View all →
                 </Link>
               </div>

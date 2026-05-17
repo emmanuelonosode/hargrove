@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -214,7 +214,7 @@ export default async function BlogPostPage({ params }: Props) {
                 Browse affordable homes in your city or talk to our team. We respond within 24 hours and never charge hidden fees.
               </p>
               <Link
-                href="/properties"
+                href="/homes-for-rent"
                 className="block w-full text-center bg-brand text-white text-sm font-medium py-3 rounded-sm hover:bg-brand-hover transition-colors"
               >
                 Browse Available Homes

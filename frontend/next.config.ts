@@ -62,13 +62,21 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       // www → non-www permanent redirect (301).
-      // Without this, Google crawls both www.haskerrealtygroup.com and haskerrealtygroup.com
-      // as separate sites, doubling indexed URLs and causing "Alternate page with proper
-      // canonical tag" errors for every page on the www domain.
       {
         source: "/:path*",
         has: [{ type: "host", value: "www.haskerrealtygroup.com" }],
         destination: "https://haskerrealtygroup.com/:path*",
+        permanent: true,
+      },
+      // /properties → /homes-for-rent (route rename, 301 preserves SEO equity)
+      {
+        source: "/properties",
+        destination: "/homes-for-rent",
+        permanent: true,
+      },
+      {
+        source: "/properties/:slug*",
+        destination: "/homes-for-rent/:slug*",
         permanent: true,
       },
     ];

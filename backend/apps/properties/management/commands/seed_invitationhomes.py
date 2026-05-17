@@ -1,6 +1,7 @@
 import csv
 import json
 import os
+import re
 from collections import defaultdict
 from decimal import Decimal, InvalidOperation
 
@@ -202,7 +203,9 @@ class Command(BaseCommand):
             reader = csv.DictReader(f)
             for row in reader:
                 pid = row["property_id"]
-                slug = row["slug"].strip()
+                # Strip "+N" unit suffixes that Invitation Homes appends (e.g. "12345+2")
+                raw_slug = row["slug"].strip()
+                slug = re.sub(r"\+\d+", "", raw_slug).replace("--", "-").strip("-")
                 market_slug = row["market_slug"].strip()
 
                 # Market filter
@@ -221,7 +224,13 @@ class Command(BaseCommand):
                 beds = _int(row.get("beds", ""), 0) or 0
                 baths = _dec(row.get("baths", ""), Decimal("0"))
                 sqft = _int(row.get("square_footage", ""), 0) or 0
-                rent = _dec(row.get("rent", ""), Decimal("0"))
+                raw_rent = _dec(row.get("rent", ""), Decimal("0"))
+                # Reduce by 15% and round to the nearest $100
+                if raw_rent and raw_rent > 0:
+                    discounted = raw_rent * Decimal("0.85")
+                    rent = Decimal(round(int(discounted) / 100) * 100)
+                else:
+                    rent = raw_rent
                 year_built = _int(row.get("year_built", ""), None)
                 lat = _dec(row.get("latitude", ""), None)
                 lng = _dec(row.get("longitude", ""), None)
@@ -245,7 +254,7 @@ class Command(BaseCommand):
                 prop_type = "apartment" if is_btr else "house"
                 type_label = TYPE_LABEL.get(prop_type, "Home")
                 bed_label = "Studio" if beds == 0 else f"{beds}-Bed"
-                address_1 = row.get("address_1", "").strip()
+                address_1 = re.sub(r"\s*\+\d+\s*$", "", row.get("address_1", "").strip()).strip()
                 # Use community name if present for a richer title, else street address
                 if community:
                     title = f"{bed_label} {type_label} in {community}, {city}"

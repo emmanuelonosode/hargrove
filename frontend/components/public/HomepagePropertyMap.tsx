@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import "leaflet/dist/leaflet.css";
 import { useState, useEffect, useRef, useMemo } from "react";
@@ -136,7 +136,7 @@ export function HomepagePropertyMap() {
 
         dot.on("mouseover", () => {
           dot.bindPopup(
-            `<a href="/properties/${p.slug}" style="text-decoration:none;color:inherit;display:block;font-family:system-ui,sans-serif;min-width:170px">
+            `<a href="/homes-for-rent/${p.slug}" style="text-decoration:none;color:inherit;display:block;font-family:system-ui,sans-serif;min-width:170px">
                <div style="font-size:16px;font-weight:800;color:${BLUE}">
                  $${Number(p.price).toLocaleString()}
                  <span style="font-size:11px;font-weight:400;color:#888">${p.price_label ?? ""}</span>
@@ -151,7 +151,7 @@ export function HomepagePropertyMap() {
           ).openPopup();
         });
 
-        dot.on("click", () => { window.location.href = `/properties/${p.slug}`; });
+        dot.on("click", () => { window.location.href = `/homes-for-rent/${p.slug}`; });
         dot.addTo(layer);
       });
 
@@ -226,7 +226,7 @@ export function HomepagePropertyMap() {
         </div>
 
         <Link
-          href={`/properties${listingType !== "all" ? `?listing_type=${listingType}` : ""}`}
+          href={`/homes-for-rent${listingType !== "all" ? `?listing_type=${listingType}` : ""}`}
           className="ml-auto hidden sm:flex items-center gap-1.5 bg-brand text-white text-xs font-semibold px-4 py-2 rounded-full shadow-lg hover:bg-brand-hover transition-colors whitespace-nowrap"
         >
           Browse All <ArrowRight size={12} />

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { useAuth } from "@/context/AuthContext";
 
 const navLinks = [
-  { label: "Browse Homes", href: "/properties" },
+  { label: "Browse Homes", href: "/homes-for-rent" },
   { label: "Our Team", href: "/agents" },
   { label: "Renter's Guide", href: "/blog" },
   { label: "Contact", href: "/contact" },

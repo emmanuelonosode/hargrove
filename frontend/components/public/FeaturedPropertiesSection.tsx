@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import Link from "next/link";
@@ -29,9 +29,9 @@ export function FeaturedPropertiesSection({ properties, totalCount }: Props) {
   ];
 
   const viewAllHref =
-    tab === "for-rent" ? "/properties?listing_type=for-rent" :
-    tab === "for-sale" ? "/properties?listing_type=for-sale" :
-    "/properties";
+    tab === "for-rent" ? "/homes-for-rent?listing_type=for-rent" :
+    tab === "for-sale" ? "/homes-for-rent?listing_type=for-sale" :
+    "/homes-for-rent";
 
   return (
     <section className="py-16 lg:py-24 bg-white border-t border-neutral-100">
@@ -55,7 +55,7 @@ export function FeaturedPropertiesSection({ properties, totalCount }: Props) {
           </div>
 
           <Link
-            href="/properties"
+            href="/homes-for-rent"
             className="shrink-0 inline-flex items-center gap-2 text-[13px] font-bold text-brand hover:text-brand-hover transition-colors border-b-2 border-brand/30 hover:border-brand pb-0.5"
           >
             View All Properties <ArrowRight size={14} />

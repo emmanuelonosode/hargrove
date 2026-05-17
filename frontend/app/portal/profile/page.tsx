@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -258,7 +258,7 @@ export default function ProfilePage() {
                   title="My Applications"
                   badge={applications.length > 0 ? String(applications.length) : undefined}
                   badgeColor="blue"
-                  href="/properties"
+                  href="/homes-for-rent"
                   linkLabel="Browse"
                 />
                 {applications.length === 0 ? (
@@ -366,7 +366,7 @@ export default function ProfilePage() {
               },
               {
                 icon: Search, label: "Browse Homes", desc: "Find properties",
-                href: "/properties",
+                href: "/homes-for-rent",
                 iconBg: "bg-purple-50", iconColor: "text-purple-600",
               },
             ].map(({ icon: Icon, label, desc, href, iconBg, iconColor }) => (
@@ -561,7 +561,7 @@ function NoLeaseContent() {
       </div>
       <div className="flex flex-col gap-2 w-full">
         <Link
-          href="/properties"
+          href="/homes-for-rent"
           className="flex items-center justify-center gap-1.5 bg-brand text-white text-[12px] font-semibold px-4 py-2.5 rounded-xl hover:bg-brand-hover transition-colors duration-200"
         >
           <Search size={13} strokeWidth={2} />
@@ -830,7 +830,7 @@ function FavoriteCard({ favorite: fav }: { favorite: Favorite }) {
   const isRental = fav.property.listing_type === "for-rent" || fav.property.listing_type === "for-lease";
   return (
     <Link
-      href={`/properties/${fav.property.slug}`}
+      href={`/homes-for-rent/${fav.property.slug}`}
       className="group min-w-[200px] w-[200px] shrink-0 bg-white rounded-2xl overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_20px_rgba(0,0,0,0.10)] hover:scale-[1.01] transition-all duration-200 cursor-pointer"
     >
       <div className="h-[120px] bg-[#F5F5F7] relative">

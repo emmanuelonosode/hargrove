@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -77,7 +77,7 @@ export function PreQualifyBanner() {
           Based on your income, we have homes that fit your budget. Browse them now.
         </p>
         <button
-          onClick={() => router.push(`/properties?listing_type=for-rent&maxPrice=${selected?.maxPrice ?? maxPrice}`)}
+          onClick={() => router.push(`/homes-for-rent?listing_type=for-rent&maxPrice=${selected?.maxPrice ?? maxPrice}`)}
           className="inline-flex items-center gap-2 bg-brand text-white font-bold px-7 py-3 rounded-xl hover:bg-brand-hover transition-colors cursor-pointer"
         >
           View Matching Homes <ArrowRight size={15} />

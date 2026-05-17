@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import Image from "next/image";
 import { Mail, MapPin } from "lucide-react";
 import { HaskerLogo } from "@/components/ui/HaskerLogo";
@@ -42,19 +42,19 @@ function TikTokIcon() {
 
 const footerLinks = {
   Properties: [
-    { label: "All Available Homes",   href: "/properties" },
-    { label: "Studio Apartments",     href: "/properties?beds=0" },
-    { label: "1-Bedroom Homes",       href: "/properties?beds=1" },
-    { label: "2-Bedroom Homes",       href: "/properties?beds=2" },
-    { label: "3+ Bedroom Homes",      href: "/properties?beds=3" },
-    { label: "Homes for Sale",        href: "/properties?listing_type=for-sale" },
+    { label: "All Available Homes",   href: "/homes-for-rent" },
+    { label: "Studio Apartments",     href: "/homes-for-rent?beds=0" },
+    { label: "1-Bedroom Homes",       href: "/homes-for-rent?beds=1" },
+    { label: "2-Bedroom Homes",       href: "/homes-for-rent?beds=2" },
+    { label: "3+ Bedroom Homes",      href: "/homes-for-rent?beds=3" },
+    { label: "Homes for Sale",        href: "/homes-for-rent?listing_type=for-sale" },
   ],
   Services: [
     { label: "Submit Application",    href: "/apply" },
     { label: "Schedule a Viewing",    href: "/contact" },
     { label: "Renter's Guide",        href: "/blog" },
-    { label: "City Rental Guides",    href: "/properties" },
-    { label: "Pet-Friendly Homes",    href: "/properties?q=pet" },
+    { label: "City Rental Guides",    href: "/homes-for-rent" },
+    { label: "Pet-Friendly Homes",    href: "/homes-for-rent?q=pet" },
   ],
   Company: [
     { label: "Our Team",            href: "/agents" },

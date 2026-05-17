@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -134,7 +134,7 @@ export function PropertiesClient({
     };
     Object.entries({ ...base, ...overrides }).forEach(([k, v]) => { if (v) p.set(k, v); });
     const qs = p.toString();
-    return `/properties${qs ? `?${qs}` : ""}`;
+    return `/homes-for-rent${qs ? `?${qs}` : ""}`;
   }
 
   function navigate(overrides: Record<string, string | undefined> = {}) {
@@ -324,7 +324,7 @@ export function PropertiesClient({
             {/* Clear filters */}
             {activeFiltersCount > 0 && (
               <a
-                href="/properties"
+                href="/homes-for-rent"
                 className="shrink-0 flex items-center gap-1.5 h-9 px-4 text-[12px] font-bold text-red-500 border-2 border-red-200 rounded-xl hover:bg-red-50 active:bg-red-100 transition-colors whitespace-nowrap bg-white"
               >
                 <X size={13} /> Clear
@@ -432,7 +432,7 @@ export function PropertiesClient({
                 </p>
                 <div className="flex flex-col gap-2 w-full max-w-[200px]">
                   {activeFiltersCount > 0 && (
-                    <a href="/properties" className="w-full py-3 px-4 bg-brand text-white text-[13px] font-bold rounded-xl hover:bg-brand-hover transition-colors text-center">
+                    <a href="/homes-for-rent" className="w-full py-3 px-4 bg-brand text-white text-[13px] font-bold rounded-xl hover:bg-brand-hover transition-colors text-center">
                       Clear all filters
                     </a>
                   )}
@@ -530,7 +530,7 @@ function FilterPill({
 
 function PanelCard({ property, isActive }: { property: PropertyListItemAPI; isActive: boolean }) {
   const isRental   = property.listing_type !== "for-sale";
-  const detailHref = `/properties/${property.slug}`;
+  const detailHref = `/homes-for-rent/${property.slug}`;
   const applyHref  = `/apply?property=${property.slug}`;
 
   return (

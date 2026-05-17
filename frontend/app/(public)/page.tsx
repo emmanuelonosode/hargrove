@@ -1,4 +1,4 @@
-import Image from "next/image";
+﻿import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Star, Home, CheckCircle, MapPin } from "lucide-react";
 import { HeroSearch } from "@/components/public/HeroSearch";
@@ -140,7 +140,7 @@ const WEBSITE_SCHEMA = {
     "@type": "SearchAction",
     target: {
       "@type": "EntryPoint",
-      urlTemplate: `${BASE_URL}/properties?q={search_term_string}`,
+      urlTemplate: `${BASE_URL}/homes-for-rent?q={search_term_string}`,
     },
     "query-input": "required name=search_term_string",
   },
@@ -282,14 +282,14 @@ const HOW_IT_WORKS_SCHEMA = {
       position: 1,
       name: "Search Available Rentals",
       text: "Browse current listings by city, price range, and bedroom count. Filter for pet-friendly units, short-term leases, and more.",
-      url: `${BASE_URL}/properties`,
+      url: `${BASE_URL}/homes-for-rent`,
     },
     {
       "@type": "HowToStep",
       position: 2,
       name: "Schedule a Viewing",
       text: "Book a tour online or call us. We offer same-day showings for most properties.",
-      url: `${BASE_URL}/properties`,
+      url: `${BASE_URL}/homes-for-rent`,
     },
     {
       "@type": "HowToStep",
@@ -619,7 +619,7 @@ export default async function HomePage() {
 
               {/* CTA card */}
               <Link
-                href="/properties"
+                href="/homes-for-rent"
                 className="group shrink-0 w-52 sm:w-60 rounded-sm bg-brand snap-start cursor-pointer flex flex-col items-center justify-center p-7 text-center hover:bg-brand-hover transition-colors duration-200"
                 style={{ aspectRatio: "3/4" }}
               >
@@ -676,7 +676,7 @@ export default async function HomePage() {
 
           <div className="text-center mt-12">
             <Button variant="accent" asChild>
-              <Link href="/properties">Browse Available Rentals</Link>
+              <Link href="/homes-for-rent">Browse Available Rentals</Link>
             </Button>
           </div>
         </div>
@@ -1038,7 +1038,7 @@ export default async function HomePage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Button variant="accent" size="lg" asChild>
-                <Link href="/properties">Browse Affordable Homes</Link>
+                <Link href="/homes-for-rent">Browse Affordable Homes</Link>
               </Button>
               <Button variant="outline-white" asChild>
                 <Link href="/contact" className="flex items-center gap-2">
@@ -1211,7 +1211,7 @@ export default async function HomePage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button variant="accent" size="lg" asChild>
-              <Link href="/properties">Browse Available Homes</Link>
+              <Link href="/homes-for-rent">Browse Available Homes</Link>
             </Button>
             <Button variant="outline-white" size="lg" asChild>
               <Link href="/contact">Talk to Our Team</Link>
