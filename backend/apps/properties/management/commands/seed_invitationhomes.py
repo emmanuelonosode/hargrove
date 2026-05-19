@@ -203,9 +203,10 @@ class Command(BaseCommand):
             reader = csv.DictReader(f)
             for row in reader:
                 pid = row["property_id"]
-                # Strip "+N" unit suffixes that Invitation Homes appends (e.g. "12345+2")
+                # Strip "invh-" prefix and "+N" unit suffixes from slugs
                 raw_slug = row["slug"].strip()
-                slug = re.sub(r"\+\d+", "", raw_slug).replace("--", "-").strip("-")
+                slug = re.sub(r"^invh-", "", raw_slug)
+                slug = re.sub(r"\+\d+", "", slug).replace("--", "-").strip("-")
                 market_slug = row["market_slug"].strip()
 
                 # Market filter
@@ -243,7 +244,7 @@ class Command(BaseCommand):
                     community = parsed.get("name", "").strip() if isinstance(parsed, dict) else community_raw
                 except (ValueError, TypeError):
                     community = community_raw
-                if len(community) <= 3:
+                if len(community) <= 4 or re.match(r"^invh", community, re.IGNORECASE):
                     community = ""
                 market_name = row.get("market_name", "").strip()
                 city = row.get("city", "").strip()

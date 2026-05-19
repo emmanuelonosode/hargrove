@@ -8,7 +8,7 @@ import {
   Utensils, Zap, Waves, PawPrint, Thermometer,
   Wind, WashingMachine, Car, Shield, Dumbbell,
   TreePine, CheckCircle2, Refrigerator, Microwave,
-  Flame, ShowerHead, Wifi, Fence,
+  Flame, ShowerHead, Wifi, Fence, ChefHat, Users, Dog, Cat,
   type LucideIcon,
 } from "lucide-react";
 import { fetchPropertyBySlug, fetchProperties, toPropertyCardShape } from "@/lib/properties";
@@ -347,7 +347,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
               <nav className="flex items-center gap-2 text-xs text-neutral-400">
                 <Link href="/" className="hover:text-brand transition-colors">Home</Link>
                 <span>/</span>
-                <Link href="/homes-for-rent" className="hover:text-brand transition-colors">Properties</Link>
+                <Link href="/homes-for-rent" className="hover:text-brand transition-colors">Homes for Rent</Link>
                 <span>/</span>
                 <span className="text-neutral-600 truncate">{property.city}, {property.state}</span>
               </nav>
@@ -374,16 +374,14 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
                   })()}
                 </div>
 
-                <h1 className="font-serif text-2xl sm:text-3xl lg:text-4xl font-bold text-brand-dark leading-tight mb-3">
+                <h1 className="font-serif text-2xl sm:text-3xl lg:text-4xl font-semibold text-neutral-800 leading-tight mb-3">
                   {property.title}
                 </h1>
 
                 <div className="flex items-start gap-2 text-neutral-500 text-sm">
                   <MapPin size={15} className="text-brand shrink-0 mt-0.5" />
                   <span className="leading-relaxed">
-                    {property.address}
-                    {(property as any).cross_street && ` (near ${(property as any).cross_street})`}
-                    , {property.city}, {property.state} {property.zip_code}
+                    {property.address}, {property.city}, {property.state} {property.zip_code}
                   </span>
                 </div>
               </div>
@@ -442,42 +440,52 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
               {/* ── Amenities ── */}
               {amenityCategories.length > 0 ? (
                 <div>
-                  <h2 className="font-serif text-2xl font-bold text-brand-dark mb-6">Features &amp; Amenities</h2>
-                  <div className="space-y-7">
-                    {amenityCategories.map((cat: any) => (
-                      <div key={cat.id ?? "other"}>
-                        <p className="text-[11px] font-bold tracking-[0.2em] uppercase text-neutral-500 mb-3">
-                          {cat.name}
-                        </p>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-                          {cat.amenities.map((a: any) => {
-                            const { Icon, iconCls, bgCls } = getAmenityConfig(a.name);
-                            return (
-                              <div key={a.id} className="flex items-center gap-3 bg-white border border-neutral-100 rounded-xl px-3.5 py-3 shadow-sm">
-                                <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${bgCls}`}>
-                                  <Icon size={17} className={iconCls} />
+                  <h2 className="font-serif text-2xl font-bold text-brand-dark mb-7">Features &amp; Amenities</h2>
+                  <div className="space-y-8">
+                    {amenityCategories.map((cat: any) => {
+                      const CatIcon = getCategoryIcon(cat.icon);
+                      const { iconCls: catIconCls, bgCls: catBgCls } = getCategoryColors(cat.icon);
+                      return (
+                        <div key={cat.id ?? "other"}>
+                          {/* Category header with icon */}
+                          <div className="flex items-center gap-2.5 mb-4">
+                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${catBgCls}`}>
+                              <CatIcon size={16} className={catIconCls} />
+                            </div>
+                            <span className="text-[13px] font-bold text-neutral-700">{cat.name}</span>
+                            <div className="flex-1 h-px bg-neutral-100 ml-1" />
+                          </div>
+                          {/* Amenity tiles */}
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                            {cat.amenities.map((a: any) => {
+                              const { Icon, iconCls, bgCls } = getAmenityConfig(a.name);
+                              return (
+                                <div key={a.id} className="flex items-center gap-3.5 bg-stone-50 border border-stone-100 rounded-2xl px-4 py-3.5 shadow-[0_1px_4px_rgba(0,0,0,0.05)]">
+                                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${bgCls}`}>
+                                    <Icon size={19} className={iconCls} />
+                                  </div>
+                                  <span className="text-[13px] font-semibold text-neutral-800 leading-tight">{a.name}</span>
                                 </div>
-                                <span className="text-[13px] font-semibold text-brand-dark leading-tight">{a.name}</span>
-                              </div>
-                            );
-                          })}
+                              );
+                            })}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               ) : amenities.length > 0 ? (
                 <div>
-                  <h2 className="font-serif text-2xl font-bold text-brand-dark mb-5">Features &amp; Amenities</h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                  <h2 className="font-serif text-2xl font-bold text-brand-dark mb-6">Features &amp; Amenities</h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     {amenities.map((a) => {
                       const { Icon, iconCls, bgCls } = getAmenityConfig(a.name);
                       return (
-                        <div key={a.id} className="flex items-center gap-3 bg-white border border-neutral-100 rounded-xl px-3.5 py-3 shadow-sm">
-                          <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${bgCls}`}>
-                            <Icon size={17} className={iconCls} />
+                        <div key={a.id} className="flex items-center gap-3.5 bg-stone-50 border border-stone-100 rounded-2xl px-4 py-3.5 shadow-[0_1px_4px_rgba(0,0,0,0.05)]">
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${bgCls}`}>
+                            <Icon size={19} className={iconCls} />
                           </div>
-                          <span className="text-[13px] font-semibold text-brand-dark leading-tight">{a.name}</span>
+                          <span className="text-[13px] font-semibold text-neutral-800 leading-tight">{a.name}</span>
                         </div>
                       );
                     })}
@@ -487,26 +495,34 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
 
               {/* ── Pet Policy Banner ── */}
               {isPetFriendly && (
-                <div className="rounded-xl border-2 border-green-200 bg-green-50 p-5 flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center shrink-0">
-                    <PawPrint size={24} className="text-green-600" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-green-800 text-lg mb-1">Pets Welcome!</h3>
-                    <p className="text-green-700 text-sm leading-relaxed">
-                      This home welcomes your furry family members. Cats and dogs are welcome —
-                      contact us for breed/weight restrictions and pet deposit details.
-                    </p>
-                    <div className="flex flex-wrap gap-2 mt-3">
-                      {[
-                        { label: "Dogs OK", icon: "🐕" },
-                        { label: "Cats OK", icon: "🐈" },
-                        { label: "Pet Deposit May Apply", icon: "💰" },
-                      ].map(({ label, icon }) => (
-                        <span key={label} className="inline-flex items-center gap-1.5 text-xs font-semibold bg-green-100 text-green-700 px-3 py-1 rounded-full border border-green-200">
-                          {icon} {label}
-                        </span>
-                      ))}
+                <div className="relative overflow-hidden rounded-2xl bg-amber-50 border border-amber-200">
+                  {/* Decorative background paws */}
+                  <PawPrint size={140} className="absolute -right-8 -top-8 text-amber-300 opacity-[0.18] rotate-12 pointer-events-none" />
+                  <PawPrint size={72} className="absolute right-16 bottom-2 text-amber-300 opacity-[0.12] -rotate-6 pointer-events-none" />
+
+                  <div className="relative p-6 sm:p-8">
+                    <div className="flex items-start gap-5">
+                      <div className="shrink-0 w-14 h-14 rounded-2xl bg-amber-500 flex items-center justify-center shadow-lg shadow-amber-200/60">
+                        <PawPrint size={26} className="text-white" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[10px] font-black tracking-[0.25em] uppercase text-amber-600 mb-1">Pet Friendly Home</p>
+                        <h3 className="font-serif text-2xl font-bold text-amber-950 mb-2">Pets Are Welcome Here</h3>
+                        <p className="text-amber-800/70 text-sm leading-relaxed mb-5">
+                          Your four-legged family members are part of this home too. Dogs and cats are welcome — reach out for breed, weight, and deposit details.
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {([
+                            { label: "Dogs Welcome", Icon: Dog },
+                            { label: "Cats Welcome", Icon: Cat },
+                            { label: "Deposit May Apply", Icon: PawPrint },
+                          ] as { label: string; Icon: LucideIcon }[]).map(({ label, Icon }) => (
+                            <span key={label} className="inline-flex items-center gap-1.5 text-[12px] font-bold bg-white text-amber-700 px-3.5 py-2 rounded-full border border-amber-200 shadow-sm">
+                              <Icon size={13} /> {label}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -717,6 +733,25 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
       </div>
     </main>
   );
+}
+
+// ── Category icon + color helpers ────────────────────────────────────────────
+function getCategoryIcon(iconName: string): LucideIcon {
+  const map: Record<string, LucideIcon> = {
+    Home, ChefHat, Zap, Users, PawPrint,
+  };
+  return map[iconName] ?? CheckCircle2;
+}
+
+function getCategoryColors(iconName: string): { iconCls: string; bgCls: string } {
+  const map: Record<string, { iconCls: string; bgCls: string }> = {
+    Home:     { iconCls: "text-brand",      bgCls: "bg-brand/10"    },
+    ChefHat:  { iconCls: "text-orange-600", bgCls: "bg-orange-100"  },
+    Zap:      { iconCls: "text-yellow-600", bgCls: "bg-yellow-100"  },
+    Users:    { iconCls: "text-violet-600", bgCls: "bg-violet-100"  },
+    PawPrint: { iconCls: "text-amber-600",  bgCls: "bg-amber-100"   },
+  };
+  return map[iconName] ?? { iconCls: "text-brand", bgCls: "bg-brand/10" };
 }
 
 // ── Amenity icon helper ───────────────────────────────────────────────────────

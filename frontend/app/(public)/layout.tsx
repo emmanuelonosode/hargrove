@@ -1,5 +1,5 @@
 import { Navbar } from "@/components/public/Navbar";
-import { Footer } from "@/components/public/Footer";
+import { FooterWrapper } from "@/components/public/FooterWrapper";
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -12,7 +12,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
       </a>
       <Navbar />
       <main id="main-content" className="flex flex-col flex-1">{children}</main>
-      <Footer />
+      <FooterWrapper />
     </>
   );
 }
