@@ -101,6 +101,27 @@ class ClientSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "created_at"]
 
 
+_NEW_FIELDS = [
+    # Personal extras
+    "marital_status", "preferred_contact", "phone_type",
+    "emergency_contact_name", "emergency_contact_relationship",
+    "emergency_contact_phone", "emergency_contact_phone_type",
+    # Identity
+    "date_of_birth", "id_type", "ssn_last4", "ein",
+    "has_drivers_license", "drivers_license_number", "drivers_license_state",
+    # Income / Employment
+    "gross_monthly_income", "employer_name", "employer_phone",
+    "job_title", "employment_start_date",
+    # Address history
+    "how_long_at_address", "reason_for_leaving",
+    "current_landlord_name", "current_landlord_phone",
+    # Household extras
+    "has_vehicles", "number_of_vehicles", "animals",
+    # Background
+    "has_felony_eviction_bankruptcy", "is_active_military", "has_housing_assistance",
+]
+
+
 class RentalApplicationCreateSerializer(serializers.ModelSerializer):
     """Used by the public /apply form (no payment required)."""
 
@@ -126,17 +147,13 @@ class RentalApplicationCreateSerializer(serializers.ModelSerializer):
             "certification_text",
             "application_fee", "is_fee_paid", "status",
             "utm_source", "utm_medium", "utm_campaign",
-        ]
+        ] + _NEW_FIELDS
         read_only_fields = ["id", "application_fee", "is_fee_paid", "status"]
 
     def validate(self, data):
         if data.get("has_kids") and not data.get("number_of_kids"):
             raise serializers.ValidationError(
                 {"number_of_kids": "Please specify how many children."}
-            )
-        if data.get("has_pets") and not data.get("pet_description"):
-            raise serializers.ValidationError(
-                {"pet_description": "Please describe your pet(s)."}
             )
         return data
 
@@ -155,6 +172,18 @@ class RentalApplicationDraftSerializer(serializers.ModelSerializer):
         allow_null=True,
     )
 
+    _draft_base = [
+        "first_name", "middle_name", "last_name",
+        "cell_phone", "home_phone",
+        "has_kids", "number_of_kids",
+        "present_address", "city", "state", "zip_code",
+        "move_in_date", "intended_stay_duration", "months_rent_upfront",
+        "has_pets", "pet_description",
+        "smokes", "drinks",
+        "rental_property",
+        "utm_source", "utm_medium", "utm_campaign",
+    ]
+
     class Meta:
         model = RentalApplication
         fields = [
@@ -168,7 +197,7 @@ class RentalApplicationDraftSerializer(serializers.ModelSerializer):
             "smokes", "drinks",
             "rental_property",
             "utm_source", "utm_medium", "utm_campaign",
-        ]
+        ] + _NEW_FIELDS
         extra_kwargs = {f: {"required": False} for f in [
             "first_name", "middle_name", "last_name",
             "cell_phone", "home_phone",
@@ -179,7 +208,7 @@ class RentalApplicationDraftSerializer(serializers.ModelSerializer):
             "smokes", "drinks",
             "rental_property",
             "utm_source", "utm_medium", "utm_campaign",
-        ]}
+        ] + _NEW_FIELDS}
 
 
 class RentalApplicationLatestProfileSerializer(serializers.ModelSerializer):
@@ -189,10 +218,19 @@ class RentalApplicationLatestProfileSerializer(serializers.ModelSerializer):
         fields = [
             "first_name", "middle_name", "last_name",
             "email", "cell_phone", "home_phone",
+            "marital_status", "phone_type", "preferred_contact",
+            "emergency_contact_name", "emergency_contact_relationship",
+            "emergency_contact_phone", "emergency_contact_phone_type",
+            "date_of_birth", "id_type", "ssn_last4", "ein",
+            "has_drivers_license", "drivers_license_number", "drivers_license_state",
+            "gross_monthly_income", "employer_name", "employer_phone",
+            "job_title", "employment_start_date",
             "has_kids", "number_of_kids",
+            "has_vehicles", "number_of_vehicles",
             "present_address", "city", "state", "zip_code",
+            "how_long_at_address",
             "intended_stay_duration", "months_rent_upfront",
-            "has_pets", "pet_description",
+            "has_pets", "pet_description", "animals",
             "smokes", "drinks",
         ]
 class RentalApplicationAdminSerializer(serializers.ModelSerializer):

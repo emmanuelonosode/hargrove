@@ -14,7 +14,7 @@ from django.dispatch import receiver
 logger = logging.getLogger(__name__)
 
 
-def _fire_mailer_webhook(event: str, email: str, name: str = "", phone: str = "", tags: Optional[list] = None):
+def _fire_mailer_webhook(event: str, email: str, name: str = "", phone: str = "", tags: Optional[list] = None, property_slug: Optional[str] = None):
     """
     Fire a webhook to the Hasker Mailer in a background thread.
     Never blocks the main Django request.
@@ -31,13 +31,17 @@ def _fire_mailer_webhook(event: str, email: str, name: str = "", phone: str = ""
             if not mailer_url or not mailer_key:
                 return  # Not configured — skip silently
 
-            payload = json.dumps({
+            data_dict = {
                 "event": event,
                 "email": email,
                 "name": name,
                 "phone": phone or "",
                 "tags": tags or [],
-            }).encode("utf-8")
+            }
+            if property_slug:
+                data_dict["property_slug"] = property_slug
+
+            payload = json.dumps(data_dict).encode("utf-8")
 
             req = urllib.request.Request(
                 f"{mailer_url}/api/hargrove-webhook",
@@ -84,13 +88,25 @@ def on_lead_save(sender, instance, created, **kwargs):
         interest_tag = INTEREST_TAG.get(instance.interest_type)
         if interest_tag:
             tags.append(interest_tag)
-        _fire_mailer_webhook(
-            event="new_lead",
-            email=instance.email,
-            name=instance.full_name,
-            phone=instance.phone,
-            tags=tags,
-        )
+        
+        if instance.property_interest_id and instance.property_interest:
+            tags.append("Property Inquiry")
+            _fire_mailer_webhook(
+                event="property_inquiry",
+                email=instance.email,
+                name=instance.full_name,
+                phone=instance.phone,
+                tags=tags,
+                property_slug=instance.property_interest.slug
+            )
+        else:
+            _fire_mailer_webhook(
+                event="new_lead",
+                email=instance.email,
+                name=instance.full_name,
+                phone=instance.phone,
+                tags=tags,
+            )
     else:
         # Lead status changed to QUALIFIED — trigger qualification drip
         if instance.status == LeadStatus.QUALIFIED:

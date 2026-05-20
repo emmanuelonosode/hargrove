@@ -218,11 +218,52 @@ class RentalApplication(models.Model):
     intended_stay_duration = models.CharField(max_length=100, help_text='e.g. "12 months"')
     months_rent_upfront    = models.PositiveIntegerField(default=1)
 
+    # ── Personal extras ───────────────────────────────────────────────────────
+    marital_status                 = models.CharField(max_length=20, blank=True)
+    preferred_contact              = models.CharField(max_length=10, blank=True)
+    phone_type                     = models.CharField(max_length=10, blank=True)
+    emergency_contact_name         = models.CharField(max_length=100, blank=True)
+    emergency_contact_relationship = models.CharField(max_length=50, blank=True)
+    emergency_contact_phone        = models.CharField(max_length=20, blank=True)
+    emergency_contact_phone_type   = models.CharField(max_length=10, blank=True)
+
+    # ── Identity ──────────────────────────────────────────────────────────────
+    date_of_birth           = models.DateField(null=True, blank=True)
+    id_type                 = models.CharField(max_length=10, blank=True)
+    ssn_last4               = models.CharField(max_length=4, blank=True)
+    ein                     = models.CharField(max_length=10, blank=True)
+    has_drivers_license     = models.BooleanField(default=True)
+    drivers_license_number  = models.CharField(max_length=50, blank=True)
+    drivers_license_state   = models.CharField(max_length=2, blank=True)
+
+    # ── Income / Employment ───────────────────────────────────────────────────
+    gross_monthly_income  = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    employer_name         = models.CharField(max_length=200, blank=True)
+    employer_phone        = models.CharField(max_length=20, blank=True)
+    job_title             = models.CharField(max_length=100, blank=True)
+    employment_start_date = models.DateField(null=True, blank=True)
+
+    # ── Address history ───────────────────────────────────────────────────────
+    how_long_at_address   = models.CharField(max_length=50, blank=True)
+    reason_for_leaving    = models.CharField(max_length=300, blank=True)
+    current_landlord_name = models.CharField(max_length=100, blank=True)
+    current_landlord_phone = models.CharField(max_length=20, blank=True)
+
     # ── Lifestyle ─────────────────────────────────────────────────────────────
     has_pets        = models.BooleanField(default=False)
     pet_description = models.CharField(max_length=300, blank=True)
     smokes          = models.BooleanField(default=False)
     drinks          = models.BooleanField(default=False)
+
+    # ── Household extras ──────────────────────────────────────────────────────
+    has_vehicles      = models.BooleanField(default=False)
+    number_of_vehicles = models.PositiveIntegerField(default=0)
+    animals           = models.JSONField(default=list, blank=True)
+
+    # ── Background ────────────────────────────────────────────────────────────
+    has_felony_eviction_bankruptcy = models.BooleanField(null=True, blank=True)
+    is_active_military             = models.BooleanField(null=True, blank=True)
+    has_housing_assistance         = models.BooleanField(null=True, blank=True)
 
     # ── Relations ─────────────────────────────────────────────────────────────
     rental_property = models.ForeignKey(
