@@ -11,7 +11,7 @@ import {
 import { FavoriteButton } from "./FavoriteButton";
 import { captureSearchIntent } from "@/lib/tracking";
 import { PropertiesMapLoader } from "./PropertiesMapLoader";
-import { fetchAllCities } from "@/lib/cities";
+import { fetchAllCities, CITIES } from "@/lib/cities";
 import type { MapMarker, MapBounds } from "./PropertiesMap";
 import type { PropertyListItemAPI } from "@/lib/properties";
 
@@ -87,6 +87,9 @@ export function PropertiesClient({
   const cardRefs      = useRef<Record<string, HTMLDivElement | null>>({});
   const locationRef   = useRef<HTMLDivElement>(null);
   const locationInput = useRef<HTMLInputElement>(null);
+  const cardListRef   = useRef<HTMLDivElement>(null);
+  const lastScrollRef = useRef(0);
+  const [filterBarVisible, setFilterBarVisible] = useState(true);
   const [locOpen, setLocOpen]   = useState(false);
   const [locIndex, setLocIndex] = useState(-1);
   const [liveCities, setLiveCities] = useState<{ city: string; state: string }[]>([]);
@@ -97,7 +100,9 @@ export function PropertiesClient({
     }).catch(() => {});
   }, []);
 
-  const cityPool = liveCities.length > 0 ? liveCities : [];
+  const cityPool = liveCities.length > 0
+    ? liveCities
+    : Object.values(CITIES).map((c) => ({ city: c.name, state: c.stateCode }));
 
   const locSuggestions = q.trim().length === 0
     ? cityPool.slice(0, 6)
@@ -116,6 +121,19 @@ export function PropertiesClient({
     return () => document.removeEventListener("pointerdown", onOut);
   }, []);
 
+  useEffect(() => {
+    const el = cardListRef.current;
+    if (!el) return;
+    const onScroll = () => {
+      const y = el.scrollTop;
+      if (y > lastScrollRef.current + 8 && y > 80) setFilterBarVisible(false);
+      else if (y < lastScrollRef.current - 8 || y < 10)  setFilterBarVisible(true);
+      lastScrollRef.current = y;
+    };
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => el.removeEventListener("scroll", onScroll);
+  }, []);
+
   const results      = mapResults ?? initialResults;
   const displayTotal = mapResults ? mapResults.length : initialTotal;
   const totalPages   = Math.ceil(initialTotal / PAGE_SIZE);
@@ -129,7 +147,7 @@ export function PropertiesClient({
       listing_type: listingType || undefined,
       minPrice:     prMin || undefined,
       maxPrice:     prMax || undefined,
-      sort:         sort !== "newest" ? sort : undefined,
+      sort:         sort && sort !== "diverse" ? sort : undefined,
       page:         initialPage > 1 ? String(initialPage) : undefined,
     };
     Object.entries({ ...base, ...overrides }).forEach(([k, v]) => { if (v) p.set(k, v); });
@@ -162,7 +180,8 @@ export function PropertiesClient({
         ...(listingType && { listing_type: listingType }),
         ...(q && { q }),
       });
-      const res = await fetch(`/api/v1/properties/?${p}`);
+      const apiBase = process.env.NEXT_PUBLIC_API_URL ?? "https://admin.haskerrealtygroup.com";
+      const res = await fetch(`${apiBase}/api/v1/properties/?${p}`);
       if (res.ok) setMapResults((await res.json()).results);
     } finally { setMapLoading(false); }
   }, [searchOnMove, beds, listingType, q]);
@@ -188,7 +207,10 @@ export function PropertiesClient({
     <div className="pt-20 h-screen overflow-hidden flex flex-col bg-white">
 
       {/* ── Filter bar ──────────────────────────────────────────────────────── */}
-      <div className="shrink-0 bg-white border-b border-neutral-200 z-30 shadow-sm">
+      <div
+        className={`shrink-0 bg-white border-b border-neutral-200 z-30 overflow-hidden transition-all duration-200 ease-out ${filterBarVisible ? "shadow-sm" : ""}`}
+        style={{ maxHeight: filterBarVisible ? 160 : 0, opacity: filterBarVisible ? 1 : 0 }}
+      >
         <form onSubmit={handleSearch}>
 
           {/* Row 1: Location search input */}
@@ -382,7 +404,7 @@ export function PropertiesClient({
         </div>
 
         {/* Cards panel */}
-        <div className={`${mobileView === "map" ? "hidden" : "flex"} lg:flex w-full lg:w-[40%] xl:w-[38%] shrink-0 flex-col border-l border-neutral-200 bg-white`}>
+        <div className={`${mobileView === "map" ? "hidden" : "flex"} lg:flex w-full lg:w-[50%] xl:w-[46%] shrink-0 flex-col border-l border-neutral-200 bg-white`}>
 
           {/* Panel header */}
           <div className="shrink-0 px-4 py-3 border-b border-neutral-100 flex items-center justify-between gap-3 bg-white">
@@ -414,11 +436,11 @@ export function PropertiesClient({
           </div>
 
           {/* Card list */}
-          <div className="flex-1 overflow-y-auto pb-28 lg:pb-4">
+          <div ref={cardListRef} className="flex-1 overflow-y-auto pb-28 lg:pb-4">
             {mapLoading ? (
-              <div className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="p-3 grid grid-cols-1 lg:grid-cols-2 gap-3">
                 {[...Array(6)].map((_, i) => (
-                  <div key={i} className="h-[220px] sm:aspect-[3/4] sm:h-auto bg-neutral-100 rounded-xl animate-pulse" />
+                  <div key={i} className="h-[220px] bg-neutral-100 rounded-xl animate-pulse" />
                 ))}
               </div>
             ) : results.length === 0 ? (
@@ -442,7 +464,7 @@ export function PropertiesClient({
                 </div>
               </div>
             ) : (
-              <div className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="p-3 grid grid-cols-1 lg:grid-cols-2 gap-3">
                 {results.map((p) => (
                   <div
                     key={p.slug}
@@ -456,7 +478,7 @@ export function PropertiesClient({
                 ))}
 
                 {!mapResults && totalPages > 1 && (
-                  <div className="col-span-2">
+                  <div className="col-span-1">
                     <PaginationBar
                       currentPage={initialPage}
                       totalPages={totalPages}
@@ -541,7 +563,7 @@ function PanelCard({ property, isActive }: { property: PropertyListItemAPI; isAc
     }`}>
 
       {/* Photo — image link at z-0, overlays at z-10 */}
-      <div className="relative h-[160px] shrink-0 bg-neutral-100 overflow-hidden">
+      <div className="relative h-[200px] shrink-0 bg-neutral-100 overflow-hidden">
         {/* Card navigation link under everything */}
         <Link href={detailHref} className="absolute inset-0 z-0 block" aria-label={`View ${property.title}`}>
           {property.primary_image_url ? (

@@ -50,9 +50,8 @@ class PropertyListCreateView(generics.ListCreateAPIView):
     GET  /api/v1/properties/  — public list with filters
     POST /api/v1/properties/  — staff only, create listing
     """
-    queryset = Property.objects.select_related("agent", "agent__agent_profile").prefetch_related("images", "amenities")
+    queryset = Property.objects.select_related("agent", "agent__agent_profile").prefetch_related("images", "amenities").distinct()
     filterset_class = PropertyFilter
-    search_fields = ["title", "address", "city", "neighborhood"]
     ordering_fields = ["price", "created_at", "bedrooms", "sqft"]
     ordering = ["-created_at"]
     pagination_class = FlexiblePageSize

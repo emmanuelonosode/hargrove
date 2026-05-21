@@ -1021,19 +1021,24 @@ function ReviewStep({
       {/* Property card */}
       <div className="rounded-xl bg-brand text-white p-5 relative overflow-hidden">
         <div className="relative z-10">
-          <div className="flex justify-between items-start mb-1">
-            <p className="text-[11px] tracking-widest uppercase text-white/60">Applying for</p>
+          <p className="text-[11px] font-bold tracking-[0.12em] uppercase text-white/60 mb-2">Applying for</p>
+          <h4 className="text-[19px] font-bold leading-tight mb-1 line-clamp-2">
+            {propertyData?.title || "Rental Property"}
+          </h4>
+          {propertyData?.address && (
+            <p className="text-[13px] text-white/60 mb-4 truncate">{propertyData.address}</p>
+          )}
+          <div className="flex items-center justify-between pt-4 border-t border-white/20">
+            <div>
+              <p className="text-[11px] uppercase text-white/50 mb-0.5">Monthly Rent</p>
+              <p className="text-[20px] font-bold">${propertyData?.price ?? "—"}/mo</p>
+            </div>
             {autofilledFields.size > 0 && (
-              <button onClick={startFresh} className="text-[11px] font-bold uppercase tracking-widest text-white/50 hover:text-white flex items-center gap-1 transition-colors">
-                <RotateCcw size={10} /> Start fresh
+              <button onClick={startFresh}
+                className="flex items-center gap-1.5 text-[12px] font-semibold text-white/50 hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-white/10">
+                <RotateCcw size={13} /> Start fresh
               </button>
             )}
-          </div>
-          <h4 className="text-[20px] font-bold mb-1">{propertyData?.title || "Rental Property"}</h4>
-          <p className="text-[13px] text-white/60 mb-4">{propertyData?.address || ""}</p>
-          <div className="pt-4 border-t border-white/20">
-            <p className="text-[11px] uppercase text-white/50 mb-0.5">Monthly Rent</p>
-            <p className="text-[18px] font-bold">${propertyData?.price || "—"}/mo</p>
           </div>
         </div>
         <Building2 className="absolute -right-4 -bottom-4 w-32 h-32 text-white/[0.07] rotate-12" />
@@ -1047,9 +1052,9 @@ function ReviewStep({
             <button type="button" onClick={() => onEdit(step)} className="text-[14px] font-semibold text-brand hover:underline">Edit</button>
           </div>
           {rows.map(([label, value]) => (
-            <div key={label} className="flex justify-between gap-4 px-5 py-3.5 border-b border-[#EAECF0] last:border-0">
-              <p className="text-[14px] text-[#667085] shrink-0">{label}</p>
-              <p className="text-[14px] font-semibold text-[#101828] text-right">{value || "—"}</p>
+            <div key={label} className="flex items-start justify-between gap-3 px-5 py-3.5 border-b border-[#EAECF0] last:border-0">
+              <p className="text-[13px] text-[#667085] shrink-0 max-w-[48%] leading-snug">{label}</p>
+              <p className="text-[14px] font-semibold text-[#101828] text-right min-w-0 break-words leading-snug">{value || "—"}</p>
             </div>
           ))}
         </div>

@@ -455,16 +455,14 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
                             <span className="text-[13px] font-bold text-neutral-700">{cat.name}</span>
                             <div className="flex-1 h-px bg-neutral-100 ml-1" />
                           </div>
-                          {/* Amenity tiles */}
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                          {/* Amenity list */}
+                          <div className="grid grid-cols-2 gap-x-8 gap-y-0">
                             {cat.amenities.map((a: any) => {
-                              const { Icon, iconCls, bgCls } = getAmenityConfig(a.name);
+                              const { Icon, iconCls } = getAmenityConfig(a.name);
                               return (
-                                <div key={a.id} className="flex items-center gap-3.5 bg-stone-50 border border-stone-100 rounded-2xl px-4 py-3.5 shadow-[0_1px_4px_rgba(0,0,0,0.05)]">
-                                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${bgCls}`}>
-                                    <Icon size={19} className={iconCls} />
-                                  </div>
-                                  <span className="text-[13px] font-semibold text-neutral-800 leading-tight">{a.name}</span>
+                                <div key={a.id} className="flex items-center gap-2.5 py-2.5 border-b border-neutral-100 last:border-0">
+                                  <Icon size={15} className={`${iconCls} shrink-0`} strokeWidth={1.8} />
+                                  <span className="text-[13px] font-medium text-neutral-700 leading-tight">{a.name}</span>
                                 </div>
                               );
                             })}
@@ -477,15 +475,13 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
               ) : amenities.length > 0 ? (
                 <div>
                   <h2 className="font-serif text-2xl font-bold text-brand-dark mb-6">Features &amp; Amenities</h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-2 gap-x-8 gap-y-0">
                     {amenities.map((a) => {
-                      const { Icon, iconCls, bgCls } = getAmenityConfig(a.name);
+                      const { Icon, iconCls } = getAmenityConfig(a.name);
                       return (
-                        <div key={a.id} className="flex items-center gap-3.5 bg-stone-50 border border-stone-100 rounded-2xl px-4 py-3.5 shadow-[0_1px_4px_rgba(0,0,0,0.05)]">
-                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${bgCls}`}>
-                            <Icon size={19} className={iconCls} />
-                          </div>
-                          <span className="text-[13px] font-semibold text-neutral-800 leading-tight">{a.name}</span>
+                        <div key={a.id} className="flex items-center gap-2.5 py-2.5 border-b border-neutral-100 last:border-0">
+                          <Icon size={15} className={`${iconCls} shrink-0`} strokeWidth={1.8} />
+                          <span className="text-[13px] font-medium text-neutral-700 leading-tight">{a.name}</span>
                         </div>
                       );
                     })}

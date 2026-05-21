@@ -62,8 +62,31 @@ class PropertyFilter(django_filters.FilterSet):
                     data["garage__gte"] = "1"
                     q_val = re.sub(r'\b(?:garage|parking)\b', '', q_val, flags=re.IGNORECASE)
                 
-                # 4. Cleanup remaining stop words
-                q_val = re.sub(r'\b(?:with|a|an|in|for)\b', ' ', q_val, flags=re.IGNORECASE)
+                # 4. Route property-type keywords into the type filter
+                _TYPE_KEYWORDS = {
+                    "condo": "condo", "condominium": "condo",
+                    "townhouse": "townhouse", "townhome": "townhouse",
+                    "apartment": "residential", "house": "residential",
+                    "commercial": "commercial", "land": "land",
+                }
+                for kw, ptype in _TYPE_KEYWORDS.items():
+                    if re.search(rf'\b{kw}\b', q_val, re.IGNORECASE):
+                        if not data.get("type"):
+                            data["type"] = ptype
+                        q_val = re.sub(rf'\b{kw}\b', '', q_val, flags=re.IGNORECASE)
+
+                # 5. Route listing-type keywords into the listing_type filter
+                if re.search(r'\bfor\s+rent\b|\brental\b|\brent\b', q_val, re.IGNORECASE):
+                    if not data.get("listing_type"):
+                        data["listing_type"] = "for-rent"
+                    q_val = re.sub(r'\bfor\s+rent\b|\brental\b|\brent\b', '', q_val, flags=re.IGNORECASE)
+                elif re.search(r'\bfor\s+sale\b|\bto\s+buy\b', q_val, re.IGNORECASE):
+                    if not data.get("listing_type"):
+                        data["listing_type"] = "for-sale"
+                    q_val = re.sub(r'\bfor\s+sale\b|\bto\s+buy\b', '', q_val, flags=re.IGNORECASE)
+
+                # 6. Cleanup remaining stop words (keep "for" and "in" — they're structural)
+                q_val = re.sub(r'\b(?:with|a|an)\b', ' ', q_val, flags=re.IGNORECASE)
                 q_val = re.sub(r'\s+', ' ', q_val).strip()
 
                 if q_val != original_q:
@@ -99,6 +122,8 @@ class PropertyFilter(django_filters.FilterSet):
             | Q(neighborhood__icontains=value)
             | Q(state__icontains=value)
             | Q(zip_code__icontains=value)
+            | Q(description__icontains=value)
+            | Q(amenities__name__icontains=value)
         )
 
         # "Atlanta, GA" or "Atlanta, Georgia" — comma-separated
@@ -125,7 +150,7 @@ class PropertyFilter(django_filters.FilterSet):
 
             # "Atlanta Georgia" — city + full state name (1 or 2 word state)
             for n in (2, 1):
-                if len(words) > n:
+                if len(words) >= n:
                     state_guess = " ".join(words[-n:]).lower()
                     abbr = self._STATE_ABBR.get(state_guess)
                     if abbr:
@@ -138,7 +163,7 @@ class PropertyFilter(django_filters.FilterSet):
             if state_abbr:
                 q_obj |= Q(state__iexact=state_abbr)
 
-        return queryset.filter(q_obj)
+        return queryset.filter(q_obj).distinct()
 
     lat_min = django_filters.NumberFilter(field_name="latitude", lookup_expr="gte")
     lat_max = django_filters.NumberFilter(field_name="latitude", lookup_expr="lte")
