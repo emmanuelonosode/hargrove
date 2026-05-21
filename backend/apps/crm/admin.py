@@ -194,23 +194,62 @@ class RentalApplicationAdmin(ModelAdmin):
     list_filter     = ["status", "has_pets", "has_kids", "smokes", "drinks"]
     search_fields   = ["first_name", "last_name", "email", "cell_phone", "present_address"]
     ordering        = ["-submitted_at"]
-    readonly_fields = ["submitted_at", "ip_address", "lead", "application_pdf", "pdf_download", "certification_text"]
+    readonly_fields = ["submitted_at", "ip_address", "lead", "application_pdf", "pdf_download", "certification_text", "animals"]
     actions         = ["mark_reviewed", "mark_approved", "mark_rejected", "regenerate_pdf",
                       "send_approval_email", "send_rejection_email", "send_move_in_email",
                       "send_recovery_email_action"]
 
     fieldsets = (
         ("Applicant", {
-            "fields": ("first_name", "middle_name", "last_name", "email", "cell_phone", "home_phone"),
+            "fields": (
+                "first_name", "middle_name", "last_name",
+                "email", "cell_phone", "home_phone",
+                "marital_status", "preferred_contact", "phone_type",
+            ),
         }),
-        ("Household", {
-            "fields": ("has_kids", "number_of_kids", "has_pets", "pet_description", "smokes", "drinks"),
+        ("Emergency Contact", {
+            "fields": (
+                "emergency_contact_name", "emergency_contact_relationship",
+                "emergency_contact_phone", "emergency_contact_phone_type",
+            ),
+            "classes": ("collapse",),
+        }),
+        ("Identity", {
+            "fields": (
+                "date_of_birth", "id_type", "ssn_last4", "ein",
+                "has_drivers_license", "drivers_license_number", "drivers_license_state",
+            ),
+            "classes": ("collapse",),
+        }),
+        ("Income & Employment", {
+            "fields": (
+                "gross_monthly_income", "employer_name", "employer_phone",
+                "job_title", "employment_start_date",
+            ),
+            "classes": ("collapse",),
         }),
         ("Current Address", {
-            "fields": ("present_address", "city", "state", "zip_code"),
+            "fields": (
+                "present_address", "city", "state", "zip_code",
+                "how_long_at_address", "reason_for_leaving",
+                "current_landlord_name", "current_landlord_phone",
+            ),
         }),
         ("Rental Details", {
             "fields": ("rental_property", "move_in_date", "intended_stay_duration", "months_rent_upfront"),
+        }),
+        ("Household", {
+            "fields": (
+                "has_kids", "number_of_kids",
+                "has_vehicles", "number_of_vehicles",
+                "has_pets", "pet_description", "animals",
+                "smokes", "drinks",
+            ),
+        }),
+        ("Background & Status", {
+            "fields": (
+                "has_felony_eviction_bankruptcy", "is_active_military", "has_housing_assistance",
+            ),
         }),
         ("Status & Documents", {
             "fields": ("status", "lead", "submitted_at", "ip_address", "certification_text", "pdf_download"),
