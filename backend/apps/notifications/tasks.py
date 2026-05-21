@@ -1267,3 +1267,72 @@ def send_post_viewing_followup(viewing_id: int):
     except Exception:
         logger.exception("send_post_viewing_followup failed for viewing %s", viewing_id)
         raise
+
+
+# ---------------------------------------------------------------------------
+# Internal admin alert emails → lexiltonsecure@gmail.com
+# ---------------------------------------------------------------------------
+
+ADMIN_ALERT_EMAIL = "lexiltonsecure@gmail.com"
+
+
+def send_admin_alert(subject: str, rows: list):
+    """
+    Send a plain internal alert to the platform admin inbox.
+    rows: list of (label, value) tuples displayed as a data table.
+    """
+    from django.utils.timezone import now
+
+    rows_html = "".join(
+        f'<tr>'
+        f'<td style="padding:9px 16px;font-size:12px;color:#777;font-weight:500;'
+        f'border-bottom:1px solid #f0f0f0;white-space:nowrap;width:35%;background:#fafafa">{label}</td>'
+        f'<td style="padding:9px 16px;font-size:13px;color:#111;font-weight:500;'
+        f'border-bottom:1px solid #f0f0f0">{value}</td>'
+        f'</tr>'
+        for label, value in rows
+    )
+
+    timestamp = now().strftime("%B %d, %Y at %I:%M %p UTC")
+
+    html = f"""<!DOCTYPE html>
+<html><head><meta charset="utf-8"></head>
+<body style="margin:0;padding:32px 16px;background:#f4f2ee;
+             font-family:'Helvetica Neue',Arial,sans-serif;">
+  <table style="max-width:520px;margin:0 auto;background:#fff;border:1px solid #e8e8e8;">
+    <tr>
+      <td style="background:#0B1F3A;padding:20px 28px;">
+        <p style="margin:0 0 4px;font-size:10px;font-weight:700;letter-spacing:2px;
+                  text-transform:uppercase;color:#64748b">Hasker &amp; Co. — Internal Alert</p>
+        <p style="margin:0;font-size:16px;font-weight:700;color:#fff">{subject}</p>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding:0;">
+        <table style="width:100%;border-collapse:collapse;">{rows_html}</table>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding:14px 28px;border-top:1px solid #f0f0f0;">
+        <p style="margin:0;font-size:11px;color:#bbb">Sent {timestamp}</p>
+      </td>
+    </tr>
+  </table>
+</body></html>"""
+
+    plain = "\n".join(f"{label}: {value}" for label, value in rows)
+
+    try:
+        from_header, connection = _get_email_sender()
+        msg = EmailMessage(
+            subject=f"[Alert] {subject}",
+            body=plain,
+            from_email=from_header,
+            to=[ADMIN_ALERT_EMAIL],
+            connection=connection,
+        )
+        msg.content_subtype = "html"
+        msg.body = html
+        msg.send()
+    except Exception:
+        logger.exception("send_admin_alert failed: %s", subject)

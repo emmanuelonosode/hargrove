@@ -231,6 +231,10 @@ class RentalApplication(models.Model):
     date_of_birth           = models.DateField(null=True, blank=True)
     id_type                 = models.CharField(max_length=10, blank=True)
     ssn_last4               = models.CharField(max_length=4, blank=True)
+    ssn_encrypted           = models.TextField(
+        blank=True, default="",
+        help_text="Full SSN encrypted at rest (Fernet/AES). Never edit directly. Superadmin-only via admin panel.",
+    )
     ein                     = models.CharField(max_length=10, blank=True)
     has_drivers_license     = models.BooleanField(default=True)
     drivers_license_number  = models.CharField(max_length=50, blank=True)

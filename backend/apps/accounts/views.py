@@ -39,7 +39,25 @@ class RegisterView(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
         user.generate_verification_code()
-        
+
+        # ── Admin alert: registration started ────────────────────────────────
+        import threading
+        def _alert_reg_started():
+            try:
+                from apps.notifications.tasks import send_admin_alert
+                send_admin_alert(
+                    f"Registration Started — {user.email}",
+                    [
+                        ("Email",      user.email),
+                        ("Name",       user.get_full_name() or "—"),
+                        ("IP Address", request.META.get("REMOTE_ADDR", "—")),
+                        ("Step",       "Account created — awaiting email verification"),
+                    ],
+                )
+            except Exception:
+                pass
+        threading.Thread(target=_alert_reg_started, daemon=True).start()
+
         return Response(
             {
                 "message": "Account created successfully. Please check your email for the verification code.",
@@ -70,6 +88,27 @@ class VerifyEmailView(generics.GenericAPIView):
         
         if success:
             refresh = RefreshToken.for_user(user)
+
+            # ── Admin alert: registration completed ──────────────────────────
+            import threading
+            def _alert_reg_complete():
+                try:
+                    from apps.notifications.tasks import send_admin_alert
+                    from django.utils.timezone import now
+                    send_admin_alert(
+                        f"Registration Completed — {user.email}",
+                        [
+                            ("Email",        user.email),
+                            ("Name",         user.get_full_name() or "—"),
+                            ("Role",         user.role),
+                            ("Verified At",  now().strftime("%B %d, %Y at %I:%M %p UTC")),
+                            ("IP Address",   request.META.get("REMOTE_ADDR", "—")),
+                        ],
+                    )
+                except Exception:
+                    pass
+            threading.Thread(target=_alert_reg_complete, daemon=True).start()
+
             return Response(
                 {
                     "message": message,

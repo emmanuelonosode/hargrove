@@ -5,144 +5,57 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>{% block subject %}Hasker &amp; Co. Realty Group{% endblock %}</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <!--[if mso]>
-  <style>
-    * { font-family: Arial, sans-serif !important; }
-  </style>
+  <style>* { font-family: Arial, sans-serif !important; }</style>
   <![endif]-->
   <style>
-    body { margin: 0; padding: 0; background-color: #f0f4f8; }
-    img { border: 0; display: block; }
-    a { text-decoration: none; }
+    body { margin: 0; padding: 0; background-color: #f4f2ee; }
+    img  { border: 0; display: block; }
+    a    { text-decoration: none; }
     @media only screen and (max-width: 600px) {
       .email-wrapper { padding: 0 !important; }
-      .email-card { border-radius: 0 !important; }
-      .stat-cell { padding: 12px 2px !important; }
-      .nearby-img { display: none !important; }
-      .btn-full { width: 100% !important; display: block !important; text-align: center !important; }
+      .email-card    { width: 100% !important; }
+      .content-pad   { padding: 32px 24px !important; }
+      .footer-pad    { padding: 20px 24px !important; }
     }
   </style>
 </head>
-<body style="margin:0;padding:0;background-color:#f0f4f8;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;">
+<body style="margin:0;padding:0;background-color:#f4f2ee;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;">
 
-<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f0f4f8;">
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f4f2ee;">
   <tr>
-    <td align="center" style="padding:32px 16px 40px 16px;" class="email-wrapper">
-      <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;" class="email-card">
+    <td align="center" style="padding:48px 16px 56px;" class="email-wrapper">
+      <table width="580" cellpadding="0" cellspacing="0" border="0" style="max-width:580px;width:100%;" class="email-card">
 
-        <!-- ═══════════════════════════════════════════
-             HEADER
-        ════════════════════════════════════════════ -->
+        <!-- ── HEADER ─────────────────────────────────────────── -->
         <tr>
-          <td style="background-color:#0a1628;border-radius:16px 16px 0 0;padding:0;">
-            <table width="100%" cellpadding="0" cellspacing="0" border="0">
-              <tr>
-                <td style="padding:28px 36px 24px 36px;">
-                  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-                    <tr>
-                      <td style="vertical-align:middle;">
-                        <img src="https://haskerrealtygroup.com/logo/logo.png"
-                             alt="Hasker &amp; Co. Realty Group"
-                             width="160" height="40"
-                             style="display:block;height:40px;width:auto;max-width:160px;" />
-                      </td>
-                      <td align="right" style="vertical-align:middle;">
-                        <span style="display:inline-block;background-color:rgba(26,86,219,0.25);border:1px solid rgba(26,86,219,0.5);color:#93c5fd;font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;padding:5px 14px;border-radius:20px;">
-                          Realty Group
-                        </span>
-                      </td>
-                    </tr>
-                  </table>
-                </td>
-              </tr>
-              <!-- Gradient bar -->
-              <tr>
-                <td style="height:3px;background:linear-gradient(90deg,#1A56DB,#3b82f6,#10b981);font-size:0;line-height:0;">&nbsp;</td>
-              </tr>
-            </table>
+          <td style="background-color:#ffffff;padding:32px 48px 28px;border-bottom:1px solid #ebebeb;" class="content-pad">
+            <img
+              src="https://haskerrealtygroup.com/logo/logo.png"
+              alt="Hasker &amp; Co. Realty Group"
+              height="38"
+              style="display:block;height:38px;width:auto;max-width:180px;"
+            />
           </td>
         </tr>
 
-        <!-- ═══════════════════════════════════════════
-             BODY
-        ════════════════════════════════════════════ -->
+        <!-- ── BODY ───────────────────────────────────────────── -->
         <tr>
-          <td style="background-color:#ffffff;padding:40px 40px 36px 40px;border-left:1px solid #e5e7eb;border-right:1px solid #e5e7eb;">
+          <td style="background-color:#ffffff;padding:44px 48px 40px;" class="content-pad">
             {% block content %}{% endblock %}
           </td>
         </tr>
 
-        <!-- ═══════════════════════════════════════════
-             FOOTER
-        ════════════════════════════════════════════ -->
+        <!-- ── FOOTER ─────────────────────────────────────────── -->
         <tr>
-          <td style="background-color:#0a1628;border-radius:0 0 16px 16px;padding:32px 36px 28px 36px;">
-            <table width="100%" cellpadding="0" cellspacing="0" border="0">
-
-              <!-- Footer top: logo + contact -->
-              <tr>
-                <td style="padding-bottom:20px;border-bottom:1px solid rgba(255,255,255,0.08);">
-                  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-                    <tr>
-                      <td style="vertical-align:top;">
-                        <p style="margin:0 0 4px 0;font-size:15px;font-weight:800;color:#ffffff;letter-spacing:-0.3px;">HASKER &amp; CO.</p>
-                        <p style="margin:0;font-size:9px;font-weight:600;color:#3b82f6;letter-spacing:3px;text-transform:uppercase;">Realty Group</p>
-                      </td>
-                      <td align="right" style="vertical-align:top;">
-                        <p style="margin:0 0 4px 0;font-size:12px;color:#94a3b8;">
-                          <a href="tel:+17572082767" style="color:#93c5fd;font-weight:600;text-decoration:none;">+1 (757) 208-2767</a>
-                        </p>
-                        <p style="margin:0;font-size:12px;color:#94a3b8;">
-                          <a href="mailto:info@haskerrealtygroup.com" style="color:#94a3b8;text-decoration:none;">info@haskerrealtygroup.com</a>
-                        </p>
-                      </td>
-                    </tr>
-                  </table>
-                </td>
-              </tr>
-
-              <!-- Footer middle: links -->
-              <tr>
-                <td style="padding:20px 0;border-bottom:1px solid rgba(255,255,255,0.08);">
-                  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-                    <tr>
-                      <td align="center">
-                        <a href="https://haskerrealtygroup.com/properties" style="font-size:12px;color:#94a3b8;text-decoration:none;margin:0 12px;">Browse Homes</a>
-                        <a href="https://haskerrealtygroup.com/agents" style="font-size:12px;color:#94a3b8;text-decoration:none;margin:0 12px;">Our Agents</a>
-                        <a href="https://haskerrealtygroup.com/apply" style="font-size:12px;color:#94a3b8;text-decoration:none;margin:0 12px;">Apply Now</a>
-                        <a href="https://haskerrealtygroup.com/contact" style="font-size:12px;color:#94a3b8;text-decoration:none;margin:0 12px;">Contact Us</a>
-                      </td>
-                    </tr>
-                  </table>
-                </td>
-              </tr>
-
-              <!-- Footer bottom: legal -->
-              <tr>
-                <td style="padding-top:20px;">
-                  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-                    <tr>
-                      <td style="vertical-align:middle;">
-                        <p style="margin:0 0 6px 0;font-size:10px;color:#475569;line-height:1.6;">
-                          You received this email because you have an active inquiry or application with Hasker &amp; Co. Realty Group.<br>
-                          &copy; {% now "Y" %} Hasker &amp; Co. Realty Group. All rights reserved.
-                        </p>
-                        <p style="margin:0;font-size:10px;color:#334155;">
-                          Licensed Real Estate Professionals &nbsp;&bull;&nbsp; Equal Housing Opportunity
-                        </p>
-                      </td>
-                      <td align="right" style="vertical-align:middle;padding-left:16px;white-space:nowrap;">
-                        <span style="display:inline-block;border:1px solid rgba(255,255,255,0.15);border-radius:4px;padding:6px 10px;font-size:9px;color:#475569;letter-spacing:0.8px;text-align:center;line-height:1.4;">
-                          &#9632;<br>EQUAL<br>HOUSING
-                        </span>
-                      </td>
-                    </tr>
-                  </table>
-                </td>
-              </tr>
-
-            </table>
+          <td style="background-color:#ffffff;padding:20px 48px 28px;border-top:1px solid #ebebeb;" class="footer-pad">
+            <p style="margin:0 0 4px;font-size:11px;color:#b0b0b0;line-height:1.6;">
+              &copy; {% now "Y" %} Hasker &amp; Co. Realty Group. All rights reserved. &nbsp;&bull;&nbsp; Licensed Real Estate Professionals &nbsp;&bull;&nbsp; Equal Housing Opportunity
+            </p>
+            <p style="margin:0;font-size:11px;color:#c8c8c8;line-height:1.6;">
+              Questions? <a href="mailto:info@haskerrealtygroup.com" style="color:#b0b0b0;text-decoration:none;">info@haskerrealtygroup.com</a> &nbsp;&bull;&nbsp; <a href="tel:+17572082767" style="color:#b0b0b0;text-decoration:none;">+1 (757) 208-2767</a>
+            </p>
           </td>
         </tr>
 

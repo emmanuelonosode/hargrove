@@ -208,8 +208,12 @@ export function PropertiesClient({
 
       {/* ── Filter bar ──────────────────────────────────────────────────────── */}
       <div
-        className={`shrink-0 bg-white border-b border-neutral-200 z-30 overflow-hidden transition-all duration-200 ease-out ${filterBarVisible ? "shadow-sm" : ""}`}
-        style={{ maxHeight: filterBarVisible ? 160 : 0, opacity: filterBarVisible ? 1 : 0 }}
+        className={`shrink-0 bg-white border-b border-neutral-200 relative z-30 transition-all duration-200 ease-out ${filterBarVisible ? "shadow-sm" : ""}`}
+        style={{
+          maxHeight: filterBarVisible ? 160 : 0,
+          opacity: filterBarVisible ? 1 : 0,
+          overflow: (filterBarVisible && locOpen && locSuggestions.length > 0) ? "visible" : "hidden",
+        }}
       >
         <form onSubmit={handleSearch}>
 

@@ -190,14 +190,43 @@ class ClientAdmin(ModelAdmin):
 
 @admin.register(RentalApplication)
 class RentalApplicationAdmin(ModelAdmin):
-    list_display    = ["full_name", "email", "rental_property", "status_badge", "recovery_email_sent", "submitted_at", "pdf_download"]
+    list_display    = ["full_name", "email", "rental_property", "status_badge", "ssn_masked", "recovery_email_sent", "submitted_at", "pdf_download"]
     list_filter     = ["status", "has_pets", "has_kids", "smokes", "drinks"]
     search_fields   = ["first_name", "last_name", "email", "cell_phone", "present_address"]
     ordering        = ["-submitted_at"]
-    readonly_fields = ["submitted_at", "ip_address", "lead", "application_pdf", "pdf_download", "certification_text", "animals"]
+    readonly_fields = ["submitted_at", "ip_address", "lead", "application_pdf", "pdf_download", "certification_text", "animals", "ssn_view"]
     actions         = ["mark_reviewed", "mark_approved", "mark_rejected", "regenerate_pdf",
                       "send_approval_email", "send_rejection_email", "send_move_in_email",
                       "send_recovery_email_action"]
+
+    def get_queryset(self, request):
+        self._request = request
+        return super().get_queryset(request)
+
+    def ssn_masked(self, obj):
+        """List column — always masked."""
+        return "●●●-●●-" + obj.ssn_last4 if obj.ssn_last4 else ("●●●-●●-●●●●" if obj.ssn_encrypted else "—")
+    ssn_masked.short_description = "SSN"
+
+    def ssn_view(self, obj):
+        """Detail read-only field — decrypted for superadmins, masked otherwise."""
+        if not obj.ssn_encrypted:
+            return format_html('<span style="color:#aaa">Not provided</span>')
+        request = getattr(self, "_request", None)
+        if request and request.user.is_superuser:
+            try:
+                from apps.notifications.encryption import decrypt_ssn
+                decrypted = decrypt_ssn(obj.ssn_encrypted)
+                return format_html(
+                    '<code style="background:#f4f4f4;padding:4px 12px;border-radius:3px;'
+                    'font-size:13px;letter-spacing:1px">{}</code>', decrypted
+                )
+            except Exception:
+                return format_html('<span style="color:#c62828">⚠ Decryption error</span>')
+        return format_html(
+            '<span style="color:#999;font-style:italic">●●●-●●-●●●● — Superadmin access only</span>'
+        )
+    ssn_view.short_description = "SSN (Full — Superadmin Only)"
 
     fieldsets = (
         ("Applicant", {
@@ -216,10 +245,11 @@ class RentalApplicationAdmin(ModelAdmin):
         }),
         ("Identity", {
             "fields": (
-                "date_of_birth", "id_type", "ssn_last4", "ein",
+                "date_of_birth", "id_type", "ssn_view", "ssn_last4", "ein",
                 "has_drivers_license", "drivers_license_number", "drivers_license_state",
             ),
             "classes": ("collapse",),
+            "description": "Full SSN is AES-encrypted at rest. Superadmins see the decrypted value; all others see only the last 4 digits.",
         }),
         ("Income & Employment", {
             "fields": (

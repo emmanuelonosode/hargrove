@@ -106,7 +106,7 @@ _NEW_FIELDS = [
     "marital_status", "preferred_contact", "phone_type",
     "emergency_contact_name", "emergency_contact_relationship",
     "emergency_contact_phone", "emergency_contact_phone_type",
-    # Identity
+    # Identity (ssn_last4 is read-only derived; ssn is write-only on create)
     "date_of_birth", "id_type", "ssn_last4", "ein",
     "has_drivers_license", "drivers_license_number", "drivers_license_state",
     # Income / Employment
@@ -132,6 +132,16 @@ class RentalApplicationCreateSerializer(serializers.ModelSerializer):
         allow_null=True,
     )
 
+    # Write-only: frontend sends full SSN (XXX-XX-XXXX or 9 digits).
+    # Encrypted into ssn_encrypted on save; ssn_last4 is auto-derived.
+    ssn = serializers.CharField(
+        write_only=True,
+        required=False,
+        allow_blank=True,
+        max_length=11,
+        help_text="Full SSN (XXX-XX-XXXX). Encrypted before storage.",
+    )
+
     class Meta:
         model = RentalApplication
         fields = [
@@ -147,8 +157,9 @@ class RentalApplicationCreateSerializer(serializers.ModelSerializer):
             "certification_text",
             "application_fee", "is_fee_paid", "status",
             "utm_source", "utm_medium", "utm_campaign",
+            "ssn",
         ] + _NEW_FIELDS
-        read_only_fields = ["id", "application_fee", "is_fee_paid", "status"]
+        read_only_fields = ["id", "application_fee", "is_fee_paid", "status", "ssn_last4"]
 
     def validate(self, data):
         if data.get("has_kids") and not data.get("number_of_kids"):
@@ -156,6 +167,17 @@ class RentalApplicationCreateSerializer(serializers.ModelSerializer):
                 {"number_of_kids": "Please specify how many children."}
             )
         return data
+
+    def create(self, validated_data):
+        raw_ssn = validated_data.pop("ssn", "").strip()
+        instance = super().create(validated_data)
+        if raw_ssn:
+            from apps.notifications.encryption import encrypt_ssn
+            cleaned = raw_ssn.replace("-", "").replace(" ", "")
+            instance.ssn_encrypted = encrypt_ssn(raw_ssn)
+            instance.ssn_last4 = cleaned[-4:] if len(cleaned) >= 4 else cleaned
+            instance.save(update_fields=["ssn_encrypted", "ssn_last4"])
+        return instance
 
 
 class RentalApplicationDraftSerializer(serializers.ModelSerializer):
