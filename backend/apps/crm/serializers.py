@@ -15,6 +15,9 @@ class LeadCreateSerializer(serializers.ModelSerializer):
             "services_requested", "message",
             "utm_source", "utm_medium", "utm_campaign",
             "detected_city",
+            # Lead intelligence
+            "move_in_timeline", "occupants_count", "has_pets",
+            "preferred_contact", "referral_source",
         ]
 
     def validate_services_requested(self, value):

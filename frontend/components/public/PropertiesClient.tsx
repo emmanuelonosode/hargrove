@@ -208,7 +208,7 @@ export function PropertiesClient({
 
       {/* ── Filter bar ──────────────────────────────────────────────────────── */}
       <div
-        className={`shrink-0 bg-white border-b border-neutral-200 relative z-30 transition-all duration-200 ease-out ${filterBarVisible ? "shadow-sm" : ""}`}
+        className={`shrink-0 bg-white border-b border-neutral-200 relative z-[1100] transition-all duration-200 ease-out ${filterBarVisible ? "shadow-sm" : ""}`}
         style={{
           maxHeight: filterBarVisible ? 160 : 0,
           opacity: filterBarVisible ? 1 : 0,

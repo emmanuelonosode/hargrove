@@ -4,7 +4,7 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.utils import timezone
 from unfold.admin import ModelAdmin, TabularInline
-from .models import Lead, LeadActivity, Client, LeadStatus, RentalApplication, ApplicationStatus
+from .models import Lead, LeadActivity, Client, LeadStatus, RentalApplication, ApplicationStatus, MoveInTimeline
 
 logger = logging.getLogger(__name__)
 
@@ -41,13 +41,18 @@ class LeadAdmin(ModelAdmin):
     list_display = [
         "full_name", "email", "phone",
         "interest_type", "budget_display", "preferred_location",
+        "timeline_badge", "occupants_display", "pets_display",
         "property_interest", "source", "status_badge", "score_badge",
         "assigned_agent", "last_contacted_at", "created_at",
     ]
     list_display_links = ["full_name", "email"]
-    list_filter = ["status", "source", "interest_type", "assigned_agent", "drip_opted_out"]
+    list_filter = [
+        "status", "source", "interest_type",
+        "move_in_timeline", "has_pets", "preferred_contact",
+        "assigned_agent", "drip_opted_out",
+    ]
     search_fields = ["full_name", "email", "phone", "preferred_location", "message",
-                     "property_interest__title", "utm_source", "utm_campaign"]
+                     "property_interest__title", "utm_source", "utm_campaign", "referral_source"]
     ordering = ["-created_at"]
     date_hierarchy = "created_at"
     inlines = [LeadActivityInline, RentalApplicationInline]
@@ -55,17 +60,22 @@ class LeadAdmin(ModelAdmin):
 
     fieldsets = (
         ("Contact", {
-            "fields": ("full_name", "email", "phone"),
+            "fields": ("full_name", "email", "phone", "preferred_contact"),
         }),
-        ("Interest", {
-            "fields": ("source", "interest_type", "budget_min", "budget_max", "preferred_location",
-                       "property_interest", "agent_interest", "services_requested", "message"),
+        ("Interest & Intent", {
+            "fields": (
+                "source", "interest_type", "move_in_timeline",
+                "budget_min", "budget_max", "preferred_location",
+                "property_interest", "agent_interest",
+                "occupants_count", "has_pets",
+                "services_requested", "message",
+            ),
         }),
         ("Pipeline", {
             "fields": ("status", "assigned_agent", "last_contacted_at", "drip_opted_out"),
         }),
         ("Attribution", {
-            "fields": ("detected_city", "utm_source", "utm_medium", "utm_campaign"),
+            "fields": ("detected_city", "referral_source", "utm_source", "utm_medium", "utm_campaign"),
             "classes": ("collapse",),
         }),
         ("Timestamps", {
@@ -74,6 +84,35 @@ class LeadAdmin(ModelAdmin):
         }),
     )
     readonly_fields = ["created_at", "updated_at"]
+
+    def timeline_badge(self, obj):
+        if not obj.move_in_timeline:
+            return "—"
+        colors = {
+            MoveInTimeline.ASAP:          "#16a34a",
+            MoveInTimeline.ONE_THREE:     "#0891b2",
+            MoveInTimeline.THREE_SIX:     "#7c3aed",
+            MoveInTimeline.SIX_PLUS:      "#6b7280",
+            MoveInTimeline.JUST_BROWSING: "#9ca3af",
+        }
+        color = colors.get(obj.move_in_timeline, "#6b7280")
+        return format_html(
+            '<span style="background:{};color:#fff;padding:2px 8px;border-radius:9999px;font-size:11px;white-space:nowrap">{}</span>',
+            color, obj.get_move_in_timeline_display()
+        )
+    timeline_badge.short_description = "Timeline"
+
+    def occupants_display(self, obj):
+        if obj.occupants_count is None:
+            return "—"
+        return f"{obj.occupants_count} person{'s' if obj.occupants_count != 1 else ''}"
+    occupants_display.short_description = "Occupants"
+
+    def pets_display(self, obj):
+        if obj.has_pets is None:
+            return "—"
+        return "🐾 Yes" if obj.has_pets else "No"
+    pets_display.short_description = "Pets"
 
     def budget_display(self, obj):
         if obj.budget_min and obj.budget_max:

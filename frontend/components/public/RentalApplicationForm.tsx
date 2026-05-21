@@ -1147,6 +1147,54 @@ export function RentalApplicationForm({ propertySlug }: Props) {
   const { fields: animalFields, append: appendAnimal, remove: removeAnimal } = useFieldArray({ control, name: "animals" });
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const nameParam = params.get("name");
+    const firstNameParam = params.get("first_name");
+    const lastNameParam = params.get("last_name");
+    const emailParam = params.get("email");
+    const phoneParam = params.get("phone") || params.get("cell_phone");
+    const incomeParam = params.get("income") || params.get("gross_monthly_income");
+
+    const updates: Partial<FormData> = {};
+
+    if (firstNameParam) updates.first_name = firstNameParam;
+    if (lastNameParam) updates.last_name = lastNameParam;
+    
+    if (nameParam && !firstNameParam) {
+      const parts = nameParam.trim().split(/\s+/);
+      updates.first_name = parts[0] || "";
+      if (parts.length > 1) {
+        updates.last_name = parts.slice(1).join(" ");
+      }
+    }
+
+    if (emailParam) updates.email = emailParam;
+    if (phoneParam) updates.cell_phone = phoneParam;
+    if (incomeParam) {
+      const cleanIncome = incomeParam.replace(/[^0-9]/g, "");
+      updates.gross_monthly_income = cleanIncome;
+    }
+
+    let appliedAny = false;
+    Object.entries(updates).forEach(([key, val]) => {
+      if (val) {
+        setValue(key as keyof FormData, val);
+        appliedAny = true;
+        setAutofilledFields((prev) => {
+          const next = new Set(prev);
+          next.add(key);
+          return next;
+        });
+      }
+    });
+
+    if (appliedAny) {
+      toast.info("We've pre-filled the application using your pre-qualification details!");
+    }
+  }, [setValue]);
+
+  useEffect(() => {
     const sub = methods.watch(data => saveDraftLocal(data as Partial<FormData>));
     return () => sub.unsubscribe();
   }, [methods]);

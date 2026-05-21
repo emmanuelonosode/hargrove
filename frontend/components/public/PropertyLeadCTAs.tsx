@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import {
-  Sparkles, TrendingUp, Calendar, ChevronRight, CheckCircle2, ShieldCheck
+  Sparkles, TrendingUp, ChevronRight, ShieldCheck
 } from "lucide-react";
 import { PropertyEligibilityDrawer } from "./PropertyEligibilityDrawer";
 import { ActiveSpecialModal } from "./ActiveSpecialModal";
@@ -32,19 +32,14 @@ export function PropertyLeadCTAs({
   if (mode === "banner") {
     return (
       <>
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-amber-500/10 via-brand/5 to-purple-600/10 border border-amber-200/50 p-4 sm:p-5 shadow-sm hover:shadow-md transition-all duration-300 animate-pulse">
-          {/* Sparkle background elements */}
-          <div className="absolute -right-4 -top-4 text-amber-500/10 pointer-events-none">
-            <Sparkles size={100} />
-          </div>
-          
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
+        <div className="rounded-2xl bg-amber-50 border border-amber-200/60 p-4 sm:p-5 hover:shadow-sm transition-shadow duration-300">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-start gap-3">
-              <div className="shrink-0 w-10 h-10 rounded-xl bg-amber-500/15 flex items-center justify-center text-amber-600 border border-amber-500/25">
-                <Sparkles size={18} className="animate-spin duration-[6000ms]" />
+              <div className="shrink-0 w-10 h-10 rounded-xl bg-amber-500/15 flex items-center justify-center text-amber-600 border border-amber-500/20">
+                <Sparkles size={17} />
               </div>
               <div>
-                <h4 className="font-serif text-sm sm:text-base font-bold text-brand-dark flex items-center gap-1.5">
+                <h4 className="font-serif text-sm sm:text-base font-bold text-brand-dark flex items-center gap-2">
                   Exclusive Rent Special Active
                   <span className="inline-flex h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
                 </h4>
@@ -53,10 +48,10 @@ export function PropertyLeadCTAs({
                 </p>
               </div>
             </div>
-            
+
             <button
               onClick={() => setSpecialOpen(true)}
-              className="shrink-0 bg-brand hover:bg-brand-hover text-white text-xs font-bold py-3 px-5 rounded-xl transition-all shadow-md shadow-brand/10 hover:shadow-brand/20 cursor-pointer flex items-center gap-1.5 self-start sm:self-auto"
+              className="shrink-0 bg-brand hover:bg-brand-hover text-white text-xs font-bold py-3 px-5 rounded-xl transition-all shadow-md shadow-brand/10 cursor-pointer flex items-center gap-1.5 self-start sm:self-auto"
             >
               Claim Special Offer
               <ChevronRight size={14} />

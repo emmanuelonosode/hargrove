@@ -143,6 +143,32 @@ export function getBestKnownCity(): string {
   }
 }
 
+// ── Device & Session Context ──────────────────────────────────────────────────
+
+/**
+ * Collects passive browser/session signals — no permission required.
+ * Used to enrich lead message fields with context agents find useful.
+ */
+export function getDeviceContext(): string {
+  if (typeof window === "undefined") return "";
+  const lines: string[] = [];
+  try {
+    const device   = /Mobi|Android/i.test(navigator.userAgent) ? "Mobile" : "Desktop";
+    const tz       = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const lang     = navigator.language;
+    const screen   = `${window.screen.width}×${window.screen.height}`;
+    const referrer = document.referrer ? document.referrer : "Direct / None";
+    lines.push(`\n--- Session Context ---`);
+    lines.push(`Device: ${device} | Screen: ${screen}`);
+    lines.push(`Timezone: ${tz} | Language: ${lang}`);
+    lines.push(`Referrer: ${referrer}`);
+    lines.push(`Page: ${window.location.pathname}`);
+  } catch {
+    // never block a form submission
+  }
+  return lines.join("\n");
+}
+
 // ── GTM Events ────────────────────────────────────────────────────────────────
 
 export function trackEvent(event: string, params?: Record<string, unknown>): void {

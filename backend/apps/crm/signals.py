@@ -14,7 +14,7 @@ from django.dispatch import receiver
 logger = logging.getLogger(__name__)
 
 
-def _fire_mailer_webhook(event: str, email: str, name: str = "", phone: str = "", tags: Optional[list] = None, property_slug: Optional[str] = None):
+def _fire_mailer_webhook(event: str, email: str, name: str = "", phone: str = "", tags: Optional[list] = None, property_slug: Optional[str] = None, source: str = "", message: str = ""):
     """
     Fire a webhook to the Hasker Mailer in a background thread.
     Never blocks the main Django request.
@@ -37,6 +37,8 @@ def _fire_mailer_webhook(event: str, email: str, name: str = "", phone: str = ""
                 "name": name,
                 "phone": phone or "",
                 "tags": tags or [],
+                "source": source or "",
+                "message": message or "",
             }
             if property_slug:
                 data_dict["property_slug"] = property_slug
@@ -117,7 +119,9 @@ def on_lead_save(sender, instance, created, **kwargs):
                 name=instance.full_name,
                 phone=instance.phone,
                 tags=tags,
-                property_slug=instance.property_interest.slug
+                property_slug=instance.property_interest.slug,
+                source=instance.source or "",
+                message=instance.message or ""
             )
         else:
             _fire_mailer_webhook(
@@ -126,6 +130,8 @@ def on_lead_save(sender, instance, created, **kwargs):
                 name=instance.full_name,
                 phone=instance.phone,
                 tags=tags,
+                source=instance.source or "",
+                message=instance.message or ""
             )
     else:
         # Lead status changed to QUALIFIED — trigger qualification drip
@@ -136,6 +142,8 @@ def on_lead_save(sender, instance, created, **kwargs):
                 name=instance.full_name,
                 phone=instance.phone,
                 tags=["Lead", "Qualified"],
+                source=instance.source or "",
+                message=instance.message or ""
             )
         elif instance.status == LeadStatus.CONVERTED:
             _fire_mailer_webhook(
@@ -144,6 +152,8 @@ def on_lead_save(sender, instance, created, **kwargs):
                 name=instance.full_name,
                 phone=instance.phone,
                 tags=["Client"],
+                source=instance.source or "",
+                message=instance.message or ""
             )
 
 

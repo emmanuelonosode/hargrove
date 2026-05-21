@@ -29,6 +29,20 @@ class LeadStatus(models.TextChoices):
     LOST = "LOST", "Lost"
 
 
+class MoveInTimeline(models.TextChoices):
+    ASAP          = "ASAP",          "As Soon As Possible"
+    ONE_THREE     = "1_3_MONTHS",    "1–3 Months"
+    THREE_SIX     = "3_6_MONTHS",    "3–6 Months"
+    SIX_PLUS      = "6_PLUS",        "6+ Months"
+    JUST_BROWSING = "JUST_BROWSING", "Just Browsing"
+
+
+class PreferredContact(models.TextChoices):
+    PHONE = "PHONE", "Phone Call"
+    TEXT  = "TEXT",  "Text / SMS"
+    EMAIL = "EMAIL", "Email"
+
+
 class ActivityType(models.TextChoices):
     CALL = "CALL", "Phone Call"
     EMAIL = "EMAIL", "Email"
@@ -79,6 +93,29 @@ class Lead(models.Model):
 
     # Geo-intelligence — city detected from browser IP or search intent
     detected_city  = models.CharField(max_length=100, blank=True)
+
+    # Lead intelligence — lifecycle, household, contact preference
+    move_in_timeline  = models.CharField(
+        max_length=20, choices=MoveInTimeline.choices, blank=True,
+        help_text="How soon the prospect wants to move — key urgency signal"
+    )
+    occupants_count   = models.PositiveSmallIntegerField(
+        null=True, blank=True,
+        help_text="Total number of people who will live in the property"
+    )
+    has_pets          = models.BooleanField(
+        null=True, blank=True,
+        help_text="Whether the prospect has pets — affects property eligibility"
+    )
+    preferred_contact = models.CharField(
+        max_length=10, choices=PreferredContact.choices, blank=True,
+        help_text="How the prospect prefers to be reached"
+    )
+    referral_source   = models.CharField(
+        max_length=150, blank=True,
+        help_text="How the prospect heard about us (self-reported)"
+    )
+
     drip_opted_out = models.BooleanField(default=False,
         help_text="Suppress automated drip sequence for this lead")
 
@@ -111,15 +148,22 @@ class Lead(models.Model):
     def lead_score(self) -> int:
         from django.utils import timezone as tz
         score = 0
-        if self.source == LeadSource.PROPERTY_INQUIRY:  score += 25
-        if self.phone:                                   score += 15
-        if self.property_interest_id:                    score += 15
-        if self.budget_min or self.budget_max:           score += 10
-        if self.utm_source in ("google", "facebook", "instagram"): score += 10
+        if self.source == LeadSource.PROPERTY_INQUIRY:                   score += 25
+        if self.phone:                                                     score += 15
+        if self.property_interest_id:                                      score += 15
+        if self.budget_min or self.budget_max:                             score += 10
+        if self.utm_source in ("google", "facebook", "instagram"):        score += 10
+        # Urgency signal — move-in timeline
+        if self.move_in_timeline == MoveInTimeline.ASAP:                  score += 15
+        elif self.move_in_timeline in (MoveInTimeline.ONE_THREE, MoveInTimeline.THREE_SIX): score += 8
+        # Engagement signals — more info filled = higher intent
+        if self.occupants_count:                                           score += 5
+        if self.has_pets is not None:                                      score += 3
+        if self.preferred_contact:                                         score += 4
         score += min(self.activities.count() * 5, 20)
         days_old = (tz.now() - self.created_at).days
-        if days_old > 30 and self.status == LeadStatus.NEW:           score -= 15
-        if self.status == LeadStatus.LOST:                             score  = max(score - 30, 0)
+        if days_old > 30 and self.status == LeadStatus.NEW:               score -= 15
+        if self.status == LeadStatus.LOST:                                 score  = max(score - 30, 0)
         if self.status in (LeadStatus.CONVERTED, LeadStatus.NEGOTIATING): score = min(score + 20, 100)
         return min(max(score, 0), 100)
 
