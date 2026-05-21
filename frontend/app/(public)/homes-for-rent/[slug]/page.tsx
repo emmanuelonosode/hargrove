@@ -1,4 +1,4 @@
-﻿import { notFound } from "next/navigation";
+import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -21,6 +21,7 @@ import { PropertyImageGallery } from "@/components/public/PropertyImageGallery";
 import { PropertyCard } from "@/components/public/PropertyCard";
 import { PropertyDetailMapLoader } from "@/components/public/PropertyDetailMapLoader";
 import { FavoriteButton } from "@/components/public/FavoriteButton";
+import { PropertyLeadCTAs } from "@/components/public/PropertyLeadCTAs";
 import type { DetailMarker } from "@/components/public/PropertyDetailMap";
 import { PropertyPageTracker } from "@/components/public/PropertyPageTracker";
 import { formatPrice, formatNumber } from "@/lib/utils";
@@ -343,6 +344,18 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
             {/* LEFT — property details */}
             <div className="lg:col-span-2 space-y-10">
 
+              {/* Rent Special Banner */}
+              {(property.listing_type === "for-rent" || property.listing_type === "for-lease") && (
+                <PropertyLeadCTAs
+                  mode="banner"
+                  propertyId={property.id}
+                  propertySlug={property.slug}
+                  propertyTitle={property.title}
+                  propertyPrice={Number(property.price)}
+                  propertyCity={property.city}
+                />
+              )}
+
               {/* Breadcrumb */}
               <nav className="flex items-center gap-2 text-xs text-neutral-400">
                 <Link href="/" className="hover:text-brand transition-colors">Home</Link>
@@ -562,6 +575,8 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
                     propertySlug={property.slug}
                     propertyTitle={property.title}
                     listingType={property.listing_type}
+                    propertyId={property.id}
+                    propertyCity={property.city}
                   />
                 </div>
               </div>
@@ -602,9 +617,14 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
                         <p className="text-[11px] text-neutral-400 mt-1 font-medium">— Marcus T., {property.city}</p>
                       </div>
 
-                      <Button variant="accent" className="w-full mb-3" asChild>
-                        <Link href={`/apply?property=${property.slug}`}>Apply Free — Decision in 24 Hours</Link>
-                      </Button>
+                      <PropertyLeadCTAs
+                        mode="sidebar"
+                        propertyId={property.id}
+                        propertySlug={property.slug}
+                        propertyTitle={property.title}
+                        propertyPrice={Number(property.price)}
+                        propertyCity={property.city}
+                      />
                     </>
                   )}
                   {property.listing_type === "for-sale" && (
@@ -661,6 +681,8 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
                     propertySlug={property.slug}
                     propertyTitle={property.title}
                     listingType={property.listing_type}
+                    propertyId={property.id}
+                    propertyCity={property.city}
                   />
                 </div>
               </div>
@@ -698,27 +720,34 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
               <p className="text-xs font-semibold uppercase tracking-wider text-neutral-400">{listingLabel}</p>
               <p className="font-serif text-xl font-bold text-brand-dark leading-tight">{priceDisplay}</p>
             </div>
-            <a
-              href="#schedule-form-mobile"
-              className="shrink-0 h-11 px-5 bg-brand-dark text-white text-sm font-semibold rounded-lg flex items-center gap-1.5 hover:bg-brand transition-colors"
-            >
-              <Calendar size={14} /> Tour
-            </a>
-            {(property.listing_type === "for-rent" || property.listing_type === "for-lease") && (
-              <Link
-                href={`/apply?property=${property.slug}`}
-                className="shrink-0 h-11 px-5 bg-brand text-white text-sm font-semibold rounded-lg flex items-center hover:opacity-90 transition-opacity"
-              >
-                Apply Free
-              </Link>
-            )}
-            {property.listing_type === "for-sale" && (
-              <Link
-                href={`/contact?property=${property.slug}&inquiry=purchase`}
-                className="shrink-0 h-11 px-5 bg-brand text-white text-sm font-semibold rounded-lg flex items-center hover:opacity-90 transition-opacity"
-              >
-                Inquire
-              </Link>
+            {(property.listing_type === "for-rent" || property.listing_type === "for-lease") ? (
+              <div className="flex-1 max-w-[65%] flex justify-end">
+                <PropertyLeadCTAs
+                  mode="mobile-sticky"
+                  propertyId={property.id}
+                  propertySlug={property.slug}
+                  propertyTitle={property.title}
+                  propertyPrice={Number(property.price)}
+                  propertyCity={property.city}
+                />
+              </div>
+            ) : (
+              <>
+                <a
+                  href="#schedule-form-mobile"
+                  className="shrink-0 h-11 px-5 bg-brand-dark text-white text-sm font-semibold rounded-lg flex items-center gap-1.5 hover:bg-brand transition-colors"
+                >
+                  <Calendar size={14} /> Tour
+                </a>
+                {property.listing_type === "for-sale" && (
+                  <Link
+                    href={`/contact?property=${property.slug}&inquiry=purchase`}
+                    className="shrink-0 h-11 px-5 bg-brand text-white text-sm font-semibold rounded-lg flex items-center hover:opacity-90 transition-opacity"
+                  >
+                    Inquire
+                  </Link>
+                )}
+              </>
             )}
           </div>
         </div>
