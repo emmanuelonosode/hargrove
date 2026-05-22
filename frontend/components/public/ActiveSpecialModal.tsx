@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import {
   X, Timer, Check, Copy, User, Mail, Phone, ArrowRight, Lock
 } from "lucide-react";
-import { getStoredUTMs, getBestKnownCity, getDeviceContext, trackEvent } from "@/lib/tracking";
+import { getStoredUTMs, getStoredReferralCode, getBestKnownCity, getDeviceContext, trackEvent } from "@/lib/tracking";
 
 interface Props {
   open: boolean;
@@ -139,10 +139,11 @@ export function ActiveSpecialModal({
         services_requested: [propertySlug],
         message: `Claimed Special Offer for "${propertyTitle}":\n` +
                  `- Code requested: HASKERFREE\n` +
-                 `- Offer: $100 App Fee Waived + $150 Off First Month's Rent\n` +
+                 `- Offer: First Month's Rent FREE\n` +
                  `- Remaining Time on Countdown: ${formatTime(timeLeft)}` +
                  getDeviceContext(),
         detected_city: propertyCity || getBestKnownCity() || undefined,
+        referral_code: getStoredReferralCode() || undefined,
         ...getStoredUTMs(),
       };
 
@@ -207,8 +208,7 @@ export function ActiveSpecialModal({
               Unlock Your Rent Special
             </h3>
             <p className="text-white/65 text-xs sm:text-sm leading-relaxed">
-              Waive your <strong className="text-white font-semibold">$100 application fee</strong> &amp; get{" "}
-              <strong className="text-white font-semibold">$150 off</strong> your first month at{" "}
+              Get your <strong className="text-white font-semibold">first month&apos;s rent FREE</strong> on your lease at{" "}
               <strong className="text-white/90 font-medium">{propertyTitle}</strong>.
             </p>
           </div>
@@ -369,7 +369,7 @@ export function ActiveSpecialModal({
               </div>
 
               <div className="bg-emerald-50 border border-emerald-100 rounded-xl px-4 py-3.5 text-[11px] text-emerald-800 leading-relaxed text-left max-w-sm mx-auto">
-                <strong>Next Steps:</strong> Paste this code in the &quot;Promotional Code&quot; field on the payment page to waive your fee and claim your discount.
+                <strong>Next Steps:</strong> Paste this code in the &quot;Promotional Code&quot; field during your application to claim your free month of rent.
               </div>
 
               <button

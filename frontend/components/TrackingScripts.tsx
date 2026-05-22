@@ -2,7 +2,7 @@
 
 import Script from "next/script";
 import { useEffect, useState } from "react";
-import { hasConsent, captureUTMs, captureLocation } from "@/lib/tracking";
+import { hasConsent, captureUTMs, captureReferralCode, captureLocation } from "@/lib/tracking";
 
 const GTM_ID   = process.env.NEXT_PUBLIC_GTM_ID;
 const GA_ID    = process.env.NEXT_PUBLIC_GA_ID;
@@ -13,6 +13,7 @@ export function TrackingScripts() {
 
   useEffect(() => {
     captureUTMs();
+    captureReferralCode();
     captureLocation();
     setConsent(hasConsent());
     const handler = () => setConsent(true);

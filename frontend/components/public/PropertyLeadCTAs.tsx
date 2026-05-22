@@ -44,7 +44,7 @@ export function PropertyLeadCTAs({
                   <span className="inline-flex h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
                 </h4>
                 <p className="text-xs text-neutral-500 mt-1 leading-normal max-w-xl">
-                  Waive your <strong className="text-brand-dark font-semibold">$100 application fee</strong> &amp; get <strong className="text-brand-dark font-semibold">$150 off</strong> first month&apos;s rent today! Offer ends soon.
+                  Get your <strong className="text-brand-dark font-semibold">first month&apos;s rent FREE</strong> on qualifying rentals. Limited time — offer ends soon.
                 </p>
               </div>
             </div>

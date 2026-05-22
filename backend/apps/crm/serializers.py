@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Lead, LeadActivity, Client, LeadStatus, RentalApplication, ApplicationStatus
+from .models import Lead, LeadActivity, Client, LeadStatus, RentalApplication, ApplicationStatus, Referrer, ReferralPayout, ReferralStatus  # noqa: F401
 
 
 class LeadCreateSerializer(serializers.ModelSerializer):
@@ -18,12 +18,26 @@ class LeadCreateSerializer(serializers.ModelSerializer):
             # Lead intelligence
             "move_in_timeline", "occupants_count", "has_pets",
             "preferred_contact", "referral_source",
+            # Referral program
+            "referral_code",
         ]
 
     def validate_services_requested(self, value):
         if not isinstance(value, list):
             raise serializers.ValidationError("Must be a list.")
         return value
+
+    def create(self, validated_data):
+        instance = super().create(validated_data)
+        # Auto-create a ReferralPayout record if the code matches a live Referrer
+        code = instance.referral_code.strip().upper() if instance.referral_code else ""
+        if code:
+            try:
+                referrer = Referrer.objects.get(code=code, is_active=True)
+                ReferralPayout.objects.create(referrer=referrer, lead=instance)
+            except Referrer.DoesNotExist:
+                pass
+        return instance
 
 
 class LeadActivitySerializer(serializers.ModelSerializer):
@@ -272,3 +286,48 @@ class RentalApplicationAdminSerializer(serializers.ModelSerializer):
 
     def get_lead_name(self, obj):
         return obj.lead.full_name if obj.lead else None
+
+
+class ReferrerSerializer(serializers.ModelSerializer):
+    payout_count = serializers.SerializerMethodField()
+    total_earned = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Referrer
+        fields = [
+            "id", "name", "email", "phone", "code",
+            "is_active", "notes", "created_at",
+            "payout_count", "total_earned",
+        ]
+        read_only_fields = ["id", "code", "created_at"]
+
+    def get_payout_count(self, obj):
+        return obj.payouts.count()
+
+    def get_total_earned(self, obj):
+        from django.db.models import Sum  # local — serializers don't import db.models at module level
+        result = obj.payouts.filter(status=ReferralStatus.PAID).aggregate(t=Sum("commission_amount"))
+        return result["t"] or 0
+
+
+class ReferralPayoutSerializer(serializers.ModelSerializer):
+    referrer_name = serializers.CharField(source="referrer.name", read_only=True)
+    referrer_code = serializers.CharField(source="referrer.code", read_only=True)
+    lead_name     = serializers.CharField(source="lead.full_name", read_only=True, default=None)
+    lead_email    = serializers.CharField(source="lead.email", read_only=True, default=None)
+    status_display = serializers.CharField(source="get_status_display", read_only=True)
+    property_title = serializers.CharField(
+        source="rental_application.rental_property.title", read_only=True, default=None
+    )
+
+    class Meta:
+        model = ReferralPayout
+        fields = [
+            "id", "referrer", "referrer_name", "referrer_code",
+            "lead", "lead_name", "lead_email",
+            "rental_application", "property_title",
+            "status", "status_display",
+            "monthly_rent", "commission_rate", "commission_months", "commission_amount",
+            "notes", "created_at", "converted_at", "paid_at",
+        ]
+        read_only_fields = ["id", "created_at", "commission_amount"]

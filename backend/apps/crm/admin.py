@@ -1,10 +1,14 @@
 import logging
 
 from django.contrib import admin
+from django.db.models import Sum
 from django.utils.html import format_html
 from django.utils import timezone
 from unfold.admin import ModelAdmin, TabularInline
-from .models import Lead, LeadActivity, Client, LeadStatus, RentalApplication, ApplicationStatus, MoveInTimeline
+from .models import (
+    Lead, LeadActivity, Client, LeadStatus, RentalApplication, ApplicationStatus,
+    MoveInTimeline, Referrer, ReferralPayout, ReferralStatus,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -75,7 +79,7 @@ class LeadAdmin(ModelAdmin):
             "fields": ("status", "assigned_agent", "last_contacted_at", "drip_opted_out"),
         }),
         ("Attribution", {
-            "fields": ("detected_city", "referral_source", "utm_source", "utm_medium", "utm_campaign"),
+            "fields": ("detected_city", "referral_source", "referral_code", "utm_source", "utm_medium", "utm_campaign"),
             "classes": ("collapse",),
         }),
         ("Timestamps", {
@@ -460,3 +464,136 @@ class RentalApplicationAdmin(ModelAdmin):
                 send_abandoned_application_email(app.pk)
             count += 1
         self.message_user(request, f"Recovery email queued for {count} applicant(s).")
+
+
+# ── Referral Program ──────────────────────────────────────────────────────────
+
+class ReferralPayoutInline(TabularInline):
+    model = ReferralPayout
+    extra = 0
+    fields = ["lead", "rental_application", "status", "monthly_rent", "commission_amount", "paid_at"]
+    readonly_fields = ["commission_amount"]
+    can_delete = False
+    verbose_name = "Payout"
+    verbose_name_plural = "Payouts"
+
+
+@admin.register(Referrer)
+class ReferrerAdmin(ModelAdmin):
+    list_display  = ["name", "email", "phone", "code_badge", "payout_count", "total_earned_display", "is_active", "created_at"]
+    list_filter   = ["is_active"]
+    search_fields = ["name", "email", "code"]
+    readonly_fields = ["code", "created_at", "referral_link"]
+    ordering      = ["-created_at"]
+    inlines       = [ReferralPayoutInline]
+
+    fieldsets = (
+        ("Referrer", {
+            "fields": ("name", "email", "phone", "is_active", "notes"),
+        }),
+        ("Referral Link", {
+            "fields": ("code", "referral_link"),
+            "description": "Share this link with the referrer. It auto-tracks who sent the lead.",
+        }),
+        ("Timestamps", {
+            "fields": ("created_at",),
+            "classes": ("collapse",),
+        }),
+    )
+
+    def referral_link(self, obj):
+        path = f"/?ref={obj.code}"
+        return format_html(
+            '<code style="background:#f4f4f4;padding:4px 10px;border-radius:4px">{}</code>',
+            path,
+        )
+    referral_link.short_description = "Referral Path"
+
+    def code_badge(self, obj):
+        return format_html(
+            '<code style="background:#eff6ff;color:#1d4ed8;padding:2px 8px;border-radius:4px;font-weight:700">{}</code>',
+            obj.code,
+        )
+    code_badge.short_description = "Code"
+
+    def payout_count(self, obj):
+        return obj.payouts.count()
+    payout_count.short_description = "Referrals"
+
+    def total_earned_display(self, obj):
+        result = obj.payouts.filter(status=ReferralStatus.PAID).aggregate(t=Sum("commission_amount"))
+        total = result["t"] or 0
+        return format_html('<strong style="color:#16a34a">${:,.2f}</strong>', total)
+    total_earned_display.short_description = "Total Paid Out"
+
+
+@admin.register(ReferralPayout)
+class ReferralPayoutAdmin(ModelAdmin):
+    list_display  = ["referrer", "lead_name", "property_display", "status_badge", "monthly_rent", "commission_display", "created_at", "paid_at"]
+    list_filter   = ["status", "referrer"]
+    search_fields = ["referrer__name", "referrer__code", "lead__full_name", "lead__email"]
+    ordering      = ["-created_at"]
+    readonly_fields = ["commission_amount", "created_at"]
+    actions       = ["mark_converted", "mark_paid", "mark_void"]
+
+    fieldsets = (
+        ("Referral", {
+            "fields": ("referrer", "lead", "rental_application"),
+        }),
+        ("Commission", {
+            "fields": ("status", "monthly_rent", "commission_rate", "commission_months", "commission_amount"),
+            "description": "Commission = monthly_rent × commission_months × commission_rate. Auto-calculated on save.",
+        }),
+        ("Dates & Notes", {
+            "fields": ("converted_at", "paid_at", "notes"),
+        }),
+        ("Timestamps", {
+            "fields": ("created_at",),
+            "classes": ("collapse",),
+        }),
+    )
+
+    def lead_name(self, obj):
+        return obj.lead.full_name if obj.lead else "—"
+    lead_name.short_description = "Lead"
+
+    def property_display(self, obj):
+        if obj.rental_application and obj.rental_application.rental_property:
+            return obj.rental_application.rental_property.title
+        return "—"
+    property_display.short_description = "Property"
+
+    def status_badge(self, obj):
+        colors = {
+            ReferralStatus.PENDING:   "#f59e0b",
+            ReferralStatus.CONVERTED: "#2563eb",
+            ReferralStatus.PAID:      "#16a34a",
+            ReferralStatus.VOID:      "#9ca3af",
+        }
+        color = colors.get(obj.status, "#6b7280")
+        return format_html(
+            '<span style="background:{};color:#fff;padding:2px 8px;border-radius:9999px;font-size:11px">{}</span>',
+            color, obj.get_status_display(),
+        )
+    status_badge.short_description = "Status"
+
+    def commission_display(self, obj):
+        if obj.commission_amount:
+            return format_html('<strong>${:,.2f}</strong>', obj.commission_amount)
+        return "—"
+    commission_display.short_description = "Commission"
+
+    @admin.action(description="Mark selected as Tenant Converted")
+    def mark_converted(self, request, queryset):
+        updated = queryset.update(status=ReferralStatus.CONVERTED, converted_at=timezone.now())
+        self.message_user(request, f"{updated} payout(s) marked as Converted.")
+
+    @admin.action(description="Mark selected as Commission Paid")
+    def mark_paid(self, request, queryset):
+        updated = queryset.update(status=ReferralStatus.PAID, paid_at=timezone.now())
+        self.message_user(request, f"{updated} payout(s) marked as Paid.")
+
+    @admin.action(description="Mark selected as Void")
+    def mark_void(self, request, queryset):
+        updated = queryset.update(status=ReferralStatus.VOID)
+        self.message_user(request, f"{updated} payout(s) voided.")

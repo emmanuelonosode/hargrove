@@ -31,6 +31,26 @@ export function denyConsent(): void {
   localStorage.setItem(CONSENT_KEY, "denied");
 }
 
+// ── Referral Code Capture ─────────────────────────────────────────────────────
+
+const REFERRAL_KEY = "hasker_referral_code";
+
+/**
+ * Reads ?ref= from the URL and stores it in sessionStorage.
+ * Safe to call without consent — no data leaves the browser.
+ */
+export function captureReferralCode(): void {
+  if (typeof window === "undefined") return;
+  const ref = new URLSearchParams(window.location.search).get("ref");
+  if (ref) sessionStorage.setItem(REFERRAL_KEY, ref.trim().toUpperCase());
+}
+
+/** Returns the stored referral code for attaching to form payloads. */
+export function getStoredReferralCode(): string {
+  if (typeof window === "undefined") return "";
+  return sessionStorage.getItem(REFERRAL_KEY) ?? "";
+}
+
 // ── UTM Capture ───────────────────────────────────────────────────────────────
 
 export interface UTMParams {

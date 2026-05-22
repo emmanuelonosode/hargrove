@@ -1,4 +1,10 @@
+import uuid
+
 from django.db import models
+
+
+def _generate_referral_code():
+    return uuid.uuid4().hex[:8].upper()
 
 
 class LeadSource(models.TextChoices):
@@ -114,6 +120,12 @@ class Lead(models.Model):
     referral_source   = models.CharField(
         max_length=150, blank=True,
         help_text="How the prospect heard about us (self-reported)"
+    )
+
+    referral_code = models.CharField(
+        max_length=20, blank=True,
+        help_text="Referral code used when this lead was captured (links to a Referrer)",
+        db_index=True,
     )
 
     drip_opted_out = models.BooleanField(default=False,
@@ -389,4 +401,93 @@ class RentalApplication(models.Model):
             match = Lead.objects.filter(email=self.email).order_by("-created_at").first()
             if match:
                 self.lead = match
+        super().save(*args, **kwargs)
+
+
+# ── Referral Program ──────────────────────────────────────────────────────────
+
+class Referrer(models.Model):
+    """A person who refers prospective tenants and earns a commission."""
+    name  = models.CharField(max_length=200)
+    email = models.EmailField(unique=True)
+    phone = models.CharField(max_length=20, blank=True)
+    code  = models.CharField(
+        max_length=20, unique=True, default=_generate_referral_code,
+        help_text="Unique code shared in referral links (?ref=CODE)",
+    )
+    is_active = models.BooleanField(default=True)
+    notes     = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.name} ({self.code})"
+
+    @property
+    def referral_link_path(self):
+        return f"/?ref={self.code}"
+
+
+class ReferralStatus(models.TextChoices):
+    PENDING   = "PENDING",   "Pending"
+    CONVERTED = "CONVERTED", "Tenant Converted"
+    PAID      = "PAID",      "Commission Paid"
+    VOID      = "VOID",      "Void"
+
+
+class ReferralPayout(models.Model):
+    """
+    Tracks one referral event — referrer → lead → (optionally) paying tenant.
+    Commission = monthly_rent × commission_months × commission_rate
+    Default: 40% of first 2 months = 80% of one month's rent.
+    """
+    referrer = models.ForeignKey(
+        Referrer, on_delete=models.PROTECT, related_name="payouts",
+    )
+    lead = models.ForeignKey(
+        Lead, null=True, blank=True,
+        on_delete=models.SET_NULL, related_name="referral_payout",
+    )
+    rental_application = models.ForeignKey(
+        RentalApplication, null=True, blank=True,
+        on_delete=models.SET_NULL, related_name="referral_payout",
+    )
+    status = models.CharField(
+        max_length=20, choices=ReferralStatus.choices, default=ReferralStatus.PENDING,
+    )
+    monthly_rent     = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True,
+        help_text="Actual rent amount — set when tenant pays first month",
+    )
+    commission_rate   = models.DecimalField(max_digits=4, decimal_places=2, default=0.40,
+        help_text="Fraction of monthly rent paid per month (default 40%)",
+    )
+    commission_months = models.PositiveSmallIntegerField(default=2,
+        help_text="Number of months the commission applies to (default 2)",
+    )
+    commission_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True,
+        help_text="Auto-calculated: monthly_rent × commission_months × commission_rate",
+    )
+    notes        = models.TextField(blank=True)
+    created_at   = models.DateTimeField(auto_now_add=True)
+    converted_at = models.DateTimeField(null=True, blank=True)
+    paid_at      = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Referral Payout"
+        verbose_name_plural = "Referral Payouts"
+
+    def __str__(self):
+        return f"{self.referrer.name} → {self.lead or 'unlinked lead'}"
+
+    def calculate_commission(self):
+        if self.monthly_rent:
+            return self.monthly_rent * self.commission_months * self.commission_rate
+        return None
+
+    def save(self, *args, **kwargs):
+        if self.monthly_rent and not self.commission_amount:
+            self.commission_amount = self.calculate_commission()
         super().save(*args, **kwargs)

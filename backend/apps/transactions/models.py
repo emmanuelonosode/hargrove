@@ -161,6 +161,11 @@ class Payment(models.Model):
     receipt_sent = models.BooleanField(default=False)
     receipt_pdf = models.CharField(max_length=500, blank=True, help_text="Cloudinary URL of generated PDF receipt")
     notes = models.TextField(blank=True)
+    allocated_items = models.JSONField(
+        default=list,
+        blank=True,
+        help_text='Line item descriptions covered by this payment, e.g. ["Security Deposit", "Pet Fee"]',
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

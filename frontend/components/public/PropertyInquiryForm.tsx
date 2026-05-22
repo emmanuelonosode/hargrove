@@ -6,7 +6,7 @@ import {
   Calendar, Clock, MapPin, Video, Phone, ArrowRight, Loader2, CheckCircle2,
   User, Mail, Sun, Sunset
 } from "lucide-react";
-import { getStoredUTMs, getBestKnownCity, getDeviceContext, trackEvent } from "@/lib/tracking";
+import { getStoredUTMs, getStoredReferralCode, getBestKnownCity, getDeviceContext, trackEvent } from "@/lib/tracking";
 
 const API_BASE = "";
 
@@ -158,6 +158,7 @@ export function PropertyInquiryForm({
           message: constructedMessage + getDeviceContext(),
           services_requested: [propertySlug],
           detected_city: propertyCity || getBestKnownCity() || undefined,
+          referral_code: getStoredReferralCode() || undefined,
           ...getStoredUTMs(),
         }),
       });

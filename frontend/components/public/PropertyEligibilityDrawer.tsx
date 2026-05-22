@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { formatPrice } from "@/lib/utils";
-import { getStoredUTMs, getBestKnownCity, getStoredLocation, getDeviceContext, trackEvent } from "@/lib/tracking";
+import { getStoredUTMs, getStoredReferralCode, getBestKnownCity, getStoredLocation, getDeviceContext, trackEvent } from "@/lib/tracking";
 
 interface Props {
   open: boolean;
@@ -147,6 +147,7 @@ export function PropertyEligibilityDrawer({
           preferred_location: [loc1.city, loc1.region].filter(Boolean).join(", ") || undefined,
           message: `Started eligibility check for "${propertyTitle}" — contact captured at step 1.` + getDeviceContext(),
           detected_city: propertyCity || getBestKnownCity() || undefined,
+          referral_code: getStoredReferralCode() || undefined,
           ...getStoredUTMs(),
         }),
       }).catch(() => {});
@@ -188,6 +189,7 @@ export function PropertyEligibilityDrawer({
                    `- Pre-Qualified Status: ${passesIncomeRatio ? "YES" : "NO"} (Rent is $${propertyPrice.toLocaleString()}/mo, 3x rent is $${(propertyPrice * 3).toLocaleString()}/mo)` +
                    getDeviceContext(),
           detected_city: propertyCity || getBestKnownCity() || undefined,
+          referral_code: getStoredReferralCode() || undefined,
           ...getStoredUTMs(),
         };
 

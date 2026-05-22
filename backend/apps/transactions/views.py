@@ -162,9 +162,17 @@ class SubmitPaymentProofView(generics.CreateAPIView):
                 from rest_framework.exceptions import ValidationError
                 raise ValidationError({"proof_file": f"Upload failed: {str(e)}"})
 
+        import json as _json
+        raw_allocated = self.request.data.get("allocated_items", "[]")
+        try:
+            allocated_items = _json.loads(raw_allocated) if isinstance(raw_allocated, str) else list(raw_allocated)
+        except (ValueError, TypeError):
+            allocated_items = []
+
         serializer.save(
             proof_image=final_proof_url,
             status="PENDING_VERIFICATION",
+            allocated_items=allocated_items,
         )
 
 

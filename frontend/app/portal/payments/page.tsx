@@ -49,6 +49,7 @@ interface Payment {
   status: string;
   created_at: string;
   invoice: number | null;
+  allocated_items?: string[];
 }
 
 interface PaymentConfig {
@@ -146,7 +147,7 @@ const PAYMENT_LOGOS: Record<string, React.ReactNode> = {
   CHIME: <ChimeLogo />, BANK_TRANSFER: <ZelleLogo />,
 };
 
-type ModalStep = "form" | "success";
+type ModalStep = "items" | "form" | "success";
 
 const EMPTY_BANK: Pick<PaymentConfig, "recipient_name"|"bank_name"|"account_type"|"account_number"|"routing_number"|"swift_bic"|"bank_address"|"recipient_address"> = {
   recipient_name: "", bank_name: "", account_type: "", account_number: "",
@@ -170,13 +171,25 @@ function PaymentModal({
   onClose: () => void;
   onSuccess: () => void;
 }) {
-  const [step, setStep] = useState<ModalStep>("form");
+  const lineItems = invoice.line_items ?? [];
+  const hasMultipleItems = lineItems.length >= 2;
+
+  const [step, setStep] = useState<ModalStep>(hasMultipleItems ? "items" : "form");
+  const [selectedIndices, setSelectedIndices] = useState<Set<number>>(
+    () => hasMultipleItems ? new Set() : new Set(lineItems.map((_, i) => i))
+  );
   const [method, setMethod] = useState<string>("VENMO");
   const [copied, setCopied] = useState<string | null>(null);
   const [refId, setRefId] = useState("");
   const [file, setProofFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const allSelected = lineItems.length > 0 && selectedIndices.size === lineItems.length;
+  const selectedAmount = lineItems.length > 0
+    ? lineItems.reduce((sum, item, i) => selectedIndices.has(i) ? sum + Number(item.total) : sum, 0)
+    : Number(invoice.total);
+  const isPartial = hasMultipleItems && selectedIndices.size > 0 && !allSelected;
 
   const copy = useCallback((value: string, key: string) => {
     navigator.clipboard.writeText(value).then(() => {
@@ -197,12 +210,21 @@ function PaymentModal({
     if (!file) return setError("Please upload a screenshot of your transfer");
     setLoading(true); setError("");
     try {
+      const amountToPay = selectedAmount > 0 ? selectedAmount : Number(invoice.total);
       const formData = new FormData();
       formData.append("invoice", String(invoice.id));
-      formData.append("amount", invoice.total);
+      formData.append("amount", String(amountToPay));
       formData.append("payment_method", method);
       formData.append("reference_id", refId.trim());
       formData.append("proof_file", file);
+      if (lineItems.length > 0) {
+        const descriptions = lineItems
+          .filter((_, i) => selectedIndices.has(i))
+          .map(item => item.description);
+        formData.append("allocated_items", JSON.stringify(
+          descriptions.length > 0 ? descriptions : lineItems.map(item => item.description)
+        ));
+      }
       const res = await apiFetch(`/api/v1/transactions/my-payments/submit-proof/`, {
         method: "POST", body: formData,
       });
@@ -247,13 +269,31 @@ function PaymentModal({
         </div>
 
         {/* Header */}
-        <div className="px-6 py-4 border-b border-black/[0.04] flex items-center justify-between shrink-0">
-          <div>
-            <h3 className="text-[17px] font-bold text-[#1D1D1F]">Submit Payment Proof</h3>
-            <p className="text-[12px] text-[#6E6E73]">{invoice.invoice_number} · {fmt(invoice.total)}</p>
+        <div className="px-6 py-4 border-b border-black/[0.04] flex items-center gap-3 shrink-0">
+          {hasMultipleItems && step === "form" && !loading && (
+            <button
+              type="button"
+              onClick={() => setStep("items")}
+              className="w-8 h-8 rounded-full bg-[#F5F5F7] flex items-center justify-center text-[#6E6E73] hover:text-[#1D1D1F] transition-colors shrink-0"
+              aria-label="Back to item selection"
+            >
+              <ArrowLeft size={16} />
+            </button>
+          )}
+          <div className="flex-1 min-w-0">
+            <h3 className="text-[17px] font-bold text-[#1D1D1F]">
+              {step === "items" ? "Select Items to Pay" : "Submit Payment Proof"}
+            </h3>
+            <p className="text-[12px] text-[#6E6E73] truncate">
+              {invoice.invoice_number} · {isPartial ? `Paying ${fmt(selectedAmount)} of ${fmt(invoice.total)}` : fmt(invoice.total)}
+            </p>
           </div>
-          {!loading && (
-            <button onClick={onClose} className="w-8 h-8 rounded-full bg-[#F5F5F7] flex items-center justify-center text-[#6E6E73] hover:text-[#1D1D1F] transition-colors">
+          {!loading && step !== "success" && (
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-8 h-8 rounded-full bg-[#F5F5F7] flex items-center justify-center text-[#6E6E73] hover:text-[#1D1D1F] transition-colors shrink-0"
+            >
               <X size={16} />
             </button>
           )}
@@ -261,7 +301,127 @@ function PaymentModal({
 
         {/* Scrollable body */}
         <div className="overflow-y-auto flex-1">
-          {step === "success" ? (
+          {step === "items" ? (
+            /* ── Item Selector ── */
+            <div className="p-5 flex flex-col min-h-full">
+              {/* Title row */}
+              <div className="flex items-start justify-between gap-3 mb-5">
+                <div>
+                  <p className="text-[12px] text-[#6E6E73] leading-relaxed">
+                    Select the charges you can cover right now.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (allSelected) setSelectedIndices(new Set());
+                    else setSelectedIndices(new Set(lineItems.map((_, i) => i)));
+                  }}
+                  className={cn(
+                    "shrink-0 text-[12px] font-bold px-3 py-1.5 rounded-xl border-2 transition-all cursor-pointer",
+                    allSelected
+                      ? "border-[#34C759] text-[#34C759] bg-[#E6F9ED]"
+                      : "border-brand text-brand bg-brand/5 hover:bg-brand/10"
+                  )}
+                >
+                  {allSelected ? "✓ All Selected" : "Pay All"}
+                </button>
+              </div>
+
+              {/* Line item cards */}
+              <div className="space-y-2 flex-1">
+                {lineItems.map((item, i) => {
+                  const selected = selectedIndices.has(i);
+                  return (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => {
+                        setSelectedIndices(prev => {
+                          const next = new Set(prev);
+                          if (next.has(i)) next.delete(i); else next.add(i);
+                          return next;
+                        });
+                      }}
+                      className={cn(
+                        "w-full flex items-center gap-4 px-4 py-4 rounded-2xl border-2 text-left transition-all cursor-pointer",
+                        selected
+                          ? "border-brand bg-brand/[0.04] shadow-sm"
+                          : "border-[#E5E5EA] bg-white hover:border-[#C7C7CC]"
+                      )}
+                    >
+                      {/* Custom circle checkbox */}
+                      <div className={cn(
+                        "w-5 h-5 rounded-full border-2 shrink-0 flex items-center justify-center transition-all",
+                        selected ? "border-brand bg-brand" : "border-[#C7C7CC] bg-white"
+                      )}>
+                        {selected && (
+                          <svg viewBox="0 0 16 16" fill="none" className="w-3 h-3" aria-hidden="true">
+                            <path d="M3 8l3.5 3.5 6.5-7" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        )}
+                      </div>
+
+                      {/* Description */}
+                      <div className="flex-1 min-w-0">
+                        <p className={cn(
+                          "text-[14px] font-semibold leading-tight truncate",
+                          selected ? "text-brand" : "text-[#1D1D1F]"
+                        )}>
+                          {item.description}
+                        </p>
+                        {item.quantity > 1 && (
+                          <p className="text-[11px] text-[#6E6E73] mt-0.5">× {item.quantity}</p>
+                        )}
+                      </div>
+
+                      {/* Amount */}
+                      <p className={cn(
+                        "text-[15px] font-bold tabular-nums shrink-0",
+                        selected ? "text-brand" : "text-[#1D1D1F]"
+                      )}>
+                        {fmt(item.total)}
+                      </p>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Running total / CTA bar */}
+              <div className="mt-5 bg-[#0B1F3A] rounded-2xl px-5 py-4 flex items-center justify-between gap-4">
+                <div className="min-w-0">
+                  <p className={cn(
+                    "text-[13px] font-bold leading-tight",
+                    selectedIndices.size > 0 ? "text-white" : "text-white/50"
+                  )}>
+                    {selectedIndices.size === 0
+                      ? "Nothing selected yet"
+                      : `${selectedIndices.size} item${selectedIndices.size !== 1 ? "s" : ""} selected`}
+                  </p>
+                  {selectedIndices.size > 0 && (
+                    <p className="text-[11px] text-white/50 mt-0.5">
+                      {allSelected ? "Full balance" : `of ${fmt(invoice.total)} total`}
+                    </p>
+                  )}
+                </div>
+                <div className="text-right shrink-0">
+                  {selectedIndices.size > 0 && (
+                    <p className="text-[22px] font-bold text-white tabular-nums leading-tight">
+                      {fmt(selectedAmount)}
+                    </p>
+                  )}
+                  <button
+                    type="button"
+                    disabled={selectedIndices.size === 0}
+                    onClick={() => setStep("form")}
+                    className="mt-1.5 text-[12px] font-bold bg-white text-[#0B1F3A] px-4 py-2 rounded-xl disabled:opacity-40 transition-all hover:bg-[#F5F5F7] cursor-pointer disabled:cursor-not-allowed whitespace-nowrap"
+                  >
+                    {allSelected ? "Pay Full Balance →" : "Continue with Selection →"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : step === "success" ? (
             <div className="px-6 py-12 flex flex-col items-center text-center">
               <div className="w-16 h-16 rounded-full bg-[#E6F9ED] flex items-center justify-center mb-5">
                 <CheckCircle size={32} className="text-[#34C759]" strokeWidth={1.8} />
@@ -276,6 +436,27 @@ function PaymentModal({
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="p-6 space-y-5">
+
+              {/* ── Partial payment summary (when items were selected) ── */}
+              {isPartial && (
+                <div className="bg-brand/[0.05] border border-brand/20 rounded-2xl px-4 py-3.5">
+                  <p className="text-[10px] font-bold text-brand uppercase tracking-[0.1em] mb-2">Paying these items</p>
+                  <div className="space-y-1.5">
+                    {lineItems
+                      .filter((_, i) => selectedIndices.has(i))
+                      .map((item, idx) => (
+                        <div key={idx} className="flex items-center justify-between gap-3">
+                          <p className="text-[12px] text-[#1D1D1F] font-medium truncate">{item.description}</p>
+                          <p className="text-[12px] font-bold text-[#1D1D1F] tabular-nums shrink-0">{fmt(item.total)}</p>
+                        </div>
+                      ))}
+                  </div>
+                  <div className="flex items-center justify-between mt-2.5 pt-2.5 border-t border-brand/15">
+                    <p className="text-[11px] font-bold text-brand">Subtotal</p>
+                    <p className="text-[13px] font-bold text-brand tabular-nums">{fmt(selectedAmount)}</p>
+                  </div>
+                </div>
+              )}
 
               {/* ── Method selector — full-width radio cards ── */}
               <div>
@@ -339,7 +520,7 @@ function PaymentModal({
                     </div>
                     <div className="shrink-0 text-right">
                       <p className="text-[10px] text-white/50 leading-none mb-0.5">Amount due</p>
-                      <p className="text-[18px] font-bold text-white leading-none tabular-nums">{fmt(invoice.total)}</p>
+                      <p className="text-[18px] font-bold text-white leading-none tabular-nums">{fmt(isPartial ? selectedAmount : invoice.total)}</p>
                     </div>
                   </div>
 
@@ -421,7 +602,7 @@ function PaymentModal({
                   </div>
                   <div className="pt-3 border-t border-white/10 flex items-center justify-between">
                     <p className="text-[12px] text-white/50">Amount due</p>
-                    <p className="text-[20px] font-bold tabular-nums">{fmt(invoice.total)}</p>
+                    <p className="text-[20px] font-bold tabular-nums">{fmt(isPartial ? selectedAmount : invoice.total)}</p>
                   </div>
                   {current.extra_instructions && (
                     <p className="text-[12px] text-white/40 mt-3 leading-relaxed">{current.extra_instructions}</p>
