@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { HeroSearch } from "@/components/public/HeroSearch";
 import { FeaturedPropertiesSection } from "@/components/public/FeaturedPropertiesSection";
+import { WorkersScene, PetScene } from "@/components/public/HomepageIllustrations";
 import { fetchHomepageProperties, fetchProperties, toPropertyCardShape } from "@/lib/properties";
 import { formatPrice } from "@/lib/utils";
 import { CITIES, fetchAllCities, buildGenericCityData, type CityData } from "@/lib/cities";
@@ -334,15 +335,9 @@ export default async function HomePage() {
       <section className="py-[88px] px-8 border-t border-[#F1F5F9]" style={{ background: "#FBF9F4" }}>
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            {/* Photo */}
-            <div className="border border-[#F1F5F9] bg-white rounded-sm overflow-hidden" style={{ aspectRatio: "4 / 3", position: "relative" }}>
-              <Image
-                src="https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=900&q=80"
-                alt="In-house maintenance team inspecting a Hasker & Co. rental"
-                fill
-                className="object-cover"
-                sizes="(max-width: 1024px) 100vw, 50vw"
-              />
+            {/* Illustration */}
+            <div className="border border-[#F1F5F9] bg-white rounded-sm overflow-hidden">
+              <WorkersScene />
             </div>
             {/* Copy */}
             <div>
@@ -452,15 +447,9 @@ export default async function HomePage() {
                 Browse pet-friendly rentals <ArrowRight size={14} />
               </Link>
             </div>
-            {/* Photo */}
-            <div className="border border-[#F1F5F9] bg-white rounded-sm overflow-hidden" style={{ aspectRatio: "4 / 3", position: "relative" }}>
-              <Image
-                src="https://images.unsplash.com/photo-1560743641-3914f2c45636?w=900&q=80"
-                alt="Pet-friendly rental home — dogs and cats welcome"
-                fill
-                className="object-cover"
-                sizes="(max-width: 1024px) 100vw, 50vw"
-              />
+            {/* Illustration */}
+            <div className="border border-[#F1F5F9] bg-white rounded-sm overflow-hidden">
+              <PetScene />
             </div>
           </div>
         </div>

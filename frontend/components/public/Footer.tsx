@@ -108,10 +108,7 @@ export function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={label}
-                  className="w-8 h-8 rounded-full flex items-center justify-center transition-colors"
-                  style={{ border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.4)" }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "#1A56DB"; (e.currentTarget as HTMLAnchorElement).style.borderColor = "#1A56DB"; }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "rgba(255,255,255,0.4)"; (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(255,255,255,0.1)"; }}
+                  className="w-8 h-8 rounded-full flex items-center justify-center transition-colors border border-white/10 text-white/40 hover:text-brand hover:border-brand"
                 >
                   <Icon />
                 </a>
