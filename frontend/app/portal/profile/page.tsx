@@ -204,6 +204,18 @@ export default function ProfilePage() {
           </div>
         </div>
 
+        {/* ── City Banner ───────────────────────────────────────────────── */}
+        <div className="rounded-2xl overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
+          <Image
+            src="/illustrations/banner-city-skyline.png"
+            alt=""
+            width={1200}
+            height={400}
+            className="w-full h-[110px] sm:h-[140px] object-cover object-bottom"
+            priority
+          />
+        </div>
+
         {/* ── KPI Widgets ───────────────────────────────────────────────── */}
         {loading ? (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -387,9 +399,13 @@ export default function ProfilePage() {
         <Card className="overflow-hidden">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 px-5 py-5">
             <div className="flex items-center gap-3.5">
-              <div className="w-10 h-10 rounded-xl bg-brand-dark flex items-center justify-center shrink-0">
-                <Building2 size={17} className="text-white" />
-              </div>
+              <Image
+                src="/illustrations/spot-handshake.png"
+                alt=""
+                width={44}
+                height={44}
+                className="shrink-0"
+              />
               <div>
                 <p className="text-[13px] font-semibold text-[#1D1D1F] tracking-tight">
                   Hasker &amp; Co. Realty Group
@@ -547,10 +563,15 @@ function LeaseCard({ transaction: t }: { transaction: Transaction }) {
 
 function NoLeaseContent() {
   return (
-    <div className="min-h-[220px] p-6 flex flex-col items-center justify-center text-center gap-4">
-      <div className="w-14 h-14 rounded-2xl bg-brand/8 flex items-center justify-center">
-        <Home size={24} className="text-brand" strokeWidth={1.6} />
-      </div>
+    <div className="min-h-[220px] p-6 flex flex-col items-center justify-center text-center gap-3">
+      <Image
+        src="/illustrations/spot-house.png"
+        alt=""
+        width={96}
+        height={96}
+        className="opacity-90"
+        priority={false}
+      />
       <div>
         <h2 className="text-[15px] font-semibold text-[#1D1D1F] tracking-tight mb-1.5">
           No active lease yet

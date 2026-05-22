@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
-  FileText, Receipt, Shield, FolderOpen, ArrowLeft, Mail, Info,
+  FileText, Receipt, Shield, FolderOpen, ArrowLeft, Mail,
   ClipboardCheck, Banknote, Download, AlertCircle, CheckCircle,
 } from "lucide-react";
 import { apiFetch } from "@/lib/auth";
@@ -137,9 +138,7 @@ export default function DocumentsPage() {
 
         {/* Info card */}
         <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-5 flex gap-4 items-start">
-          <div className="w-10 h-10 rounded-xl bg-[#EFF4FF] flex items-center justify-center shrink-0">
-            <Info size={17} className="text-brand" strokeWidth={1.8} />
-          </div>
+          <Image src="/illustrations/spot-clipboard.png" alt="" width={44} height={44} className="shrink-0 mt-0.5" />
           <div className="flex-1 min-w-0">
             <p className="text-[13px] font-semibold text-[#1D1D1F] mb-1">Managed by your property team</p>
             <p className="text-[12px] text-[#6E6E73] leading-relaxed">
@@ -173,10 +172,14 @@ export default function DocumentsPage() {
               ))}
             </div>
           ) : documents.length === 0 ? (
-            <div className="py-14 flex flex-col items-center text-center px-6">
-              <div className="w-16 h-16 rounded-2xl bg-[#F5F5F7] flex items-center justify-center mb-4">
-                <FolderOpen size={28} className="text-[#C7C7CC]" strokeWidth={1.5} />
-              </div>
+            <div className="py-12 flex flex-col items-center text-center px-6">
+              <Image
+                src="/illustrations/spot-clipboard.png"
+                alt=""
+                width={100}
+                height={100}
+                className="mb-4 opacity-90"
+              />
               <h3 className="text-[15px] font-semibold text-[#1D1D1F] tracking-tight mb-2">No documents yet</h3>
               <p className="text-[13px] text-[#6E6E73] max-w-xs leading-relaxed mb-6">
                 Your lease agreement and files will appear here once your tenancy is confirmed.

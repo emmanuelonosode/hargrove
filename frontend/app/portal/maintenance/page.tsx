@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   ArrowLeft, Wrench, Zap, Wind, Settings, Home, Bug, Lock,
   HelpCircle, ChevronDown, CheckCircle, AlertCircle, Clock,
@@ -223,12 +224,24 @@ export default function MaintenancePage() {
           >
             <ArrowLeft size={15} strokeWidth={2} />
           </Link>
-          <div>
+          <div className="flex-1 min-w-0">
             <h1 className="text-[20px] font-semibold tracking-tight text-[#1D1D1F]">
               Maintenance Requests
             </h1>
             <p className="text-[13px] text-[#6E6E73]">Report issues and track repair status</p>
           </div>
+        </div>
+
+        {/* Illustration banner */}
+        <div className="rounded-2xl overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.06)] mb-4">
+          <Image
+            src="/illustrations/feature-maintenance.png"
+            alt=""
+            width={600}
+            height={400}
+            className="w-full h-[120px] sm:h-[160px] object-cover object-center"
+            priority
+          />
         </div>
 
         {/* Two-column layout */}
@@ -465,10 +478,14 @@ export default function MaintenancePage() {
                 </a>
               </div>
             ) : requests.length === 0 ? (
-              <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] py-14 flex flex-col items-center text-center px-6">
-                <div className="w-14 h-14 rounded-2xl bg-[#F5F5F7] flex items-center justify-center mb-4">
-                  <ImageIcon size={26} className="text-[#C7C7CC]" strokeWidth={1.5} />
-                </div>
+              <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] py-12 flex flex-col items-center text-center px-6">
+                <Image
+                  src="/illustrations/spot-tools.png"
+                  alt=""
+                  width={88}
+                  height={88}
+                  className="mb-4 opacity-90"
+                />
                 <p className="text-[14px] font-semibold text-[#1D1D1F] mb-1">No requests yet</p>
                 <p className="text-[13px] text-[#6E6E73] max-w-xs leading-relaxed">
                   Submit your first maintenance request using the form.

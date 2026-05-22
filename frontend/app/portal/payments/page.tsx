@@ -1017,10 +1017,9 @@ export default function PaymentsPage() {
             </button>
           </div>
         ) : !hasData ? (
-          <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] py-16 flex flex-col items-center text-center px-6">
-            <div className="w-14 h-14 rounded-2xl bg-[#F5F5F7] flex items-center justify-center mb-4">
-              <FileText size={26} className="text-[#C7C7CC]" strokeWidth={1.5} />
-            </div>
+          <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] py-14 flex flex-col items-center text-center px-6">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/illustrations/spot-tag.png" alt="" width={88} height={88} className="mb-4 opacity-90" />
             <h2 className="text-[15px] font-semibold text-[#1D1D1F] mb-2">No invoices yet</h2>
             <p className="text-[13px] text-[#6E6E73] max-w-xs leading-relaxed">
               When an invoice is issued by your property manager, it will appear here.
