@@ -1,12 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import {
-  Calendar, Clock, MapPin, Video, Phone, ArrowRight, Loader2, CheckCircle2,
-  User, Mail, Sun, Sunset
+  ArrowRight, Loader2, MapPin, Video, Phone,
+  Sun, Sunset, User, Mail, ChevronLeft,
 } from "lucide-react";
-import { getStoredUTMs, getStoredReferralCode, getBestKnownCity, getDeviceContext, trackEvent } from "@/lib/tracking";
+import {
+  getStoredUTMs, getStoredReferralCode, getBestKnownCity,
+  getDeviceContext, trackEvent,
+} from "@/lib/tracking";
 
 const API_BASE = "";
 
@@ -26,49 +30,134 @@ interface DayOption {
 }
 
 const TOUR_TYPES = [
-  { id: "in-person", label: "In-Person", icon: MapPin, desc: "Meet on-site" },
-  { id: "video", label: "Video Tour", icon: Video, desc: "FaceTime / Zoom" },
-  { id: "call", label: "Phone Call", icon: Phone, desc: "Agent call" },
+  { id: "in-person", label: "In-person", desc: "Meet on-site",     Icon: MapPin },
+  { id: "video",     label: "Video tour", desc: "FaceTime / Zoom",  Icon: Video  },
+  { id: "call",      label: "Phone call", desc: "Agent calls you",  Icon: Phone  },
 ];
 
 const TIME_SLOTS = [
-  { id: "morning", label: "Morning", hours: "9:00 AM – 12:00 PM" },
-  { id: "afternoon", label: "Afternoon", hours: "1:00 PM – 5:00 PM" },
+  { id: "morning",   label: "Morning",   hours: "9 AM – 12 PM", Icon: Sun    },
+  { id: "afternoon", label: "Afternoon", hours: "1 – 5 PM",     Icon: Sunset },
 ];
 
-/* ─── Illustrations ─────────────────────────────────────────────────── */
+const TIMELINES = [
+  { label: "ASAP",          value: "ASAP"         },
+  { label: "1–3 months",    value: "1_3_MONTHS"   },
+  { label: "3–6 months",    value: "3_6_MONTHS"   },
+  { label: "6+ months",     value: "6_PLUS"       },
+  { label: "Just browsing", value: "JUST_BROWSING" },
+];
 
-function CalendarIllustration({ className = "" }: { className?: string }) {
+const CONTACT_METHODS = [
+  { label: "Phone", value: "PHONE" },
+  { label: "Text",  value: "TEXT"  },
+  { label: "Email", value: "EMAIL" },
+];
+
+/* ─── Shared style tokens ─────────────────────────────────────────────── */
+
+const labelCls = "block text-[10px] font-semibold tracking-[0.18em] uppercase text-[#475569] mb-2.5";
+
+const inputBaseCls =
+  "w-full h-11 bg-white border border-[#E2E8F0] rounded-sm text-[13.5px] text-[#0B1F3A] " +
+  "placeholder:text-[#94A3B8] outline-none transition-[border-color,box-shadow] duration-100 " +
+  "focus:border-brand focus:ring-2 focus:ring-brand/10";
+
+/* ─── Step line ───────────────────────────────────────────────────────── */
+
+function StepLine({ step, label }: { step: number; label: string }) {
   return (
-    <svg viewBox="0 0 100 90" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} aria-hidden="true">
-      <rect x="8" y="18" width="84" height="66" rx="7" stroke="currentColor" strokeWidth="2.5"/>
-      <path d="M8 36H92" stroke="currentColor" strokeWidth="2"/>
-      <rect x="8" y="18" width="84" height="18" rx="7" fill="currentColor" fillOpacity="0.07"/>
-      <line x1="32" y1="10" x2="32" y2="26" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
-      <line x1="68" y1="10" x2="68" y2="26" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
-      <circle cx="28" cy="53" r="5.5" fill="currentColor"/>
-      <circle cx="50" cy="53" r="5.5" stroke="currentColor" strokeWidth="1.5"/>
-      <circle cx="72" cy="53" r="5.5" stroke="currentColor" strokeWidth="1.5"/>
-      <circle cx="28" cy="72" r="5.5" stroke="currentColor" strokeWidth="1.5"/>
-      <circle cx="50" cy="72" r="5.5" stroke="currentColor" strokeWidth="1.5"/>
-    </svg>
+    <div className="flex items-center gap-2.5 text-[11px] text-[#94A3B8] font-[500]">
+      <span className="flex items-center gap-[3px]">
+        {[1, 2].map((i) => (
+          <span
+            key={i}
+            className="block h-[2px] w-[18px] rounded-full transition-colors duration-200"
+            style={{ background: i <= step ? "#0B1F3A" : "#E2E8F0" }}
+          />
+        ))}
+      </span>
+      Step {step} of 2 &middot; {label}
+    </div>
   );
 }
 
-function SuccessIllustration({ className = "" }: { className?: string }) {
+/* ─── Header bar ──────────────────────────────────────────────────────── */
+
+function HeaderBar({
+  mode,
+  eyebrow,
+  title,
+}: {
+  mode: "key" | "check";
+  eyebrow: string;
+  title: string;
+}) {
   return (
-    <svg viewBox="0 0 110 90" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} aria-hidden="true">
-      <path d="M38 10L70 34H60V72H16V34H6L38 10Z" stroke="currentColor" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round"/>
-      <rect x="31" y="48" width="14" height="24" rx="1.5" stroke="currentColor" strokeWidth="2"/>
-      <rect x="17" y="44" width="11" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.5"/>
-      <rect x="48" y="44" width="11" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.5"/>
-      <circle cx="83" cy="35" r="22" fill="white" stroke="currentColor" strokeWidth="2.5"/>
-      <path d="M74 35L80 42L93 26" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
+    <div
+      className="flex gap-3.5 items-center px-[22px] py-[18px] border-b border-[#F1F5F9]"
+      style={{ background: "#FBF9F4" }}
+    >
+      <div className="w-[60px] h-[60px] shrink-0 bg-white border border-[#F1F5F9] rounded-sm overflow-hidden flex items-center justify-center">
+        {mode === "key" ? (
+          <Image
+            src="/illustrations/spot-key.png"
+            alt=""
+            width={60}
+            height={60}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full bg-[#0B1F3A] flex items-center justify-center">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </div>
+        )}
+      </div>
+      <div className="min-w-0">
+        <p className="text-[10px] font-semibold tracking-[0.28em] uppercase text-brand mb-1.5">
+          {eyebrow}
+        </p>
+        <h2 className="font-serif text-[22px] font-bold text-[#0B1F3A] leading-[1.1] m-0">
+          {title}
+        </h2>
+      </div>
+    </div>
   );
 }
 
-/* ─── Component ─────────────────────────────────────────────────────── */
+/* ─── Option card (tour type / date / time / pill) ───────────────────── */
+
+function OptCard({
+  selected,
+  onClick,
+  children,
+  className = "",
+}: {
+  selected: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={[
+        "border rounded-sm cursor-pointer transition-all duration-100 font-sans",
+        selected
+          ? "bg-[#0B1F3A] border-[#0B1F3A] text-white"
+          : "bg-white border-[#E2E8F0] text-[#0B1F3A] hover:border-[#94A3B8]",
+        className,
+      ].join(" ")}
+    >
+      {children}
+    </button>
+  );
+}
+
+/* ─── Main component ─────────────────────────────────────────────────── */
 
 export function PropertyInquiryForm({
   propertySlug,
@@ -94,53 +183,49 @@ export function PropertyInquiryForm({
 
   const [availableDays, setAvailableDays] = useState<DayOption[]>([]);
 
-  // Generate next 5 days
   useEffect(() => {
     const days: DayOption[] = [];
     const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
     for (let i = 1; i <= 5; i++) {
       const d = new Date();
       d.setDate(d.getDate() + i);
-
       days.push({
         dayName: daysOfWeek[d.getDay()],
         dayNum: d.getDate(),
         month: months[d.getMonth()],
-        fullDateString: d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" }),
+        fullDateString: d.toLocaleDateString("en-US", {
+          weekday: "short", month: "short", day: "numeric", year: "numeric",
+        }),
       });
     }
-
     setAvailableDays(days);
-    if (days.length > 0) {
-      setSelectedDate(days[0].fullDateString);
-    }
+    if (days.length > 0) setSelectedDate(days[0].fullDateString);
   }, []);
+
+  const selectedTourObj = TOUR_TYPES.find((t) => t.id === tourType);
+  const selectedTimeObj = TIME_SLOTS.find((ts) => ts.id === selectedTimeSlot);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!name.trim()) {
-      setError("Please enter your name.");
-      return;
-    }
+    if (!name.trim()) { setError("Please enter your name."); return; }
     if (!email.trim() || !/^\S+@\S+\.\S+$/.test(email)) {
-      setError("Please enter a valid email address.");
-      return;
+      setError("Please enter a valid email address."); return;
     }
 
     setLoading(true);
     setError(null);
 
-    const tourLabel = TOUR_TYPES.find((t) => t.id === tourType)?.label ?? tourType;
-    const timeLabel = TIME_SLOTS.find((ts) => ts.id === selectedTimeSlot)?.hours ?? selectedTimeSlot;
-
+    const tourLabel = selectedTourObj?.label ?? tourType;
+    const timeLabel = selectedTimeObj?.hours ?? selectedTimeSlot;
     const constructedMessage =
       `Request for Interactive Tour:\n` +
       `- Tour Type: ${tourLabel}\n` +
       `- Preferred Date: ${selectedDate}\n` +
       `- Preferred Time: ${timeLabel}\n\n` +
-      (message.trim() ? `User Note: ${message.trim()}` : `I would like to schedule a ${tourLabel.toLowerCase()} tour for this property on ${selectedDate} during the ${selectedTimeSlot}.`);
+      (message.trim()
+        ? `User Note: ${message.trim()}`
+        : `I would like to schedule a ${tourLabel.toLowerCase()} tour for this property on ${selectedDate} during the ${selectedTimeSlot}.`);
 
     try {
       const res = await fetch(`${API_BASE}/api/v1/leads/`, {
@@ -186,378 +271,389 @@ export function PropertyInquiryForm({
     }
   }
 
-  /* ── Success State ── */
+  /* ── Success ─────────────────────────────────────────────────────── */
   if (success) {
-    const selectedTourObj = TOUR_TYPES.find((t) => t.id === tourType);
-    const selectedTimeSlotObj = TIME_SLOTS.find((ts) => ts.id === selectedTimeSlot);
     return (
-      <div className="py-4 px-1">
-        <div className="flex flex-col items-center text-center mb-5">
-          <SuccessIllustration className="w-28 h-auto text-emerald-600 mb-4" />
-          <p className="text-[9px] font-black tracking-[0.3em] uppercase text-emerald-600 mb-1.5">Request Confirmed</p>
-          <h4 className="text-brand-dark font-serif text-xl font-bold mb-2">Tour Request Sent!</h4>
-          <p className="text-neutral-500 text-xs leading-relaxed max-w-[260px]">
-            A rental specialist will review your{" "}
-            <strong className="text-brand-dark font-semibold">{selectedTourObj?.label}</strong> request and be in touch shortly.
+      <div className="bg-white border border-[#F1F5F9] rounded-sm shadow-[0_1px_3px_rgba(11,31,58,0.04)] overflow-hidden">
+        <HeaderBar mode="check" eyebrow="Request Confirmed" title="Tour request sent." />
+
+        <div className="p-[22px] flex flex-col gap-[18px]">
+          <p className="text-[13px] leading-[1.55] text-[#475569] m-0">
+            A specialist will review your{" "}
+            <strong className="text-[#0B1F3A] font-semibold">
+              {selectedTourObj?.label.toLowerCase()}
+            </strong>{" "}
+            request and be in touch within 24 hours.
           </p>
-        </div>
 
-        {/* Booking summary */}
-        <div className="border border-neutral-200 rounded-2xl overflow-hidden mb-4">
-          <div className="bg-neutral-50 px-4 py-2.5 border-b border-neutral-100">
-            <p className="text-[9px] font-black tracking-widest uppercase text-neutral-400">Booking Summary</p>
-          </div>
-          <div className="divide-y divide-neutral-100">
-            <div className="flex items-center justify-between px-4 py-3">
-              <span className="text-xs text-neutral-400 font-medium">Tour Type</span>
-              <span className="font-bold text-brand-dark text-xs flex items-center gap-1.5">
-                {selectedTourObj && <selectedTourObj.icon size={12} className="text-brand" />}
-                {selectedTourObj?.label}
-              </span>
-            </div>
-            <div className="flex items-center justify-between px-4 py-3">
-              <span className="text-xs text-neutral-400 font-medium">Preferred Date</span>
-              <span className="font-bold text-brand-dark text-xs flex items-center gap-1.5">
-                <Calendar size={12} className="text-brand" />
-                {selectedDate}
-              </span>
-            </div>
-            <div className="flex items-center justify-between px-4 py-3">
-              <span className="text-xs text-neutral-400 font-medium">Time Window</span>
-              <span className="font-bold text-brand-dark text-xs flex items-center gap-1.5">
-                <Clock size={12} className="text-brand" />
-                {selectedTimeSlotObj?.label}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Apply nudge — for rental/lease listings, clean card no purple */}
-        {(listingType === "for-rent" || listingType === "for-lease") && (
-          <div className="border border-brand/20 rounded-2xl overflow-hidden">
-            <div className="bg-brand/5 px-4 py-3 border-b border-brand/10">
-              <p className="text-[10px] font-black tracking-widest uppercase text-brand mb-0.5">Secure Your Spot</p>
-              <p className="text-[11px] text-neutral-500 leading-relaxed">
-                Other applicants are actively viewing this home. Apply now to hold your place.
+          {/* Booking summary */}
+          <div className="border border-[#F1F5F9] rounded-sm overflow-hidden">
+            <div className="px-3.5 py-2 bg-white border-b border-[#F1F5F9]">
+              <p className="text-[9px] font-semibold tracking-[0.2em] uppercase text-[#94A3B8] m-0">
+                Booking Summary
               </p>
             </div>
-            <div className="px-4 py-3">
-              <Link
-                href={`/apply?property=${propertySlug}&name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}&phone=${encodeURIComponent(phone)}`}
-                className="flex items-center justify-center gap-1.5 w-full py-3 bg-brand text-white text-xs font-bold rounded-xl hover:bg-brand-hover transition-all shadow-sm shadow-brand/10 cursor-pointer"
-              >
-                Start Free Application <ArrowRight size={13} />
-              </Link>
+            <div style={{ background: "#FBF9F4" }}>
+              {[
+                { k: "Tour format",  v: selectedTourObj?.label,                             Icon: selectedTourObj?.Icon },
+                { k: "Date",         v: selectedDate.replace(/,\s\d{4}$/, ""),              Icon: undefined              },
+                { k: "Time window",  v: `${selectedTimeObj?.label} · ${selectedTimeObj?.hours}`, Icon: selectedTimeObj?.Icon },
+              ].map((row, i) => (
+                <div
+                  key={row.k}
+                  className="flex items-center justify-between px-3.5 py-[11px]"
+                  style={{ borderTop: i ? "1px solid #F1F5F9" : "none" }}
+                >
+                  <span className="text-[12px] text-[#64748B]">{row.k}</span>
+                  <span className="text-[12.5px] font-semibold text-[#0B1F3A] flex items-center gap-1.5">
+                    {row.Icon && <row.Icon size={12} className="text-brand" />}
+                    {row.v}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
-        )}
+
+          {/* Apply nudge */}
+          {(listingType === "for-rent" || listingType === "for-lease") && (
+            <div className="border border-[#DBEAFE] rounded-sm p-4" style={{ background: "#EFF4FF" }}>
+              <p className="text-[10px] font-semibold tracking-[0.28em] uppercase text-brand mb-1.5">
+                Secure Your Spot
+              </p>
+              <p className="text-[12.5px] text-[#475569] leading-[1.55] mb-3">
+                Other applicants are viewing this home. Apply now to hold your place.
+              </p>
+              <Link
+                href={`/apply?property=${propertySlug}&name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}&phone=${encodeURIComponent(phone)}`}
+                className="flex items-center justify-center gap-2 w-full h-12 bg-brand hover:bg-brand-hover text-white text-[14px] font-[500] rounded-sm tracking-[0.05em] transition-colors duration-150"
+              >
+                Start free application
+                <ArrowRight size={15} />
+              </Link>
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={() => { setSuccess(false); setStep(1); setName(""); setEmail(""); setPhone(""); setMoveInTimeline(""); setPreferredContact(""); setMessage(""); }}
+            className="self-center text-[12px] text-[#475569] bg-transparent border-none cursor-pointer underline"
+          >
+            Book another viewing
+          </button>
+        </div>
       </div>
     );
   }
 
-  const labelCls = "block text-[10px] font-black tracking-widest uppercase text-neutral-500 mb-2";
-  const inputCls =
-    "w-full h-11 pl-10 pr-4 bg-white border border-neutral-200 rounded-xl text-sm text-neutral-800 " +
-    "placeholder:text-neutral-400 outline-none focus:border-brand focus:ring-2 focus:ring-brand/15 focus:bg-white transition-all font-medium";
+  /* ── Step 2: Contact details ─────────────────────────────────────── */
+  if (step === 2) {
+    const canSubmit = name.trim().length > 0 && /^\S+@\S+\.\S+$/.test(email);
+    return (
+      <div className="bg-white border border-[#F1F5F9] rounded-sm shadow-[0_1px_3px_rgba(11,31,58,0.04)] overflow-hidden">
+        <HeaderBar mode="key" eyebrow="Schedule a Tour" title="Tell us how to reach you." />
 
-  return (
-    <div className="space-y-4">
+        <form onSubmit={handleSubmit} noValidate className="p-[22px] flex flex-col gap-[18px]">
+          <StepLine step={2} label="Your details" />
 
-      {/* ── Header with illustration ── */}
-      <div className="flex items-center gap-3 pb-4 border-b border-neutral-100">
-        <div className="w-10 h-10 rounded-2xl bg-brand/10 flex items-center justify-center shrink-0">
-          <CalendarIllustration className="w-6 h-6 text-brand" />
-        </div>
-        <div>
-          <p className="text-[9px] font-black tracking-[0.28em] uppercase text-brand mb-0.5">Schedule a Tour</p>
-          <p className="text-xs text-neutral-500 leading-tight">Pick a time — a specialist will confirm within hours.</p>
-        </div>
-      </div>
-
-      {/* ── Step indicator ── */}
-      <div className="flex items-center justify-between px-0.5">
-        <div className="flex items-center gap-2">
-          {[
-            { n: 1, label: "Tour Preferences" },
-            { n: 2, label: "Contact Details" },
-          ].map(({ n, label }, i) => (
-            <div key={n} className="flex items-center gap-2">
-              <div className={`flex items-center gap-1.5 h-6 px-2.5 rounded-full text-[9px] font-bold transition-all ${
-                step === n
-                  ? "bg-brand text-white"
-                  : step > n
-                    ? "bg-emerald-100 text-emerald-700"
-                    : "bg-neutral-100 text-neutral-400"
-              }`}>
-                {step > n ? <CheckCircle2 size={10} /> : <span className="font-black">{n}</span>}
-                <span className="hidden sm:inline">{label}</span>
-              </div>
-              {i < 1 && (
-                <div className={`w-5 h-px transition-all ${step > 1 ? "bg-emerald-300" : "bg-neutral-200"}`} />
-              )}
-            </div>
-          ))}
-        </div>
-        <span className="text-[9px] text-neutral-400 font-bold">
-          {step === 1 ? "1 / 2" : "2 / 2"}
-        </span>
-      </div>
-
-      {step === 1 ? (
-        /* ── Step 1: Tour Picker ── */
-        <div className="space-y-4">
-
-          {/* Tour type */}
-          <div className="space-y-2">
-            <label className={labelCls}>Tour Format</label>
-            <div className="grid grid-cols-3 gap-2">
-              {TOUR_TYPES.map((t) => {
-                const Icon = t.icon;
-                const isSelected = tourType === t.id;
-                return (
-                  <button
-                    key={t.id}
-                    type="button"
-                    onClick={() => setTourType(t.id)}
-                    className={`flex flex-col items-center justify-center gap-1.5 py-3.5 rounded-xl border-2 text-center transition-all cursor-pointer ${
-                      isSelected
-                        ? "border-brand bg-brand/5 text-brand"
-                        : "border-neutral-200 bg-white text-neutral-500 hover:border-neutral-300 hover:bg-neutral-50"
-                    }`}
-                  >
-                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${isSelected ? "bg-brand/10" : "bg-neutral-100"}`}>
-                      <Icon size={16} className={isSelected ? "text-brand" : "text-neutral-400"} />
-                    </div>
-                    <span className="text-[10px] font-bold leading-tight block">{t.label}</span>
-                    <span className="text-[9px] text-neutral-400 leading-tight">{t.desc}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Date picker */}
-          <div className="space-y-2">
-            <label className={labelCls}>Preferred Date</label>
-            <div className="grid grid-cols-5 gap-1.5">
-              {availableDays.map((day) => {
-                const isSelected = selectedDate === day.fullDateString;
-                return (
-                  <button
-                    key={day.fullDateString}
-                    type="button"
-                    onClick={() => setSelectedDate(day.fullDateString)}
-                    className={`flex flex-col items-center justify-center py-2.5 rounded-xl border-2 transition-all cursor-pointer ${
-                      isSelected
-                        ? "bg-brand border-brand text-white shadow-md shadow-brand/15"
-                        : "bg-white border-neutral-200 text-neutral-600 hover:border-neutral-300 hover:bg-neutral-50"
-                    }`}
-                  >
-                    <span className={`text-[8px] uppercase tracking-wider font-bold leading-none ${isSelected ? "text-white/75" : "text-neutral-400"}`}>
-                      {day.dayName}
-                    </span>
-                    <span className="text-sm font-black mt-1 leading-none">{day.dayNum}</span>
-                    <span className={`text-[8px] mt-1 leading-none font-medium ${isSelected ? "text-white/75" : "text-neutral-400"}`}>
-                      {day.month}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Time slot */}
-          <div className="space-y-2">
-            <label className={labelCls}>Time Preference</label>
-            <div className="grid grid-cols-2 gap-2">
-              {TIME_SLOTS.map((ts) => {
-                const isSelected = selectedTimeSlot === ts.id;
-                const Icon = ts.id === "morning" ? Sun : Sunset;
-                return (
-                  <button
-                    key={ts.id}
-                    type="button"
-                    onClick={() => setSelectedTimeSlot(ts.id)}
-                    className={`flex items-center gap-3 px-3.5 py-3 rounded-xl border-2 text-left transition-all cursor-pointer ${
-                      isSelected
-                        ? "border-brand bg-brand/5 text-brand"
-                        : "border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300 hover:bg-neutral-50"
-                    }`}
-                  >
-                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${isSelected ? "bg-brand/10" : "bg-neutral-100"}`}>
-                      <Icon size={16} className={isSelected ? "text-brand" : "text-neutral-400"} />
-                    </div>
-                    <div>
-                      <span className="text-[11px] font-bold block">{ts.label}</span>
-                      <span className="text-[9px] text-neutral-400 block mt-0.5 font-medium">{ts.hours}</span>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setStep(2)}
-            className="w-full h-11 bg-brand hover:bg-brand-hover text-white font-bold rounded-xl shadow-md shadow-brand/15 transition-all flex items-center justify-center gap-1.5 text-sm cursor-pointer mt-1"
-          >
-            Continue to Contact <ArrowRight size={15} />
-          </button>
-        </div>
-      ) : (
-        /* ── Step 2: Contact Details ── */
-        <form onSubmit={handleSubmit} noValidate className="space-y-3.5">
+          {/* Name */}
           <div>
-            <label htmlFor="inq-name" className={labelCls}>Full Name *</label>
+            <label htmlFor="sv-name" className={labelCls}>Full name</label>
             <div className="relative">
-              <User size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
+              <User size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8] pointer-events-none" />
               <input
-                id="inq-name"
+                id="sv-name"
                 type="text"
-                required
-                placeholder="Jane Smith"
                 value={name}
                 onChange={(e) => { setName(e.target.value); setError(null); }}
-                className={inputCls}
+                placeholder="Jane Smith"
+                className={inputBaseCls + " pl-9 pr-3"}
               />
             </div>
           </div>
 
+          {/* Email */}
           <div>
-            <label htmlFor="inq-email" className={labelCls}>Email Address *</label>
+            <label htmlFor="sv-email" className={labelCls}>Email</label>
             <div className="relative">
-              <Mail size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
+              <Mail size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8] pointer-events-none" />
               <input
-                id="inq-email"
+                id="sv-email"
                 type="email"
-                required
-                placeholder="jane@smith.com"
                 value={email}
                 onChange={(e) => { setEmail(e.target.value); setError(null); }}
-                className={inputCls}
+                placeholder="jane@smith.com"
+                className={inputBaseCls + " pl-9 pr-3"}
               />
             </div>
           </div>
 
+          {/* Phone */}
           <div>
-            <label htmlFor="inq-phone" className={labelCls}>
-              Phone <span className="text-neutral-400 font-normal normal-case tracking-normal">(optional)</span>
+            <label htmlFor="sv-phone" className={labelCls}>
+              Phone{" "}
+              <span className="text-[#94A3B8] normal-case font-normal tracking-normal">
+                optional
+              </span>
             </label>
             <div className="relative">
-              <Phone size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
+              <Phone size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8] pointer-events-none" />
               <input
-                id="inq-phone"
+                id="sv-phone"
                 type="tel"
-                placeholder="(555) 000-0000"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className={inputCls}
+                placeholder="(555) 000-0000"
+                className={inputBaseCls + " pl-9 pr-3"}
               />
             </div>
           </div>
 
+          {/* Timeline */}
           <div>
-            <label className={labelCls}>Move-in Timeline <span className="text-neutral-400 font-normal normal-case tracking-normal">(optional)</span></label>
-            <div className="flex flex-wrap gap-2">
-              {[
-                { label: "ASAP", value: "ASAP" },
-                { label: "1–3 Months", value: "1_3_MONTHS" },
-                { label: "3–6 Months", value: "3_6_MONTHS" },
-                { label: "6+ Months", value: "6_PLUS" },
-                { label: "Just Browsing", value: "JUST_BROWSING" },
-              ].map((o) => (
-                <button
+            <span className={labelCls}>
+              Move-in timeline{" "}
+              <span className="text-[#94A3B8] normal-case font-normal tracking-normal">optional</span>
+            </span>
+            <div className="flex flex-wrap gap-1.5">
+              {TIMELINES.map((o) => (
+                <OptCard
                   key={o.value}
-                  type="button"
+                  selected={moveInTimeline === o.value}
                   onClick={() => setMoveInTimeline(moveInTimeline === o.value ? "" : o.value)}
-                  className={`h-8 px-3 rounded-xl border-2 text-[11px] font-bold transition-all cursor-pointer ${
-                    moveInTimeline === o.value
-                      ? "border-brand bg-brand/5 text-brand"
-                      : "border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300"
-                  }`}
+                  className="px-3 py-[7px] text-[12px] font-[500]"
                 >
                   {o.label}
-                </button>
+                </OptCard>
               ))}
             </div>
           </div>
 
+          {/* Preferred contact */}
           <div>
-            <label className={labelCls}>Preferred Contact <span className="text-neutral-400 font-normal normal-case tracking-normal">(optional)</span></label>
-            <div className="flex gap-2">
-              {[
-                { label: "Phone Call", value: "PHONE" },
-                { label: "Text / SMS", value: "TEXT" },
-                { label: "Email", value: "EMAIL" },
-              ].map((o) => (
-                <button
+            <span className={labelCls}>
+              Preferred contact{" "}
+              <span className="text-[#94A3B8] normal-case font-normal tracking-normal">optional</span>
+            </span>
+            <div className="grid grid-cols-3 gap-1.5">
+              {CONTACT_METHODS.map((o) => (
+                <OptCard
                   key={o.value}
-                  type="button"
+                  selected={preferredContact === o.value}
                   onClick={() => setPreferredContact(preferredContact === o.value ? "" : o.value)}
-                  className={`flex-1 h-9 rounded-xl border-2 text-[10px] font-bold transition-all cursor-pointer ${
-                    preferredContact === o.value
-                      ? "border-brand bg-brand/5 text-brand"
-                      : "border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300"
-                  }`}
+                  className="py-[7px] text-[12px] font-[500] text-center"
                 >
                   {o.label}
-                </button>
+                </OptCard>
               ))}
             </div>
           </div>
 
+          {/* Notes */}
           <div>
-            <label htmlFor="inq-message" className={labelCls}>
-              Special Notes <span className="text-neutral-400 font-normal normal-case tracking-normal">(optional)</span>
+            <label htmlFor="sv-notes" className={labelCls}>
+              Anything else?{" "}
+              <span className="text-[#94A3B8] normal-case font-normal tracking-normal">optional</span>
             </label>
             <textarea
-              id="inq-message"
-              rows={2}
-              placeholder="Accessibility needs, specific questions, or anything else..."
+              id="sv-notes"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              className="w-full bg-white border border-neutral-200 rounded-xl px-4 py-3 text-sm text-neutral-800 placeholder:text-neutral-400 outline-none focus:border-brand focus:ring-2 focus:ring-brand/15 transition-all resize-none font-medium"
+              placeholder="Accessibility needs, specific questions, or anything else…"
+              rows={2}
+              className={
+                "w-full px-3 py-2.5 bg-white border border-[#E2E8F0] rounded-sm " +
+                "text-[13px] text-[#0B1F3A] placeholder:text-[#94A3B8] outline-none resize-none " +
+                "leading-[1.5] transition-[border-color,box-shadow] duration-100 " +
+                "focus:border-brand focus:ring-2 focus:ring-brand/10"
+              }
             />
           </div>
 
           {error && (
-            <div className="flex items-center gap-2 bg-red-50 border border-red-100 rounded-xl px-3.5 py-2.5">
+            <div className="flex items-center gap-2 bg-red-50 border border-red-100 rounded-sm px-3.5 py-2.5">
               <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
-              <p className="text-xs text-red-600 font-medium">{error}</p>
+              <p className="text-xs text-red-600 font-medium m-0">{error}</p>
             </div>
           )}
 
-          <div className="flex gap-3 pt-1">
+          {/* Buttons */}
+          <div className="grid gap-2.5 mt-1" style={{ gridTemplateColumns: "90px 1fr" }}>
             <button
               type="button"
               onClick={() => setStep(1)}
               disabled={loading}
-              className="w-1/3 h-11 border-2 border-neutral-200 rounded-xl text-neutral-500 font-bold hover:bg-neutral-50 hover:border-neutral-300 transition-all text-xs cursor-pointer"
+              className="flex items-center justify-center gap-1 h-12 bg-white border border-[#E2E8F0] rounded-sm text-[#0B1F3A] text-[13px] font-[500] hover:border-[#94A3B8] transition-colors duration-100 cursor-pointer"
             >
+              <ChevronLeft size={14} />
               Back
             </button>
-
             <button
               type="submit"
-              disabled={loading}
-              className="w-2/3 h-11 bg-brand hover:bg-brand-hover text-white font-bold rounded-xl shadow-md shadow-brand/15 transition-all flex items-center justify-center gap-1.5 text-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={loading || !canSubmit}
+              className="flex items-center justify-center gap-2 h-12 bg-[#0B1F3A] hover:bg-brand text-white text-[14px] font-[500] rounded-sm tracking-[0.05em] transition-colors duration-150 cursor-pointer disabled:bg-[#CBD5E1] disabled:cursor-not-allowed"
             >
               {loading ? (
                 <>
                   <Loader2 size={14} className="animate-spin" />
-                  Booking...
+                  Booking…
                 </>
               ) : (
                 <>
-                  Book Appointment
-                  <ArrowRight size={14} />
+                  Book appointment
+                  <ArrowRight size={15} />
                 </>
               )}
             </button>
           </div>
         </form>
-      )}
+      </div>
+    );
+  }
+
+  /* ── Step 1: Tour preferences ────────────────────────────────────── */
+  return (
+    <div className="bg-white border border-[#F1F5F9] rounded-sm shadow-[0_1px_3px_rgba(11,31,58,0.04)] overflow-hidden">
+      <HeaderBar mode="key" eyebrow="Schedule a Tour" title="Pick a time to visit." />
+
+      <div className="p-[22px] flex flex-col gap-[22px]">
+        <StepLine step={1} label="Tour preferences" />
+
+        {/* Tour format */}
+        <div>
+          <span className={labelCls}>Tour format</span>
+          <div className="grid grid-cols-3 gap-2">
+            {TOUR_TYPES.map((t) => {
+              const selected = tourType === t.id;
+              return (
+                <OptCard
+                  key={t.id}
+                  selected={selected}
+                  onClick={() => setTourType(t.id)}
+                  className="flex flex-col items-center gap-2 py-3.5 px-2 text-center"
+                >
+                  <t.Icon size={19} color={selected ? "#fff" : "#0B1F3A"} strokeWidth={1.8} />
+                  <div className="flex flex-col gap-0.5">
+                    <span
+                      className="text-[12px] font-semibold leading-[1.15]"
+                      style={{ color: selected ? "#fff" : "#0B1F3A" }}
+                    >
+                      {t.label}
+                    </span>
+                    <span
+                      className="text-[10px] leading-[1.2] font-normal"
+                      style={{ color: selected ? "rgba(255,255,255,0.7)" : "#94A3B8" }}
+                    >
+                      {t.desc}
+                    </span>
+                  </div>
+                </OptCard>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Date picker */}
+        <div>
+          <span className={labelCls}>
+            Preferred date{" "}
+            <span className="text-[#94A3B8] normal-case font-normal tracking-normal text-[10px]">
+              amber dot = soonest
+            </span>
+          </span>
+          <div className="grid grid-cols-5 gap-1.5">
+            {availableDays.map((day, idx) => {
+              const selected = selectedDate === day.fullDateString;
+              return (
+                <OptCard
+                  key={day.fullDateString}
+                  selected={selected}
+                  onClick={() => setSelectedDate(day.fullDateString)}
+                  className="flex flex-col items-center gap-0.5 pt-2.5 pb-2 relative"
+                >
+                  {/* Amber dot for soonest available */}
+                  {idx === 0 && (
+                    <span
+                      className="absolute top-1 right-1.5 w-[5px] h-[5px] rounded-full"
+                      style={{ background: selected ? "#F4C77A" : "#E8A33C" }}
+                    />
+                  )}
+                  <span
+                    className="text-[9px] font-semibold tracking-[0.12em] uppercase leading-none"
+                    style={{ color: selected ? "rgba(255,255,255,0.7)" : "#94A3B8" }}
+                  >
+                    {day.dayName}
+                  </span>
+                  <span
+                    className="font-serif text-[22px] font-bold leading-[1]"
+                    style={{ color: selected ? "#fff" : "#0B1F3A" }}
+                  >
+                    {day.dayNum}
+                  </span>
+                  <span
+                    className="text-[9px] font-[500] leading-none"
+                    style={{ color: selected ? "rgba(255,255,255,0.55)" : "#94A3B8" }}
+                  >
+                    {day.month}
+                  </span>
+                </OptCard>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Time of day */}
+        <div>
+          <span className={labelCls}>Time of day</span>
+          <div className="grid grid-cols-2 gap-2">
+            {TIME_SLOTS.map((ts) => {
+              const selected = selectedTimeSlot === ts.id;
+              const accentColor = ts.id === "morning" ? "#E8A33C" : "#C97757";
+              return (
+                <OptCard
+                  key={ts.id}
+                  selected={selected}
+                  onClick={() => setSelectedTimeSlot(ts.id)}
+                  className="flex items-center gap-3 px-3.5 py-3 text-left"
+                >
+                  <ts.Icon
+                    size={21}
+                    color={selected ? "#fff" : accentColor}
+                    strokeWidth={1.8}
+                  />
+                  <div className="flex flex-col gap-0.5">
+                    <span
+                      className="text-[13px] font-semibold leading-[1.15]"
+                      style={{ color: selected ? "#fff" : "#0B1F3A" }}
+                    >
+                      {ts.label}
+                    </span>
+                    <span
+                      className="text-[10.5px] leading-none"
+                      style={{ color: selected ? "rgba(255,255,255,0.65)" : "#94A3B8" }}
+                    >
+                      {ts.hours}
+                    </span>
+                  </div>
+                </OptCard>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* CTA */}
+        <button
+          type="button"
+          onClick={() => setStep(2)}
+          className="flex items-center justify-center gap-2 w-full h-12 bg-[#0B1F3A] hover:bg-brand text-white text-[14px] font-[500] rounded-sm tracking-[0.05em] transition-colors duration-150 cursor-pointer"
+        >
+          Continue to contact
+          <ArrowRight size={15} />
+        </button>
+
+        <p className="text-[11px] text-[#94A3B8] text-center m-0 leading-[1.55]">
+          A specialist will confirm within 24 hours.
+        </p>
+      </div>
     </div>
   );
 }

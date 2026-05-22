@@ -1,0 +1,24 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#0B1F3A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Background -->
+  <rect width="200" height="200" fill="#EFF4FF" stroke="none"/>
+  <circle cx="100" cy="100" r="74" fill="#FBF9F4" stroke="none"/>
+  <circle cx="100" cy="100" r="74"/>
+
+  <!-- Dotted house outline behind -->
+  <g stroke-dasharray="3 4" opacity="0.6">
+    <rect x="74" y="98" width="58" height="40" fill="none"/>
+    <path d="M 66 98 L 103 70 L 140 98 Z" fill="none"/>
+    <rect x="96" y="118" width="14" height="20" fill="none"/>
+  </g>
+
+  <!-- Magnifier -->
+  <g transform="translate(115, 115)">
+    <circle cx="0" cy="0" r="26" fill="#FBF9F4"/>
+    <circle cx="0" cy="0" r="26"/>
+    <!-- Handle (thick navy under, brand blue over) -->
+    <line x1="20" y1="20" x2="42" y2="42" stroke-width="6" stroke-linecap="round"/>
+    <line x1="20" y1="20" x2="42" y2="42" stroke-width="3" stroke="#1A56DB" stroke-linecap="round"/>
+    <!-- No results cross line -->
+    <line x1="-12" y1="0" x2="12" y2="0" stroke="#C97757" stroke-width="2.5" stroke-linecap="round"/>
+  </g>
+</svg>

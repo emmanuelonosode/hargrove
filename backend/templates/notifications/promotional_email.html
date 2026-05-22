@@ -47,30 +47,14 @@
           <td bgcolor="#ffffff" style="padding:22px 32px 18px;border-bottom:1px solid #F1F5F9;" class="header-cell">
             <table width="100%" cellpadding="0" cellspacing="0" border="0">
               <tr>
-                <!-- Logo group -->
+                <!-- Brand logo -->
                 <td style="vertical-align:middle;">
-                  <table cellpadding="0" cellspacing="0" border="0">
-                    <tr>
-                      <!-- Diamond mark on navy square -->
-                      <td style="vertical-align:middle;padding-right:10px;">
-                        <table width="36" height="36" cellpadding="0" cellspacing="0" border="0" bgcolor="#0B1F3A" style="border-radius:2px;">
-                          <tr><td align="center" valign="middle">
-                            <svg width="22" height="22" viewBox="0 0 32 32" style="display:block;">
-                              <polygon points="3,16 16,3 29,16 16,29" fill="#1A56DB"/>
-                              <polygon points="9,16 16,9 23,16" fill="#FFFFFF"/>
-                              <rect x="9" y="16" width="14" height="10" fill="#FFFFFF"/>
-                              <rect x="14" y="19" width="4" height="7" fill="#1A56DB"/>
-                            </svg>
-                          </td></tr>
-                        </table>
-                      </td>
-                      <!-- Name + tagline -->
-                      <td style="vertical-align:middle;">
-                        <div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;font-size:15px;letter-spacing:-0.02em;color:#0B1F3A;line-height:1;">HASKER &amp; CO.</div>
-                        <div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:8px;font-weight:400;letter-spacing:0.26em;color:#1A56DB;margin-top:4px;line-height:1;">REALTY GROUP</div>
-                      </td>
-                    </tr>
-                  </table>
+                  <img
+                    src="{{ frontend_url }}/logo/logo.png"
+                    alt="Hasker &amp; Co. Realty Group"
+                    height="38"
+                    style="display:block;height:38px;width:auto;max-width:180px;"
+                  />
                 </td>
                 <!-- Navigation links (hidden on mobile) -->
                 <td align="right" style="vertical-align:middle;" class="nav-hide">
@@ -170,20 +154,22 @@
         <tr>
           <td style="padding:0 32px 56px;" class="listing-outer">
             <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #F1F5F9;border-radius:2px;overflow:hidden;">
+              <!-- Image row — full width, brand-light blue bg -->
               <tr>
-                <!-- House spot on brand-light bg -->
-                <td bgcolor="#EFF4FF" width="200" align="center" valign="middle" style="padding:24px 0;" class="illo-hide">
-                  <img src="{{ frontend_url }}/illustrations/spot-house.png" alt="" width="130" height="130" style="display:block;margin:0 auto;width:130px;height:130px;" />
+                <td bgcolor="#EFF4FF" align="center" style="padding:32px 0;">
+                  <img src="{{ frontend_url }}/illustrations/spot-house.png" alt="" width="140" height="140" style="display:block;margin:0 auto;width:140px;height:140px;" />
                 </td>
-                <!-- Listing details -->
-                <td style="padding:22px 24px;vertical-align:middle;" class="listing-meta">
-                  <span style="display:inline-block;background-color:#DBEAFE;color:#1A56DB;font-family:'DM Sans',Arial,sans-serif;font-size:10px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;padding:3px 8px;border-radius:2px;margin-bottom:8px;">Featured &middot; New</span>
+              </tr>
+              <!-- Details row -->
+              <tr>
+                <td style="padding:24px 28px;" class="listing-meta">
+                  <span style="display:inline-block;background-color:#DBEAFE;color:#1A56DB;font-family:'DM Sans',Arial,sans-serif;font-size:10px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;padding:3px 8px;border-radius:2px;margin-bottom:10px;">Featured &middot; New</span>
                   <h3 style="margin:0 0 4px;font-family:'Playfair Display',Georgia,serif;font-weight:700;font-size:20px;line-height:1.2;color:#0B1F3A;">{{ listing_title }}</h3>
                   {% if listing_address %}
-                  <p style="margin:0 0 12px;font-family:'DM Sans',Arial,sans-serif;font-size:13px;color:#475569;">{{ listing_address }}</p>
+                  <p style="margin:0 0 14px;font-family:'DM Sans',Arial,sans-serif;font-size:13px;color:#475569;">{{ listing_address }}</p>
                   {% endif %}
                   {% if listing_price %}
-                  <div style="font-family:'Playfair Display',Georgia,serif;font-weight:700;font-size:22px;color:#0B1F3A;margin-bottom:4px;">${{ listing_price }}/mo</div>
+                  <div style="font-family:'Playfair Display',Georgia,serif;font-weight:700;font-size:24px;color:#0B1F3A;margin-bottom:4px;">${{ listing_price }}/mo</div>
                   {% endif %}
                   {% if listing_details %}
                   <div style="font-family:'DM Sans',Arial,sans-serif;font-size:12px;color:#64748B;letter-spacing:0.05em;">{{ listing_details }}</div>
@@ -197,20 +183,28 @@
 
         <!-- ═══ APPLY CTA STRIP ══════════════════════════ -->
         <tr>
-          <td bgcolor="#0B1F3A" style="padding:36px 32px;" class="apply-cell">
+          <td bgcolor="#0B1F3A" align="center" style="padding:40px 32px;" class="apply-cell">
             <table width="100%" cellpadding="0" cellspacing="0" border="0">
+              <!-- Illustration row -->
               <tr>
-                <!-- Phone illustration -->
-                <td width="130" valign="middle" style="padding-right:22px;" class="illo-hide">
-                  <img src="{{ frontend_url }}/illustrations/spot-phone-apply.png" alt="" width="110" height="110" style="display:block;width:110px;height:110px;" />
+                <td align="center" style="padding-bottom:20px;">
+                  <img src="{{ frontend_url }}/illustrations/spot-phone-apply.png" alt="" width="100" height="100" style="display:block;margin:0 auto;width:100px;height:100px;" />
                 </td>
-                <!-- CTA copy -->
-                <td style="vertical-align:middle;">
-                  <p style="margin:0 0 6px;font-family:'DM Sans',Arial,sans-serif;font-size:11px;font-weight:600;letter-spacing:0.3em;text-transform:uppercase;color:#A9C5F6;">Quick application</p>
-                  <h3 style="margin:0 0 14px;font-family:'Playfair Display',Georgia,serif;font-weight:700;font-size:22px;line-height:1.2;color:#ffffff;">Apply in 10 minutes.<br>Decisions in 24 hours.</h3>
-                  <a href="{{ apply_url|default:frontend_url }}/apply" style="font-family:'DM Sans',Arial,sans-serif;font-weight:500;font-size:14px;letter-spacing:0.05em;color:#ffffff;text-decoration:none;border-bottom:1px solid rgba(255,255,255,0.3);padding-bottom:2px;">
-                    Start your application &rarr;
-                  </a>
+              </tr>
+              <!-- Copy row -->
+              <tr>
+                <td align="center">
+                  <p style="margin:0 0 8px;font-family:'DM Sans',Arial,sans-serif;font-size:11px;font-weight:600;letter-spacing:0.3em;text-transform:uppercase;color:#A9C5F6;">Quick application</p>
+                  <h3 style="margin:0 0 16px;font-family:'Playfair Display',Georgia,serif;font-weight:700;font-size:24px;line-height:1.2;color:#ffffff;">Apply in 10 minutes.<br>Decisions in 24 hours.</h3>
+                  <table cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;">
+                    <tr>
+                      <td style="border-bottom:1px solid rgba(255,255,255,0.35);padding-bottom:2px;">
+                        <a href="{{ apply_url|default:frontend_url }}/apply" style="font-family:'DM Sans',Arial,sans-serif;font-weight:500;font-size:14px;letter-spacing:0.05em;color:#ffffff;text-decoration:none;">
+                          Start your application &rarr;
+                        </a>
+                      </td>
+                    </tr>
+                  </table>
                 </td>
               </tr>
             </table>
@@ -225,39 +219,13 @@
             <div style="font-family:'DM Sans',Arial,sans-serif;font-size:11px;color:#64748B;margin:6px 0 18px;letter-spacing:0.02em;">Good Homes. Fair Prices. No Surprises.</div>
 
             <!-- Social links -->
-            <table cellpadding="0" cellspacing="0" border="0" style="margin:0 auto 18px;">
-              <tr>
-                <!-- Instagram -->
-                <td style="padding:0 5px;">
-                  <a href="https://www.instagram.com/haskerrealtygroup/" aria-label="Instagram" style="display:inline-block;width:34px;height:34px;border-radius:9999px;border:1px solid #CBD5E1;text-align:center;text-decoration:none;">
-                    <svg width="34" height="34" viewBox="0 0 34 34" style="display:block;">
-                      <rect width="34" height="34" rx="17" fill="none"/>
-                      <rect x="10" y="10" width="14" height="14" rx="4" fill="none" stroke="#475569" stroke-width="1.5"/>
-                      <circle cx="17" cy="17" r="3.5" fill="none" stroke="#475569" stroke-width="1.5"/>
-                      <circle cx="21.5" cy="12.5" r="1" fill="#475569"/>
-                    </svg>
-                  </a>
-                </td>
-                <!-- Facebook -->
-                <td style="padding:0 5px;">
-                  <a href="#" aria-label="Facebook" style="display:inline-block;width:34px;height:34px;border-radius:9999px;border:1px solid #CBD5E1;text-align:center;text-decoration:none;">
-                    <svg width="34" height="34" viewBox="0 0 34 34" style="display:block;">
-                      <rect width="34" height="34" rx="17" fill="none"/>
-                      <path d="M19.5 13h-1.5c-.28 0-.5.22-.5.5V15h2l-.3 2H17.5v5h-2v-5H14v-2h1.5v-1.5C15.5 12.12 16.62 11 18 11H19.5v2z" fill="#475569"/>
-                    </svg>
-                  </a>
-                </td>
-                <!-- LinkedIn -->
-                <td style="padding:0 5px;">
-                  <a href="#" aria-label="LinkedIn" style="display:inline-block;width:34px;height:34px;border-radius:9999px;border:1px solid #CBD5E1;text-align:center;text-decoration:none;">
-                    <svg width="34" height="34" viewBox="0 0 34 34" style="display:block;">
-                      <rect width="34" height="34" rx="17" fill="none"/>
-                      <path d="M12 22v-7h2.3v7H12zm1.15-8.1a1.3 1.3 0 1 1 0-2.6 1.3 1.3 0 0 1 0 2.6zM22 22h-2.3v-3.6c0-1-.4-1.7-1.3-1.7-.7 0-1.1.5-1.3.9-.07.16-.08.38-.08.6V22H14.8s.03-6.4 0-7H17v.99c.3-.47.85-1.14 2.07-1.14 1.5 0 2.63 1 2.63 3.14V22z" fill="#475569"/>
-                    </svg>
-                  </a>
-                </td>
-              </tr>
-            </table>
+            <p style="margin:0 0 18px;font-family:'DM Sans',Arial,sans-serif;font-size:12px;color:#94A3B8;">
+              <a href="https://www.instagram.com/haskerrealtygroup/" style="color:#64748B;text-decoration:none;">Instagram</a>
+              &nbsp;&middot;&nbsp;
+              <a href="https://www.facebook.com/haskerrealtygroup" style="color:#64748B;text-decoration:none;">Facebook</a>
+              &nbsp;&middot;&nbsp;
+              <a href="https://www.linkedin.com/company/hasker-realty-group" style="color:#64748B;text-decoration:none;">LinkedIn</a>
+            </p>
 
             <!-- Divider rule -->
             <div style="width:40px;height:1px;background-color:#CBD5E1;margin:0 auto 16px;"></div>

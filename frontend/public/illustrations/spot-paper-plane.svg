@@ -1,0 +1,33 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#0B1F3A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Background -->
+  <rect width="200" height="200" fill="#F4ECDC" stroke="none"/>
+  <circle cx="100" cy="100" r="74" fill="#F4C77A" stroke="none" opacity="0.6"/>
+
+  <!-- Flight path arc -->
+  <path d="M 38 150 Q 70 100 110 80" stroke-dasharray="4 5" fill="none"/>
+
+  <!-- Paper plane -->
+  <g transform="translate(120, 78) rotate(-22)">
+    <polygon points="-44,0 30,-16 30,8 -10,10" fill="#FBF9F4"/>
+    <polygon points="-44,0 30,-16 30,8 -10,10"/>
+    <line x1="-44" y1="0" x2="-10" y2="10"/>
+    <line x1="-44" y1="0" x2="30" y2="-16"/>
+    <polygon points="-10,10 30,-16 30,8" fill="#EFF4FF"/>
+    <polygon points="-10,10 30,-16 30,8"/>
+  </g>
+
+  <!-- Speed lines -->
+  <line x1="32" y1="155" x2="20" y2="158" stroke-linecap="round"/>
+  <line x1="44" y1="140" x2="30" y2="142" stroke-linecap="round"/>
+
+  <!-- Flourishes -->
+  <!-- spark at 152,70 size=5 -->
+  <g transform="translate(152,70)">
+    <line x1="0" y1="-5" x2="0" y2="5"/>
+    <line x1="-5" y1="0" x2="5" y2="0"/>
+  </g>
+  <!-- dot at 144,58 size=6 color=terracotta -->
+  <circle cx="144" cy="58" r="1.08" fill="#C97757" stroke="none"/>
+  <!-- dot at 158,96 size=5 color=sage -->
+  <circle cx="158" cy="96" r="0.9" fill="#7BA882" stroke="none"/>
+</svg>

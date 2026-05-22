@@ -1,0 +1,42 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#0B1F3A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Background -->
+  <rect width="200" height="200" fill="#FBF9F4" stroke="none"/>
+  <circle cx="100" cy="100" r="74" fill="#DBEAFE" stroke="none"/>
+
+  <!-- Open book -->
+  <!-- Spine shadow -->
+  <line x1="100" y1="68" x2="100" y2="140" stroke-width="2.5"/>
+  <!-- Left page -->
+  <path d="M 100 68 Q 70 68 50 76 L 50 132 Q 70 124 100 124 Z" fill="#FBF9F4"/>
+  <path d="M 100 68 Q 70 68 50 76 L 50 132 Q 70 124 100 124 Z"/>
+  <!-- Right page -->
+  <path d="M 100 68 Q 130 68 150 76 L 150 132 Q 130 124 100 124 Z" fill="#FBF9F4"/>
+  <path d="M 100 68 Q 130 68 150 76 L 150 132 Q 130 124 100 124 Z"/>
+  <!-- Page lines -->
+  <line x1="62" y1="86" x2="92" y2="84" stroke="#475569" stroke-width="1.5"/>
+  <line x1="62" y1="96" x2="92" y2="94" stroke="#475569" stroke-width="1.5"/>
+  <line x1="62" y1="106" x2="88" y2="105" stroke="#475569" stroke-width="1.5"/>
+  <line x1="108" y1="84" x2="138" y2="86" stroke="#475569" stroke-width="1.5"/>
+  <line x1="108" y1="94" x2="138" y2="96" stroke="#475569" stroke-width="1.5"/>
+  <line x1="108" y1="105" x2="134" y2="107" stroke="#475569" stroke-width="1.5"/>
+
+  <!-- Pencil resting on book -->
+  <g transform="translate(120, 140) rotate(-20)">
+    <rect x="-26" y="-3" width="38" height="6" fill="#E8A33C"/>
+    <rect x="-26" y="-3" width="38" height="6"/>
+    <polygon points="12,-3 12,3 20,0" fill="#0B1F3A"/>
+    <polygon points="12,-3 12,3 20,0"/>
+    <rect x="-32" y="-3" width="6" height="6" fill="#C97757"/>
+    <rect x="-32" y="-3" width="6" height="6"/>
+  </g>
+
+  <!-- Flourishes (leaves) -->
+  <g transform="translate(50,56) rotate(-25)">
+    <ellipse cx="0" cy="0" rx="3.15" ry="7" fill="#7BA882"/>
+    <ellipse cx="0" cy="0" rx="3.15" ry="7"/>
+  </g>
+  <g transform="translate(158,60) rotate(30)">
+    <ellipse cx="0" cy="0" rx="2.7" ry="6" fill="#E8A33C"/>
+    <ellipse cx="0" cy="0" rx="2.7" ry="6"/>
+  </g>
+</svg>

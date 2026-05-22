@@ -1,0 +1,39 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#0B1F3A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Background -->
+  <rect width="200" height="200" fill="#FBF9F4" stroke="none"/>
+  <circle cx="100" cy="100" r="74" fill="#F4C77A" stroke="none" opacity="0.55"/>
+
+  <!-- Envelope back -->
+  <rect x="50" y="76" width="100" height="68" rx="3" fill="#F7F1E6"/>
+  <!-- Envelope flap (open, tucked behind) -->
+  <path d="M 50 76 L 100 116 L 150 76"/>
+  <!-- Letter peeking out -->
+  <rect x="62" y="62" width="76" height="50" fill="#FBF9F4"/>
+  <line x1="70" y1="74" x2="120" y2="74" stroke="#475569" stroke-width="1.5"/>
+  <line x1="70" y1="84" x2="130" y2="84" stroke="#475569" stroke-width="1.5"/>
+  <line x1="70" y1="94" x2="118" y2="94" stroke="#475569" stroke-width="1.5"/>
+
+  <!-- Brand stamp — tiny diamond mark -->
+  <g transform="translate(118, 70)">
+    <polygon points="0,-7 7,0 0,7 -7,0" fill="#1A56DB"/>
+  </g>
+
+  <!-- Envelope front flap — V shape over everything -->
+  <path d="M 50 76 L 100 116 L 150 76 L 150 144 L 50 144 Z" fill="none"/>
+
+  <!-- Flourishes -->
+  <!-- spark at 36,60 size=5 -->
+  <g transform="translate(36,60)">
+    <line x1="0" y1="-5" x2="0" y2="5"/>
+    <line x1="-5" y1="0" x2="5" y2="0"/>
+  </g>
+  <!-- spark at 164,64 size=5 -->
+  <g transform="translate(164,64)">
+    <line x1="0" y1="-5" x2="0" y2="5"/>
+    <line x1="-5" y1="0" x2="5" y2="0"/>
+  </g>
+  <!-- dot at 168,130 size=8 color=sage -->
+  <circle cx="168" cy="130" r="1.44" fill="#7BA882" stroke="none"/>
+  <!-- dot at 32,132 size=7 color=terracotta -->
+  <circle cx="32" cy="132" r="1.26" fill="#C97757" stroke="none"/>
+</svg>

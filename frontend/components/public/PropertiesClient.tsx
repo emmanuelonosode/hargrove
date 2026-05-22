@@ -449,9 +449,14 @@ export function PropertiesClient({
               </div>
             ) : results.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center px-8 py-16">
-                <div className="w-16 h-16 bg-neutral-100 rounded-2xl flex items-center justify-center mb-5">
-                  <Search size={24} className="text-neutral-300" />
-                </div>
+                <Image
+                  src="/illustrations/spot-empty-search.svg"
+                  alt=""
+                  width={160}
+                  height={160}
+                  className="mb-4 w-40 h-40"
+                />
+                <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-neutral-400 mb-1">No results</p>
                 <p className="text-brand-dark font-black text-[16px] mb-2">No homes match your filters</p>
                 <p className="text-neutral-400 text-[13px] mb-6 max-w-[220px] leading-relaxed">
                   Try a different location, a wider budget, or remove a filter.

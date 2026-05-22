@@ -542,24 +542,34 @@ export default function CareersPage() {
               {[
                 {
                   step: "01",
+                  img: "/illustrations/spot-clipboard.png",
                   title: "Fill In the Form",
                   desc: "Open any role, hit Apply, fill in a short form — name, contact, a few questions, and a brief note. No cover letter required.",
                 },
                 {
                   step: "02",
+                  img: "/illustrations/spot-phone-apply.png",
                   title: "Intro Call",
                   desc: "We'll schedule a 20-minute call to learn about you, answer your questions, and tell you more about the role and culture.",
                 },
                 {
                   step: "03",
+                  img: "/illustrations/spot-handshake.png",
                   title: "Interview & Offer",
                   desc: "One or two interviews and a decision within the same week. We review every application within 2–3 business days.",
                 },
               ].map((s) => (
-                <div key={s.step} className="flex items-start gap-7 py-7 group">
-                  <span className="font-serif text-4xl font-bold text-neutral-150 group-hover:text-brand/20 transition-colors duration-200 leading-none shrink-0 w-12 select-none text-neutral-200">
+                <div key={s.step} className="flex items-start gap-5 py-7 group">
+                  <span className="font-serif text-4xl font-bold text-neutral-150 group-hover:text-brand/20 transition-colors duration-200 leading-none shrink-0 w-10 select-none text-neutral-200">
                     {s.step}
                   </span>
+                  <Image
+                    src={s.img}
+                    alt=""
+                    width={60}
+                    height={60}
+                    className="shrink-0 rounded-xl w-[60px] h-[60px] object-cover"
+                  />
                   <div className="pt-1">
                     <h3 className="font-serif text-lg font-bold text-brand-dark mb-1.5">{s.title}</h3>
                     <p className="text-sm text-neutral-500 leading-relaxed">{s.desc}</p>

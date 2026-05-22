@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { MapPin, Phone, Mail, Clock } from "lucide-react";
 import ContactForm from "./ContactForm";
 
@@ -46,15 +47,33 @@ export default function ContactPage() {
     <main className="pt-20">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
       {/* Header */}
-      <section className="bg-brand-dark pt-16 pb-14 px-6 text-white text-center">
-        <p className="text-blue-300 text-xs font-semibold tracking-[0.4em] uppercase mb-4">
-          We&apos;re Here to Help
-        </p>
-        <h1 className="font-serif text-4xl lg:text-5xl font-bold mb-4">Find Your Next Home</h1>
-        <p className="text-blue-100 max-w-xl mx-auto">
-          Tell us what you&apos;re looking for and our rental specialists will match you with the
-          perfect home. We typically reply within 24 hours.
-        </p>
+      <section className="bg-brand-dark pt-16 pb-0 px-6">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 items-end">
+          {/* Copy */}
+          <div className="text-white py-10 lg:py-14">
+            <p className="text-blue-300 text-xs font-semibold tracking-[0.4em] uppercase mb-4">
+              We&apos;re Here to Help
+            </p>
+            <h1 className="font-serif text-4xl lg:text-5xl font-bold mb-4 leading-tight">Find Your Next Home</h1>
+            <p className="text-blue-100 max-w-lg leading-relaxed">
+              Tell us what you&apos;re looking for and our rental specialists will match you with the
+              perfect home. We typically reply within 24 hours.
+            </p>
+          </div>
+          {/* Illustration — desktop only */}
+          <div className="hidden lg:flex items-end justify-center">
+            <div className="bg-white rounded-t-2xl shadow-2xl px-8 pt-8 pb-0 inline-block">
+              <Image
+                src="/illustrations/email-header-welcome.png"
+                alt=""
+                width={340}
+                height={246}
+                className="w-[340px] h-auto"
+                priority
+              />
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* Main Content */}

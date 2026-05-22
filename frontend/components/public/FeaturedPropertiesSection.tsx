@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import Link from "next/link";
@@ -23,9 +23,9 @@ export function FeaturedPropertiesSection({ properties, totalCount }: Props) {
   const display = shown.length > 0 ? shown : properties;
 
   const tabs: { id: Tab; label: string; count: number }[] = [
-    { id: "all",      label: "All Homes", count: properties.length },
-    { id: "for-rent", label: "For Rent",  count: forRent.length },
-    { id: "for-sale", label: "For Sale",  count: forSale.length },
+    { id: "all",      label: "All homes", count: properties.length },
+    { id: "for-rent", label: "For rent",  count: forRent.length },
+    { id: "for-sale", label: "For sale",  count: forSale.length },
   ];
 
   const viewAllHref =
@@ -34,50 +34,47 @@ export function FeaturedPropertiesSection({ properties, totalCount }: Props) {
     "/homes-for-rent";
 
   return (
-    <section className="py-16 lg:py-24 bg-white border-t border-neutral-100">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+    <section className="py-[88px] px-8 bg-white">
+      <div className="max-w-7xl mx-auto">
 
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-10">
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-8">
           <div>
-            <div className="inline-flex items-center gap-2 mb-3">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-emerald-600">
-                Move-In Ready
-              </span>
-            </div>
-            <h2 className="font-serif text-3xl sm:text-4xl font-bold text-brand-dark leading-tight">
-              Homes Available Now
+            <p className="text-[11px] font-semibold tracking-[0.3em] uppercase text-brand">Move-in ready</p>
+            <h2 className="font-serif font-bold text-brand-dark leading-[1.12] mt-3" style={{ fontSize: 38, letterSpacing: "-0.015em" }}>
+              Available rentals this week.
             </h2>
-            <p className="text-neutral-500 mt-2 text-[14px]">
-              {totalCount != null ? `${totalCount} homes listed` : "Updated daily"} — inspected, maintained, and ready for you.
-            </p>
+            {totalCount != null && (
+              <p className="mt-2" style={{ fontFamily: "DM Sans, sans-serif", fontSize: 14, color: "#475569" }}>
+                {totalCount} homes listed — inspected, maintained, and ready for you.
+              </p>
+            )}
           </div>
-
           <Link
             href="/homes-for-rent"
-            className="shrink-0 inline-flex items-center gap-2 text-[13px] font-bold text-brand hover:text-brand-hover transition-colors border-b-2 border-brand/30 hover:border-brand pb-0.5"
+            className="shrink-0 inline-flex items-center gap-1.5 text-brand text-[14px] font-medium hover:opacity-80 transition-opacity"
           >
-            View All Properties <ArrowRight size={14} />
+            Browse all rentals <ArrowRight size={14} />
           </Link>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2 mb-10 p-1.5 bg-neutral-100 rounded-xl w-fit">
+        <div className="flex gap-px mb-8 border border-[#F1F5F9] w-fit rounded-sm overflow-hidden">
           {tabs.map((t) => (
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-[13px] font-bold transition-all duration-200 ${
+              className={`flex items-center gap-2 px-5 py-2.5 text-[13px] font-medium transition-colors cursor-pointer ${
                 tab === t.id
-                  ? "bg-white text-brand-dark shadow-sm"
-                  : "text-neutral-500 hover:text-brand-dark"
+                  ? "bg-brand-dark text-white"
+                  : "bg-white text-[#475569] hover:text-brand-dark"
               }`}
+              style={{ fontFamily: "DM Sans, sans-serif" }}
             >
               {t.label}
               {t.count > 0 && (
-                <span className={`text-[11px] tabular-nums font-semibold px-1.5 py-0.5 rounded-md ${
-                  tab === t.id ? "bg-brand/10 text-brand" : "bg-neutral-200 text-neutral-400"
+                <span className={`text-[11px] tabular-nums font-semibold px-1.5 py-0.5 rounded-sm ${
+                  tab === t.id ? "bg-white/20 text-white" : "bg-[#F1F5F9] text-[#94A3B8]"
                 }`}>
                   {t.count}
                 </span>
@@ -89,36 +86,35 @@ export function FeaturedPropertiesSection({ properties, totalCount }: Props) {
         {/* Property grid */}
         {display.length > 0 ? (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {display.map((property) => (
                 <PropertyCard key={property.id} property={property} />
               ))}
             </div>
 
-            {/* Bottom CTA */}
-            <div className="mt-12 text-center">
+            <div className="mt-10 text-center">
               <Link
                 href={viewAllHref}
-                className="inline-flex items-center gap-3 bg-brand-dark text-white font-bold text-[14px] px-10 py-4 rounded-xl hover:bg-brand transition-colors duration-200"
+                className="inline-flex items-center gap-2 bg-brand-dark text-white text-[14px] font-medium tracking-[0.05em] h-[50px] px-8 rounded-sm hover:bg-brand transition-colors"
               >
-                Browse All Available Homes
+                Browse all available homes
                 {totalCount != null && (
                   <span className="text-white/50 font-normal text-[13px]">{totalCount} total</span>
                 )}
-                <ArrowRight size={16} />
+                <ArrowRight size={14} />
               </Link>
-              <p className="mt-4 text-neutral-400 text-[13px]">
+              <p className="mt-4" style={{ fontFamily: "DM Sans, sans-serif", fontSize: 13, color: "#94A3B8" }}>
                 Ready to apply?{" "}
-                <Link href="/apply" className="text-brand font-semibold hover:underline">
+                <Link href="/apply" className="text-brand font-medium hover:underline">
                   Start your free application here
                 </Link>
               </p>
             </div>
           </>
         ) : (
-          <div className="text-center py-20 text-neutral-400">
-            <p className="font-semibold text-lg text-brand-dark">New listings coming soon.</p>
-            <p className="text-sm mt-2 text-neutral-500">Check back shortly or browse all available rentals.</p>
+          <div className="text-center py-20" style={{ color: "#94A3B8" }}>
+            <p className="font-serif font-bold text-[18px] text-brand-dark">New listings coming soon.</p>
+            <p className="mt-2" style={{ fontFamily: "DM Sans, sans-serif", fontSize: 14, color: "#475569" }}>Check back shortly or browse all available rentals.</p>
           </div>
         )}
       </div>

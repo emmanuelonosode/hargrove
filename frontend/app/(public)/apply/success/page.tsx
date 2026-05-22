@@ -3,10 +3,8 @@
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import {
-  CheckCircle, Building2, Clock, Mail,
-  ArrowRight, Home,
-} from "lucide-react";
+import Image from "next/image";
+import { CheckCircle, Mail, ArrowRight, Home } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 function SuccessContent() {
@@ -16,10 +14,10 @@ function SuccessContent() {
   const refId = `APP-${String(ref).padStart(5, "0")}`;
 
   const steps = [
-    { icon: CheckCircle, title: "Application Received", desc: "Your application has been successfully submitted and is in our system.", active: true, completed: true },
-    { icon: Clock,       title: "Under Review",         desc: "Our team reviews your details within 1 business day. You'll receive an email update.", active: true, completed: false },
-    { icon: Building2,   title: "Decision & Next Steps", desc: "We'll reach out with your decision and any follow-up steps needed.", active: false, completed: false },
-    { icon: Home,        title: "Move-In Day",           desc: "Once approved, we'll coordinate lease signing and your move-in date.", active: false, completed: false },
+    { img: "/illustrations/spot-clipboard.png", title: "Application Received", desc: "Your application has been successfully submitted and is in our system.", active: true, completed: true },
+    { img: "/illustrations/spot-clock.png",     title: "Under Review",         desc: "Our team reviews your details within 1 business day. You'll receive an email update.", active: true, completed: false },
+    { img: "/illustrations/spot-mail.svg",      title: "Decision & Next Steps", desc: "We'll reach out with your decision and any follow-up steps needed.", active: false, completed: false },
+    { img: "/illustrations/spot-key.png",       title: "Move-In Day",           desc: "Once approved, we'll coordinate lease signing and your move-in date.", active: false, completed: false },
   ];
 
   return (
@@ -56,17 +54,17 @@ function SuccessContent() {
             What Happens Next
           </h3>
           <div className="space-y-0 relative">
-            {steps.map(({ icon: Icon, title, desc, active, completed }, i) => (
+            {steps.map(({ img, title, desc, active, completed }, i) => (
               <div key={title} className="flex gap-5">
                 {/* Timeline */}
                 <div className="flex flex-col items-center">
                   <div className={cn(
-                    "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 z-10 border transition-all duration-500",
-                    completed ? "bg-[#34C759] border-[#34C759] text-white shadow-[0_0_15px_rgba(52,199,89,0.3)]" :
-                    active ? "bg-white border-brand text-brand shadow-[0_0_15px_rgba(26,86,219,0.15)]" :
-                    "bg-[#F5F5F7] border-transparent text-[#C7C7CC]"
+                    "w-12 h-12 rounded-xl shrink-0 z-10 border overflow-hidden transition-all duration-500",
+                    completed ? "border-[#34C759] shadow-[0_0_15px_rgba(52,199,89,0.3)]" :
+                    active ? "border-brand shadow-[0_0_15px_rgba(26,86,219,0.15)]" :
+                    "border-[#E5E5EA] opacity-50"
                   )}>
-                    {completed ? <CheckCircle size={18} strokeWidth={2.5} /> : <Icon size={18} strokeWidth={2} />}
+                    <Image src={img} alt="" width={48} height={48} className="w-full h-full object-cover" />
                   </div>
                   {i < steps.length - 1 && (
                     <div className={cn(

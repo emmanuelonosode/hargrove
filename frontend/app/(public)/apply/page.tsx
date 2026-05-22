@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { RentalApplicationForm } from "@/components/public/RentalApplicationForm";
 import { Clock, Shield, Home } from "lucide-react";
 
@@ -87,7 +88,15 @@ export default async function ApplyPage({ searchParams }: Props) {
 
             {/* Illustration — desktop only */}
             <div className="hidden md:flex w-[360px] xl:w-[400px] shrink-0 items-end justify-center">
-              <HouseIllustration />
+              <Image
+                src="/illustrations/email-header-welcome.png"
+                alt=""
+                width={400}
+                height={290}
+                className="w-full h-auto hero-animate"
+                style={{ animationDelay: "200ms" }}
+                priority
+              />
             </div>
 
           </div>
@@ -99,85 +108,5 @@ export default async function ApplyPage({ searchParams }: Props) {
         <RentalApplicationForm propertySlug={property} />
       </div>
     </div>
-  );
-}
-
-function HouseIllustration() {
-  return (
-    <svg
-      viewBox="0 0 400 290"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
-      className="w-full h-auto hero-animate"
-      style={{ animationDelay: "200ms" }}
-    >
-      {/* Ground shadow */}
-      <ellipse cx="200" cy="285" rx="178" ry="7" fill="#DBEAFE" opacity="0.8" />
-
-      {/* House body */}
-      <rect x="72" y="148" width="256" height="137" fill="white" stroke="#0B1F3A" strokeWidth="2" rx="2" />
-
-      {/* Roof fill */}
-      <polygon points="52,148 200,56 348,148" fill="#EFF4FF" />
-      {/* Roof edges */}
-      <polyline points="52,148 200,56 348,148" stroke="#0B1F3A" strokeWidth="2.5" strokeLinejoin="round" />
-      <line x1="50" y1="148" x2="350" y2="148" stroke="#0B1F3A" strokeWidth="2.5" />
-
-      {/* Chimney */}
-      <rect x="128" y="80" width="24" height="70" fill="white" stroke="#0B1F3A" strokeWidth="1.8" />
-      <rect x="123" y="76" width="34" height="7" fill="#0B1F3A" rx="1" />
-      {/* Smoke */}
-      <path d="M 137 68 C 132 57 141 47 135 35" stroke="#1A56DB" strokeWidth="1.5" strokeLinecap="round" opacity="0.35" />
-      <path d="M 148 68 C 143 55 152 45 146 31" stroke="#1A56DB" strokeWidth="1.5" strokeLinecap="round" opacity="0.22" />
-
-      {/* Left window */}
-      <rect x="92" y="173" width="70" height="52" fill="#EFF4FF" stroke="#1A56DB" strokeWidth="1.8" rx="3" />
-      <line x1="127" y1="173" x2="127" y2="225" stroke="#1A56DB" strokeWidth="1" opacity="0.55" />
-      <line x1="92" y1="199" x2="162" y2="199" stroke="#1A56DB" strokeWidth="1" opacity="0.55" />
-
-      {/* Right window */}
-      <rect x="238" y="173" width="70" height="52" fill="#EFF4FF" stroke="#1A56DB" strokeWidth="1.8" rx="3" />
-      <line x1="273" y1="173" x2="273" y2="225" stroke="#1A56DB" strokeWidth="1" opacity="0.55" />
-      <line x1="238" y1="199" x2="308" y2="199" stroke="#1A56DB" strokeWidth="1" opacity="0.55" />
-
-      {/* Gable circle window */}
-      <circle cx="200" cy="103" r="19" fill="#EFF4FF" stroke="#1A56DB" strokeWidth="1.8" />
-      <circle cx="200" cy="103" r="8" fill="white" stroke="#1A56DB" strokeWidth="1" />
-
-      {/* Arched door */}
-      <path d="M 178 285 L 178 228 Q 178 204 200 204 Q 222 204 222 228 L 222 285 Z"
-        fill="#EFF4FF" stroke="#0B1F3A" strokeWidth="1.8" />
-      <line x1="200" y1="205" x2="200" y2="285" stroke="#0B1F3A" strokeWidth="1" opacity="0.4" />
-      <circle cx="213" cy="252" r="3.5" fill="#1A56DB" />
-      <circle cx="187" cy="252" r="3.5" fill="#1A56DB" />
-
-      {/* Steps */}
-      <rect x="168" y="280" width="64" height="5" fill="#DBEAFE" stroke="#1A56DB" strokeWidth="1" rx="1" />
-
-      {/* Left tree */}
-      <rect x="26" y="218" width="7" height="67" fill="#0B1F3A" opacity="0.18" rx="2" />
-      <ellipse cx="30" cy="212" rx="24" ry="22" fill="#EFF4FF" stroke="#1A56DB" strokeWidth="1.5" />
-      <ellipse cx="16" cy="228" rx="15" ry="13" fill="#EFF4FF" stroke="#1A56DB" strokeWidth="1" />
-
-      {/* Right tree */}
-      <rect x="367" y="218" width="7" height="67" fill="#0B1F3A" opacity="0.18" rx="2" />
-      <ellipse cx="371" cy="212" rx="24" ry="22" fill="#EFF4FF" stroke="#1A56DB" strokeWidth="1.5" />
-      <ellipse cx="385" cy="228" rx="15" ry="13" fill="#EFF4FF" stroke="#1A56DB" strokeWidth="1" />
-
-      {/* Left bushes */}
-      <circle cx="84" cy="283" r="15" fill="#EFF4FF" stroke="#1A56DB" strokeWidth="1.5" />
-      <circle cx="63" cy="287" r="11" fill="#EFF4FF" stroke="#1A56DB" strokeWidth="1.2" />
-
-      {/* Right bushes */}
-      <circle cx="316" cy="283" r="15" fill="#EFF4FF" stroke="#1A56DB" strokeWidth="1.5" />
-      <circle cx="337" cy="287" r="11" fill="#EFF4FF" stroke="#1A56DB" strokeWidth="1.2" />
-
-      {/* Small "FOR RENT" sign in yard */}
-      <rect x="240" y="258" width="36" height="22" rx="2" fill="white" stroke="#1A56DB" strokeWidth="1.5" />
-      <text x="258" y="267" textAnchor="middle" fontSize="5.5" fontWeight="700" fill="#1A56DB" fontFamily="system-ui">FOR</text>
-      <text x="258" y="275" textAnchor="middle" fontSize="5.5" fontWeight="700" fill="#1A56DB" fontFamily="system-ui">RENT</text>
-      <line x1="258" y1="280" x2="258" y2="285" stroke="#1A56DB" strokeWidth="1.5" />
-    </svg>
   );
 }

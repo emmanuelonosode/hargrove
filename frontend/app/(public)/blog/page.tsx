@@ -304,21 +304,19 @@ export default async function BlogPage({ searchParams }: PageProps) {
           </div>
         )}
 
-        {/* Empty state — with lifestyle image */}
+        {/* Empty state — illustrated */}
         {posts.length === 0 && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 border border-neutral-100 rounded-sm overflow-hidden">
-            <div className="relative aspect-[4/3] lg:aspect-auto min-h-[280px] bg-neutral-100">
+            <div className="flex items-center justify-center min-h-[280px] bg-[#DBEAFE] p-12">
               <Image
-                src="https://images.unsplash.com/photo-1523217582562-09d0def993a6?w=800&q=80"
-                alt="Welcoming home entryway"
-                fill
-                className="object-cover"
-                sizes="(max-width: 1024px) 100vw, 50vw"
+                src="/illustrations/spot-empty-book.svg"
+                alt=""
+                width={240}
+                height={240}
+                className="w-48 h-48 lg:w-60 lg:h-60"
               />
-              <div className="absolute inset-0 bg-brand-dark/40" />
             </div>
             <div className="bg-white p-10 lg:p-14 flex flex-col justify-center">
-              <BookOpen size={32} className="text-brand mb-5" />
               <h3 className="font-serif text-2xl font-bold text-brand-dark mb-3">New guides coming soon.</h3>
               <p className="text-neutral-500 text-sm leading-relaxed mb-8">
                 Our team is writing in-depth renter guides for every city we serve — from budgeting
