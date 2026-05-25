@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -34,7 +34,8 @@ export function Navbar() {
 
   useEffect(() => {
     // Read the real scroll position immediately on mount (handles browser back-nav)
-    setScrolled(window.scrollY > 60);
+    const initScroll = window.scrollY > 60;
+    setTimeout(() => setScrolled(initScroll), 0);
 
     const handler = () => setScrolled(window.scrollY > 60);
     window.addEventListener("scroll", handler, { passive: true });
@@ -43,8 +44,10 @@ export function Navbar() {
 
   // Close mobile menu on route change
   useEffect(() => {
-    setMobileOpen(false);
-  }, [pathname]);
+    if (mobileOpen) {
+      setTimeout(() => setMobileOpen(false), 0);
+    }
+  }, [pathname, mobileOpen]);
 
   // When scrolled OR on non-hero pages → solid white bar
   // When at the top of a hero page → transparent (dark gradient so text stays visible)

@@ -41,7 +41,7 @@ function TourModal({ url, onClose }: { url: string; onClose: () => void }) {
           <RotateCcw size={32} className="text-white/20 animate-spin" style={{ animationDuration: "3s" }} />
           <p>Loading tour…</p>
           <a href={url} target="_blank" rel="noopener noreferrer" className="text-brand font-semibold hover:underline mt-1">
-            Open directly if it doesn't load →
+            Open directly if it doesn&apos;t load →
           </a>
         </div>
         <iframe

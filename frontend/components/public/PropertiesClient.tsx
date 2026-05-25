@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -349,12 +349,12 @@ export function PropertiesClient({
 
             {/* Clear filters */}
             {activeFiltersCount > 0 && (
-              <a
+              <Link
                 href="/homes-for-rent"
                 className="shrink-0 flex items-center gap-1.5 h-9 px-4 text-[12px] font-bold text-red-500 border-2 border-red-200 rounded-xl hover:bg-red-50 active:bg-red-100 transition-colors whitespace-nowrap bg-white"
               >
                 <X size={13} /> Clear
-              </a>
+              </Link>
             )}
           </div>
         </form>
@@ -463,13 +463,13 @@ export function PropertiesClient({
                 </p>
                 <div className="flex flex-col gap-2 w-full max-w-[200px]">
                   {activeFiltersCount > 0 && (
-                    <a href="/homes-for-rent" className="w-full py-3 px-4 bg-brand text-white text-[13px] font-bold rounded-xl hover:bg-brand-hover transition-colors text-center">
+                    <Link href="/homes-for-rent" className="w-full py-3 px-4 bg-brand text-white text-[13px] font-bold rounded-xl hover:bg-brand-hover transition-colors text-center">
                       Clear all filters
-                    </a>
+                    </Link>
                   )}
-                  <a href="/contact" className="w-full py-3 px-4 border-2 border-neutral-200 text-brand-dark text-[13px] font-bold rounded-xl hover:bg-neutral-50 transition-colors text-center">
+                  <Link href="/contact" className="w-full py-3 px-4 border-2 border-neutral-200 text-brand-dark text-[13px] font-bold rounded-xl hover:bg-neutral-50 transition-colors text-center">
                     Ask our team
-                  </a>
+                  </Link>
                 </div>
               </div>
             ) : (

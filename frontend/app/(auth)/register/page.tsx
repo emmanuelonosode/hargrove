@@ -312,7 +312,7 @@ function MultiStepRegister() {
 
               <div className="mt-8 text-center">
                 <p className="text-[13px] text-[#6E6E73]">
-                  Didn't receive the email?{" "}
+                  Didn&apos;t receive the email?{" "}
                   <button 
                     onClick={handleResend}
                     disabled={resendCooldown > 0} 

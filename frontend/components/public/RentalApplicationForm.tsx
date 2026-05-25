@@ -511,12 +511,18 @@ function Step3_Identity() {
   const { register, control, watch, formState: { errors } } = useFormContext<FormData>();
   const idType = watch("id_type");
   const hasDL  = watch("has_drivers_license");
+  const [maxDob, setMaxDob] = useState("");
+  useEffect(() => {
+    const dobStr = new Date(Date.now() - 18 * 365.25 * 86400000).toISOString().split("T")[0];
+    setTimeout(() => setMaxDob(dobStr), 0);
+  }, []);
+
   return (
     <div className="space-y-6">
       <FieldGroup label="Date of Birth" required error={errors.date_of_birth?.message}>
         <BigInput
           type="date" {...register("date_of_birth")}
-          max={new Date(Date.now() - 18 * 365.25 * 86400000).toISOString().split("T")[0]}
+          max={maxDob || undefined}
         />
       </FieldGroup>
 

@@ -53,15 +53,22 @@ interface MaintenanceRequest {
   resolved_at?: string | null;
 }
 
-function getCategoryIcon(cat: string) {
-  return CATEGORIES.find((c) => c.value === cat)?.icon ?? HelpCircle;
-}
+const CATEGORY_ICONS: Record<string, React.ElementType> = {
+  PLUMBING:   Wrench,
+  ELECTRICAL: Zap,
+  HVAC:       Wind,
+  APPLIANCE:  Settings,
+  STRUCTURAL: Home,
+  PEST:       Bug,
+  SECURITY:   Lock,
+  OTHER:      HelpCircle,
+};
 
 function RequestCard({ req }: { req: MaintenanceRequest }) {
   const [expanded, setExpanded] = useState(false);
   const cfg = STATUS_CONFIG[req.status] ?? STATUS_CONFIG.SUBMITTED;
   const StatusIcon = cfg.icon;
-  const CatIcon = getCategoryIcon(req.category);
+  const CatIcon = CATEGORY_ICONS[req.category] ?? HelpCircle;
 
   return (
     <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] overflow-hidden">

@@ -15,7 +15,8 @@ export function TrackingScripts() {
     captureUTMs();
     captureReferralCode();
     captureLocation();
-    setConsent(hasConsent());
+    const consentVal = hasConsent();
+    setTimeout(() => setConsent(consentVal), 0);
     const handler = () => setConsent(true);
     window.addEventListener("hasker:consent-granted", handler);
     return () => window.removeEventListener("hasker:consent-granted", handler);
