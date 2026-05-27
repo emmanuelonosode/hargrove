@@ -14,9 +14,9 @@ export const revalidate = 300;
 /* ── Static params ──────────────────────────────────────────────────── */
 
 export async function generateStaticParams() {
-  const dbCities = await fetchAllCities();
-  const all = [...new Set([...getAllCitySlugs(), ...dbCities.map((c) => c.slug)])];
-  return all.map((city) => ({ city }));
+  // Only pre-render hardcoded cities at build time — unknown slugs are served
+  // via ISR on first request (dynamicParams defaults to true).
+  return getAllCitySlugs().map((city) => ({ city }));
 }
 
 /* ── Metadata ───────────────────────────────────────────────────────── */

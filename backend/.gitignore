@@ -44,7 +44,8 @@ db.sqlite3
 db.sqlite3-journal
 media/
 staticfiles/
-static/
+# NOTE: static/ is NOT ignored — it contains source files (logo, admin scripts)
+# staticfiles/ (collectstatic output) is ignored above
 
 # ── IDEs ──────────────────────────────────────────────────────────────────────
 .idea/

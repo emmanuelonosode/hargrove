@@ -44,13 +44,13 @@ function getFilterLabel(spec: FilterSpec): string {
 /* ── Static params ──────────────────────────────────────────────────── */
 
 export async function generateStaticParams() {
-  const dbCities = await fetchAllCities();
-  const all = [...new Set([...getAllCitySlugs(), ...dbCities.map((c) => c.slug)])];
+  // Only pre-render hardcoded cities at build time — unknown slugs are served
+  // via ISR on first request (dynamicParams defaults to true).
   const filters = [
     "condos", "townhouses", "residential-homes", "commercial-spaces", "land-lots",
     "1-bedroom", "2-bedroom", "3-bedroom", "4-bedroom", "5-bedroom",
   ];
-  return all.flatMap((city) => filters.map((filter) => ({ city, filter })));
+  return getAllCitySlugs().flatMap((city) => filters.map((filter) => ({ city, filter })));
 }
 
 /* ── Metadata ───────────────────────────────────────────────────────── */

@@ -1,4 +1,4 @@
-# ─── OS & Editor ─────────────────────────────────────────────────────────────
+# ─── OS & Editor ──────────────────────────────────────────────────────────────
 .DS_Store
 .DS_Store?
 ._*
@@ -8,18 +8,13 @@ Thumbs.db
 ehthumbs.db
 desktop.ini
 
-# JetBrains (PyCharm, WebStorm, etc.)
 .idea/
 *.iml
 *.iws
 *.ipr
-
-# VS Code
 .vscode/
 !.vscode/extensions.json
 !.vscode/settings.json
-
-# Vim / Emacs
 *.swp
 *.swo
 *~
@@ -29,17 +24,20 @@ desktop.ini
 # ─── Secrets & Environment ────────────────────────────────────────────────────
 .env
 .env.local
+.env.*.local
 .env.production
 .env.*
 !.env.example
+!.env.template
 *.pem
 *.key
 *.p12
 *.pfx
-secrets/
+secrets.json
+service-account.json
 credentials.json
 
-# ─── Python / Django (backend) ───────────────────────────────────────────────
+# ─── Python / Django ─────────────────────────────────────────────────────────
 __pycache__/
 *.py[cod]
 *$py.class
@@ -47,12 +45,17 @@ __pycache__/
 *.pyo
 *.pyd
 .Python
+*.egg
+*.egg-info/
+*.egg-link
+.eggs/
+MANIFEST
 
 # Virtual environments
 venv/
 .venv/
 env/
-.env/
+ENV/
 virtualenv/
 .virtualenv/
 
@@ -62,16 +65,19 @@ local_settings.py
 db.sqlite3
 db.sqlite3-journal
 staticfiles/
-mediafiles/
 media/
 
 # Distribution / packaging
 dist/
 build/
-*.egg-info/
-*.egg
-.eggs/
-MANIFEST
+sdist/
+wheels/
+parts/
+var/
+eggs/
+lib/
+lib64/
+.installed.cfg
 
 # pytest / coverage
 .pytest_cache/
@@ -79,9 +85,9 @@ MANIFEST
 .coverage.*
 htmlcov/
 .tox/
-nosetests.xml
 coverage.xml
 *.cover
+nosetests.xml
 
 # mypy / type checkers
 .mypy_cache/
@@ -93,7 +99,7 @@ dmypy.json
 celerybeat-schedule
 celerybeat.pid
 
-# ─── Node.js / Next.js (frontend) ────────────────────────────────────────────
+# ─── Node.js / Next.js ───────────────────────────────────────────────────────
 node_modules/
 npm-debug.log*
 yarn-debug.log*
@@ -108,14 +114,9 @@ yarn-error.log*
 !.yarn/versions
 .pnp.*
 
-# Next.js
-.next/
 out/
+.next/
 .vercel/
-
-# Build output
-build/
-dist/
 
 # TypeScript
 *.tsbuildinfo
@@ -134,5 +135,4 @@ test-results/
 *.orig
 *.patch
 *.rej
-*.swo
 Pipfile.lock
