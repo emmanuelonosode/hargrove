@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { useAuth } from "@/context/AuthContext";
 
 const navLinks = [
-  { label: "Browse Homes", href: "/homes-for-rent" },
+  { label: "Browse Homes", href: "/houses-for-rent" },
   { label: "Our Team", href: "/agents" },
   { label: "Renter's Guide", href: "/blog" },
   { label: "Contact", href: "/contact" },
@@ -44,10 +44,8 @@ export function Navbar() {
 
   // Close mobile menu on route change
   useEffect(() => {
-    if (mobileOpen) {
-      setTimeout(() => setMobileOpen(false), 0);
-    }
-  }, [pathname, mobileOpen]);
+    setMobileOpen(false);
+  }, [pathname]);
 
   // When scrolled OR on non-hero pages → solid white bar
   // When at the top of a hero page → transparent (dark gradient so text stays visible)
@@ -96,16 +94,16 @@ export function Navbar() {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-4">
-            <a
-              href="mailto:info@haskerrealtygroup.com"
+            <button
+              onClick={() => window.dispatchEvent(new Event("hasker:open-callback"))}
               className={cn(
-                "flex items-center gap-1.5 text-sm font-medium transition-colors hover:text-brand",
+                "flex items-center gap-1.5 text-sm font-semibold transition-colors hover:text-brand cursor-pointer",
                 solidBg ? "text-brand-dark" : "text-white/90"
               )}
             >
               <Phone size={14} />
-              Email Us
-            </a>
+              Call Me
+            </button>
             {user ? (
               <div className="flex items-center gap-2">
                 <Link

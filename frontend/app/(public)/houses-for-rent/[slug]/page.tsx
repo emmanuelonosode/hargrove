@@ -101,12 +101,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         `${property.city} ${typeLabel.toLowerCase()} ${actionLabel} move-in ready`,
         `${property.city} ${actionLabel}`,
       ],
-      alternates: { canonical: `https://haskerrealtygroup.com/homes-for-rent/${decodedSlug}` },
+      alternates: { canonical: `https://haskerrealtygroup.com/houses-for-rent/${decodedSlug}` },
       openGraph: {
         title: `${seoTitle} | Hasker & Co. Realty Group`,
         description: seoDesc.slice(0, 160),
         type: "website",
-        url: `https://haskerrealtygroup.com/homes-for-rent/${decodedSlug}`,
+        url: `https://haskerrealtygroup.com/houses-for-rent/${decodedSlug}`,
         images: [{ url: ogImage, width: 1200, height: 630, alt: seoTitle }],
       },
       twitter: {
@@ -206,7 +206,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: "https://haskerrealtygroup.com" },
-      { "@type": "ListItem", position: 2, name: "Properties", item: "https://haskerrealtygroup.com/homes-for-rent" },
+      { "@type": "ListItem", position: 2, name: "Properties", item: "https://haskerrealtygroup.com/houses-for-rent" },
       {
         "@type": "ListItem",
         position: 3,
@@ -214,7 +214,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
         name: property.address
           ? `${property.address}, ${property.city}, ${property.state}`
           : property.title,
-        item: `https://haskerrealtygroup.com/homes-for-rent/${decodedSlug}`,
+        item: `https://haskerrealtygroup.com/houses-for-rent/${decodedSlug}`,
       },
     ],
   };
@@ -228,7 +228,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
       : property.title,
     alternateName: property.title,
     description: property.description ?? "",
-    url: `https://haskerrealtygroup.com/homes-for-rent/${property.slug}`,
+    url: `https://haskerrealtygroup.com/houses-for-rent/${property.slug}`,
     image: images.length > 0
       ? images.map((img) => ({
           "@type": "ImageObject",
@@ -343,10 +343,10 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
             <nav className="flex items-center gap-2 text-xs text-[#94A3B8] mb-5">
               <Link href="/" className="hover:text-brand transition-colors">Home</Link>
               <span>/</span>
-              <Link href="/homes-for-rent" className="hover:text-brand transition-colors">Homes for Rent</Link>
+              <Link href="/houses-for-rent" className="hover:text-brand transition-colors">Homes for Rent</Link>
               <span>/</span>
               <Link
-                href={`/homes-for-rent?q=${encodeURIComponent(property.city)}&listing_type=${property.listing_type}`}
+                href={`/houses-for-rent?q=${encodeURIComponent(property.city)}&listing_type=${property.listing_type}`}
                 className="hover:text-brand transition-colors"
               >
                 {property.city}, {property.state}
@@ -719,7 +719,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
                   </h2>
                 </div>
                 <Link
-                  href={`/homes-for-rent?q=${encodeURIComponent(property.city)}&listing_type=${property.listing_type}`}
+                  href={`/houses-for-rent?q=${encodeURIComponent(property.city)}&listing_type=${property.listing_type}`}
                   className="text-[13.5px] text-brand hover:underline font-medium"
                 >
                   View all rentals →
@@ -759,16 +759,16 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
               <>
                 <a
                   href="#schedule-form-mobile"
-                  className="shrink-0 h-11 px-5 bg-brand-dark text-white text-sm font-semibold rounded-sm flex items-center gap-1.5 hover:bg-brand transition-colors"
+                  className="flex-1 h-12 border-2 border-brand-dark text-brand-dark text-sm font-bold rounded-xl flex items-center justify-center hover:bg-brand-dark hover:text-white transition-all"
                 >
-                  <Calendar size={14} /> Tour
+                  Book a Tour
                 </a>
                 {property.listing_type === "for-sale" && (
                   <Link
                     href={`/contact?property=${property.slug}&inquiry=purchase`}
-                    className="shrink-0 h-11 px-5 bg-brand text-white text-sm font-semibold rounded-sm flex items-center hover:opacity-90 transition-opacity"
+                    className="flex-1 h-12 bg-brand text-white text-sm font-bold rounded-xl flex items-center justify-center hover:bg-brand-hover transition-colors shadow-md shadow-brand/20"
                   >
-                    Inquire
+                    Inquire Now
                   </Link>
                 )}
               </>

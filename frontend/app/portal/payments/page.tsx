@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
@@ -99,7 +99,7 @@ function fmtCompact(v: number) {
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(v);
 }
 
-// ── Inline SVG logos ──────────────────────────────────────────────────────────
+// â”€â”€ Inline SVG logos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function VenmoLogo() {
   return (
     <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" className="w-full h-full" aria-hidden="true">
@@ -162,7 +162,7 @@ const FALLBACK_METHODS: PaymentConfig[] = [
   { method: "BANK_TRANSFER", display_name: "Bank Transfer", handle: "info@haskerrealtygroup.com",     extra_instructions: "Contact us for full wire transfer details.",   ...EMPTY_BANK },
 ];
 
-// ── Payment Modal ─────────────────────────────────────────────────────────────
+// â”€â”€ Payment Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function PaymentModal({
   invoice, paymentConfig, onClose, onSuccess,
 }: {
@@ -260,7 +260,7 @@ function PaymentModal({
 
   return (
     <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center">
-      <div className="absolute inset-0 bg-[#0B1F3A]/60 backdrop-blur-sm" onClick={loading ? undefined : onClose} />
+      <div className="absolute inset-0 bg-[#1E3A5F]/60 backdrop-blur-sm" onClick={loading ? undefined : onClose} />
 
       <div className="relative w-full sm:max-w-lg bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[88vh] overflow-hidden">
         {/* Mobile drag handle */}
@@ -285,7 +285,7 @@ function PaymentModal({
               {step === "items" ? "Select Items to Pay" : "Submit Payment Proof"}
             </h3>
             <p className="text-[12px] text-[#6E6E73] truncate">
-              {invoice.invoice_number} · {isPartial ? `Paying ${fmt(selectedAmount)} of ${fmt(invoice.total)}` : fmt(invoice.total)}
+              {invoice.invoice_number} Â· {isPartial ? `Paying ${fmt(selectedAmount)} of ${fmt(invoice.total)}` : fmt(invoice.total)}
             </p>
           </div>
           {!loading && step !== "success" && (
@@ -302,7 +302,7 @@ function PaymentModal({
         {/* Scrollable body */}
         <div className="overflow-y-auto flex-1">
           {step === "items" ? (
-            /* ── Item Selector ── */
+            /* â”€â”€ Item Selector â”€â”€ */
             <div className="p-5 flex flex-col min-h-full">
               {/* Title row */}
               <div className="flex items-start justify-between gap-3 mb-5">
@@ -324,7 +324,7 @@ function PaymentModal({
                       : "border-brand text-brand bg-brand/5 hover:bg-brand/10"
                   )}
                 >
-                  {allSelected ? "✓ All Selected" : "Pay All"}
+                  {allSelected ? "âœ“ All Selected" : "Pay All"}
                 </button>
               </div>
 
@@ -371,7 +371,7 @@ function PaymentModal({
                           {item.description}
                         </p>
                         {item.quantity > 1 && (
-                          <p className="text-[11px] text-[#6E6E73] mt-0.5">× {item.quantity}</p>
+                          <p className="text-[11px] text-[#6E6E73] mt-0.5">Ã— {item.quantity}</p>
                         )}
                       </div>
 
@@ -388,7 +388,7 @@ function PaymentModal({
               </div>
 
               {/* Running total / CTA bar */}
-              <div className="mt-5 bg-[#0B1F3A] rounded-2xl px-5 py-4 flex items-center justify-between gap-4">
+              <div className="mt-5 bg-[#1E3A5F] rounded-2xl px-5 py-4 flex items-center justify-between gap-4">
                 <div className="min-w-0">
                   <p className={cn(
                     "text-[13px] font-bold leading-tight",
@@ -414,9 +414,9 @@ function PaymentModal({
                     type="button"
                     disabled={selectedIndices.size === 0}
                     onClick={() => setStep("form")}
-                    className="mt-1.5 text-[12px] font-bold bg-white text-[#0B1F3A] px-4 py-2 rounded-xl disabled:opacity-40 transition-all hover:bg-[#F5F5F7] cursor-pointer disabled:cursor-not-allowed whitespace-nowrap"
+                    className="mt-1.5 text-[12px] font-bold bg-white text-[#1E3A5F] px-4 py-2 rounded-xl disabled:opacity-40 transition-all hover:bg-[#F5F5F7] cursor-pointer disabled:cursor-not-allowed whitespace-nowrap"
                   >
-                    {allSelected ? "Pay Full Balance →" : "Continue with Selection →"}
+                    {allSelected ? "Pay Full Balance â†’" : "Continue with Selection â†’"}
                   </button>
                 </div>
               </div>
@@ -428,7 +428,7 @@ function PaymentModal({
               </div>
               <h4 className="text-[18px] font-bold text-[#1D1D1F] mb-2">Proof Submitted!</h4>
               <p className="text-[13px] text-[#6E6E73] leading-relaxed max-w-xs">
-                Our team will verify your payment. You&apos;ll receive an email once it&apos;s confirmed — typically within 1–2 business hours.
+                Our team will verify your payment. You&apos;ll receive an email once it&apos;s confirmed — typically within 1”“2 business hours.
               </p>
               <div className="mt-6 w-full bg-[#F5F5F7] rounded-full h-1 overflow-hidden">
                 <div className="h-full bg-brand animate-[shrink_2.5s_linear_forwards] rounded-full" />
@@ -437,7 +437,7 @@ function PaymentModal({
           ) : (
             <form onSubmit={handleSubmit} className="p-6 space-y-5">
 
-              {/* ── Partial payment summary (when items were selected) ── */}
+              {/* â”€â”€ Partial payment summary (when items were selected) â”€â”€ */}
               {isPartial && (
                 <div className="bg-brand/[0.05] border border-brand/20 rounded-2xl px-4 py-3.5">
                   <p className="text-[10px] font-bold text-brand uppercase tracking-[0.1em] mb-2">Paying these items</p>
@@ -458,7 +458,7 @@ function PaymentModal({
                 </div>
               )}
 
-              {/* ── Method selector — full-width radio cards ── */}
+              {/* â”€â”€ Method selector — full-width radio cards â”€â”€ */}
               <div>
                 <p className="text-[10px] font-bold text-[#6E6E73] uppercase tracking-[0.12em] mb-3">Choose payment method</p>
                 <div className="space-y-2">
@@ -501,7 +501,7 @@ function PaymentModal({
                 </div>
               </div>
 
-              {/* ── Payment details card ── */}
+              {/* â”€â”€ Payment details card â”€â”€ */}
               {isBankTransfer ? (
                 /* Bank Transfer — dark header + stacked rows */
                 <div className="rounded-2xl overflow-hidden border border-[#E5E5EA]">
@@ -548,7 +548,7 @@ function PaymentModal({
                                 )}
                                 aria-label={`Copy ${row.label}`}
                               >
-                                {copied === row.key ? "✓ Done" : "Copy"}
+                                {copied === row.key ? "âœ“ Done" : "Copy"}
                               </button>
                             )}
                           </div>
@@ -575,7 +575,7 @@ function PaymentModal({
                 </div>
               ) : (
                 /* P2P — dark send-to card with break-all handle + Copy pill */
-                <div className="bg-[#0B1F3A] rounded-2xl p-5 text-white">
+                <div className="bg-[#1E3A5F] rounded-2xl p-5 text-white">
                   <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-3">Send to</p>
                   <div className="flex items-start gap-3 mb-4">
                     <div className="w-11 h-11 rounded-xl overflow-hidden shrink-0 shadow-md mt-0.5">
@@ -651,7 +651,7 @@ function PaymentModal({
                       <CheckCircle size={18} className="text-brand shrink-0" />
                       <div>
                         <p className="text-[13px] font-semibold text-brand truncate max-w-[200px]">{file.name}</p>
-                        <p className="text-[10px] text-brand/60">{(file.size / 1024 / 1024).toFixed(1)} MB · tap to change</p>
+                        <p className="text-[10px] text-brand/60">{(file.size / 1024 / 1024).toFixed(1)} MB Â· tap to change</p>
                       </div>
                     </>
                   ) : (
@@ -682,7 +682,7 @@ function PaymentModal({
 
               <div className="flex items-center gap-2 justify-center text-[#6E6E73] pb-2">
                 <Shield size={12} />
-                <p className="text-[11px]">Verification takes 1–2 business hours</p>
+                <p className="text-[11px]">Verification takes 1”“2 business hours</p>
               </div>
             </form>
           )}
@@ -692,7 +692,7 @@ function PaymentModal({
   );
 }
 
-// ── PaymentRow ─────────────────────────────────────────────────────────────────
+// â”€â”€ PaymentRow â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function PaymentRow({ payment: pay }: { payment: Payment }) {
   const isVerified = pay.status === "VERIFIED" || pay.status === "SUCCESSFUL";
   const isRejected = pay.status === "REJECTED" || pay.status === "FAILED";
@@ -729,7 +729,7 @@ function PaymentRow({ payment: pay }: { payment: Payment }) {
   );
 }
 
-// ── InvoiceCard ────────────────────────────────────────────────────────────────
+// â”€â”€ InvoiceCard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function InvoiceCard({
   invoice, expanded, onToggle, onPay, hasPendingPayment,
 }: {
@@ -873,7 +873,7 @@ function InvoiceCard({
   );
 }
 
-// ── Main Page ──────────────────────────────────────────────────────────────────
+// â”€â”€ Main Page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export default function PaymentsPage() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);

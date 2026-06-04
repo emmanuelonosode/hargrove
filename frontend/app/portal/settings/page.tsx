@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -369,7 +369,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Contact info card */}
-        <div className="bg-[#0B1F3A] rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="bg-[#1E3A5F] rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <p className="text-[13px] font-semibold text-white tracking-tight">Need to update your email?</p>
             <p className="text-[12px] text-white/40 mt-0.5">Contact our team — email changes require verification.</p>

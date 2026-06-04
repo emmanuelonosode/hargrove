@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
@@ -7,7 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import { apiFetch } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 
-// ── Types ─────────────────────────────────────────────────────────────────────
+// â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface JobApplication {
   id: number;
@@ -29,7 +29,7 @@ interface JobApplication {
 
 type ApplicationStatus = "SUBMITTED" | "UNDER_REVIEW" | "INTERVIEW_SCHEDULED" | "HIRED" | "REJECTED";
 
-// ── Constants ─────────────────────────────────────────────────────────────────
+// â”€â”€ Constants â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const STATUS_LABELS: Record<ApplicationStatus, string> = {
   SUBMITTED: "Submitted",
@@ -62,7 +62,7 @@ function fmt(iso: string) {
   return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
-// ── Status Badge ─────────────────────────────────────────────────────────────
+// â”€â”€ Status Badge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function StatusBadge({ status }: { status: ApplicationStatus }) {
   return (
@@ -72,7 +72,7 @@ function StatusBadge({ status }: { status: ApplicationStatus }) {
   );
 }
 
-// ── Application Drawer ────────────────────────────────────────────────────────
+// â”€â”€ Application Drawer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function ApplicationDrawer({
   app,
@@ -122,7 +122,7 @@ function ApplicationDrawer({
         {/* Header */}
         <div className="sticky top-0 bg-white border-b border-neutral-100 px-6 py-4 flex items-center justify-between z-10">
           <div>
-            <p className="font-semibold text-[#0B1F3A] text-sm">{app.full_name}</p>
+            <p className="font-semibold text-[#1E3A5F] text-sm">{app.full_name}</p>
             <p className="text-xs text-neutral-400 mt-0.5">{ROLE_LABELS[app.role_id] ?? app.role_title}</p>
           </div>
           <button
@@ -164,7 +164,7 @@ function ApplicationDrawer({
           {app.extra_field_label && (
             <div>
               <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-1">{app.extra_field_label}</p>
-              <p className="text-sm text-[#0B1F3A]">{app.extra_field_value || "—"}</p>
+              <p className="text-sm text-[#1E3A5F]">{app.extra_field_value || "—"}</p>
             </div>
           )}
 
@@ -188,7 +188,7 @@ function ApplicationDrawer({
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value as ApplicationStatus)}
-                className="w-full appearance-none bg-white border border-neutral-200 rounded-lg px-3.5 py-2.5 text-sm text-[#0B1F3A] focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand pr-8 cursor-pointer"
+                className="w-full appearance-none bg-white border border-neutral-200 rounded-lg px-3.5 py-2.5 text-sm text-[#1E3A5F] focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand pr-8 cursor-pointer"
               >
                 {(Object.keys(STATUS_LABELS) as ApplicationStatus[]).map((s) => (
                   <option key={s} value={s}>{STATUS_LABELS[s]}</option>
@@ -208,7 +208,7 @@ function ApplicationDrawer({
               onChange={(e) => setNotes(e.target.value)}
               rows={4}
               placeholder="Add notes for your team — interview feedback, follow-up actions, etc."
-              className="w-full border border-neutral-200 rounded-lg px-3.5 py-2.5 text-sm text-[#0B1F3A] placeholder:text-neutral-300 focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand resize-none leading-relaxed"
+              className="w-full border border-neutral-200 rounded-lg px-3.5 py-2.5 text-sm text-[#1E3A5F] placeholder:text-neutral-300 focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand resize-none leading-relaxed"
             />
           </div>
 
@@ -216,7 +216,7 @@ function ApplicationDrawer({
           <button
             onClick={handleSave}
             disabled={saving}
-            className="w-full flex items-center justify-center gap-2 bg-[#0B1F3A] hover:bg-brand text-white text-sm font-semibold py-3 rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center gap-2 bg-[#1E3A5F] hover:bg-brand text-white text-sm font-semibold py-3 rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {saving ? (
               <><Loader2 size={14} className="animate-spin" /> Saving…</>
@@ -238,7 +238,7 @@ function ApplicationDrawer({
   );
 }
 
-// ── Main Page ─────────────────────────────────────────────────────────────────
+// â”€â”€ Main Page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export default function HiringPage() {
   const { user, isLoading } = useAuth();
@@ -303,7 +303,7 @@ export default function HiringPage() {
 
       {/* Page header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-[#0B1F3A] tracking-tight">Hiring</h1>
+        <h1 className="text-2xl font-bold text-[#1E3A5F] tracking-tight">Hiring</h1>
         <p className="text-sm text-neutral-400 mt-1">Review and manage job applications from your careers page.</p>
       </div>
 
@@ -317,7 +317,7 @@ export default function HiringPage() {
             placeholder="Search by name, email, or role…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="flex-1 text-sm text-[#0B1F3A] placeholder:text-neutral-300 outline-none bg-transparent"
+            className="flex-1 text-sm text-[#1E3A5F] placeholder:text-neutral-300 outline-none bg-transparent"
           />
         </div>
 
@@ -326,7 +326,7 @@ export default function HiringPage() {
           <select
             value={filterRole}
             onChange={(e) => setFilterRole(e.target.value)}
-            className="appearance-none bg-white border border-neutral-200 rounded-lg px-3.5 py-0 h-10 text-sm text-[#0B1F3A] focus:outline-none focus:ring-2 focus:ring-brand/20 pr-8 cursor-pointer shadow-sm"
+            className="appearance-none bg-white border border-neutral-200 rounded-lg px-3.5 py-0 h-10 text-sm text-[#1E3A5F] focus:outline-none focus:ring-2 focus:ring-brand/20 pr-8 cursor-pointer shadow-sm"
           >
             <option value="">All Roles</option>
             {roleOptions.map((r) => (
@@ -341,7 +341,7 @@ export default function HiringPage() {
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="appearance-none bg-white border border-neutral-200 rounded-lg px-3.5 py-0 h-10 text-sm text-[#0B1F3A] focus:outline-none focus:ring-2 focus:ring-brand/20 pr-8 cursor-pointer shadow-sm"
+            className="appearance-none bg-white border border-neutral-200 rounded-lg px-3.5 py-0 h-10 text-sm text-[#1E3A5F] focus:outline-none focus:ring-2 focus:ring-brand/20 pr-8 cursor-pointer shadow-sm"
           >
             <option value="">All Statuses</option>
             {(Object.keys(STATUS_LABELS) as ApplicationStatus[]).map((s) => (
@@ -365,7 +365,7 @@ export default function HiringPage() {
                 className={cn(
                   "flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full border transition-colors",
                   filterStatus === s
-                    ? "bg-[#0B1F3A] text-white border-[#0B1F3A]"
+                    ? "bg-[#1E3A5F] text-white border-[#1E3A5F]"
                     : "bg-white text-neutral-500 border-neutral-200 hover:border-neutral-300"
                 )}
               >
@@ -376,7 +376,7 @@ export default function HiringPage() {
                   "bg-green-500": s === "HIRED",
                   "bg-red-500": s === "REJECTED",
                 })} />
-                {STATUS_LABELS[s]} · {count}
+                {STATUS_LABELS[s]} Â· {count}
               </button>
             );
           })}
@@ -432,7 +432,7 @@ export default function HiringPage() {
                       {app.full_name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-semibold text-[#0B1F3A] truncate group-hover:text-brand transition-colors">
+                      <p className="text-sm font-semibold text-[#1E3A5F] truncate group-hover:text-brand transition-colors">
                         {app.full_name}
                       </p>
                       <p className="text-[11px] text-neutral-400 truncate">{app.email}</p>

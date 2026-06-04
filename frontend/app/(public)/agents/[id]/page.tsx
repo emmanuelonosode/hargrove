@@ -287,7 +287,7 @@ export default async function AgentProfilePage({ params }: Props) {
                   <h2 className="font-serif text-2xl font-bold text-brand-dark">
                     Current Listings
                   </h2>
-                  <Link href="/homes-for-rent" className="text-sm text-brand hover:underline font-medium">
+                  <Link href="/houses-for-rent" className="text-sm text-brand hover:underline font-medium">
                     View all
                   </Link>
                 </div>
@@ -297,7 +297,7 @@ export default async function AgentProfilePage({ params }: Props) {
                     return (
                       <Link
                         key={property.id}
-                        href={`/homes-for-rent/${property.slug}`}
+                        href={`/houses-for-rent/${property.slug}`}
                         className="group bg-white border border-neutral-100 rounded-sm overflow-hidden hover:shadow-lg transition-shadow duration-300"
                       >
                         <div className="relative aspect-[16/9] overflow-hidden">

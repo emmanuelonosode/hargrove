@@ -95,8 +95,13 @@ if DATABASE_URL.startswith("sqlite"):
         }
     }
 else:
-    import dj_database_url  # noqa — installed via psycopg2-binary extras if needed
+    import dj_database_url
     DATABASES = {"default": dj_database_url.parse(DATABASE_URL)}
+    if DATABASE_URL.startswith("mysql"):
+        DATABASES["default"].setdefault("OPTIONS", {}).update({
+            "charset": "utf8mb4",
+            "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
+        })
 
 # ── Auth ───────────────────────────────────────────────────────────────────────
 AUTH_USER_MODEL = "accounts.CustomUser"
@@ -130,6 +135,11 @@ FORM_RENDERER = "django.forms.renderers.TemplatesSetting"
 CLOUDINARY_CLOUD_NAME = config("CLOUDINARY_CLOUD_NAME", default="")
 CLOUDINARY_API_KEY    = config("CLOUDINARY_API_KEY", default="")
 CLOUDINARY_API_SECRET = config("CLOUDINARY_API_SECRET", default="")
+
+# AI-powered natural-language search (optional — search degrades gracefully to the
+# regex parser when this is unset, so leaving it blank disables AI search safely).
+GEMINI_API_KEY = config("GEMINI_API_KEY", default="")
+GEMINI_MODEL   = config("GEMINI_MODEL", default="gemini-2.0-flash")
 
 CLOUDINARY_STORAGE = {
     "CLOUD_NAME": CLOUDINARY_CLOUD_NAME,

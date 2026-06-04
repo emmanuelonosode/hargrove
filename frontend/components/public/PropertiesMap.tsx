@@ -32,8 +32,8 @@ interface Props {
   onBoundsChange?: (bounds: MapBounds) => void;
 }
 
-const NAVY = "#0B1F3A";
-const BLUE = "#1A56DB";
+const NAVY = "#1E3A5F";
+const BLUE = "#2563EB";
 // Always use relative path — Next.js rewrites proxy /api/v1/* to the backend.
 // Never call the backend directly from the browser (breaks in production).
 const API_BASE = "";
@@ -62,7 +62,7 @@ function makeBubble(L: any, price: number, label: string, active: boolean) {
 
 function buildPopup(m: MapMarker) {
   return `
-    <a href="/homes-for-rent/${m.slug}"
+    <a href="/houses-for-rent/${m.slug}"
        style="text-decoration:none;color:inherit;display:block;font-family:system-ui,sans-serif;">
       ${m.image_url
         ? `<img src="${m.image_url}" style="width:248px;height:148px;object-fit:cover;
@@ -145,7 +145,7 @@ export function PropertiesMap({ markers, center, activeSlug, onMarkerClick, onBo
 
         dot.on("mouseover", () => {
           dot.bindPopup(
-            `<a href="/homes-for-rent/${p.slug}"
+            `<a href="/houses-for-rent/${p.slug}"
                 style="text-decoration:none;color:inherit;display:block;font-family:system-ui;min-width:160px">
               <div style="font-size:15px;font-weight:800;color:${BLUE}">
                 $${Number(p.price).toLocaleString()}${p.price_label ?? ""}
@@ -163,7 +163,7 @@ export function PropertiesMap({ markers, center, activeSlug, onMarkerClick, onBo
           ).openPopup();
         });
 
-        dot.on("click", () => { window.location.href = `/homes-for-rent/${p.slug}`; });
+        dot.on("click", () => { window.location.href = `/houses-for-rent/${p.slug}`; });
         dot.addTo(layer);
       });
 

@@ -133,7 +133,7 @@ export function ActiveSpecialModal({
         full_name: name.trim(),
         email: email.trim(),
         phone: phone.trim() || undefined,
-        source: "SPECIAL_OFFER",
+        source: "CONTACT_FORM",
         interest_type: "RENT",
         property_interest: propertyId,
         services_requested: [propertySlug],

@@ -6,14 +6,16 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   Search, ChevronDown, MapPin, X,
-  List, Map as MapIcon, Layers, BedDouble, DollarSign, ArrowRight,
+  List, Map as MapIcon, Layers, BedDouble, DollarSign, ArrowRight, Calendar,
+  Bath, Home, PawPrint, Maximize,
 } from "lucide-react";
 import { FavoriteButton } from "./FavoriteButton";
-import { captureSearchIntent } from "@/lib/tracking";
+import { captureSearchIntent, getBestKnownCity, getDeviceContext, getStoredReferralCode, getStoredUTMs, trackEvent } from "@/lib/tracking";
 import { PropertiesMapLoader } from "./PropertiesMapLoader";
 import { fetchAllCities, CITIES } from "@/lib/cities";
 import type { MapMarker, MapBounds } from "./PropertiesMap";
 import type { PropertyListItemAPI } from "@/lib/properties";
+import { looksNaturalLanguage, parseSmartQuery } from "@/lib/properties";
 
 interface Props {
   initialResults: PropertyListItemAPI[];
@@ -21,8 +23,13 @@ interface Props {
   initialPage: number;
   initialQ?: string;
   initialBeds?: string;
+  initialBaths?: string;
   initialMinPrice?: string;
   initialMaxPrice?: string;
+  initialMinSqft?: string;
+  initialMaxSqft?: string;
+  initialType?: string;
+  initialPets?: string;
   initialListingType?: string;
   initialSort?: string;
 }
@@ -48,6 +55,29 @@ const BEDS_OPTIONS = [
   { label: "4+ Beds",  value: "4" },
 ];
 
+const BATHS_OPTIONS = [
+  { label: "Any Baths", value: "" },
+  { label: "1+ Bath",   value: "1" },
+  { label: "2+ Baths",  value: "2" },
+  { label: "3+ Baths",  value: "3" },
+];
+
+const TYPE_OPTIONS = [
+  { label: "Any Type",   value: "" },
+  { label: "House",      value: "residential" },
+  { label: "Condo",      value: "condo" },
+  { label: "Townhouse",  value: "townhouse" },
+];
+
+const SQFT_OPTIONS = [
+  { label: "Any Size",    value: "" },
+  { label: "500+ sqft",   value: "500" },
+  { label: "750+ sqft",   value: "750" },
+  { label: "1,000+ sqft", value: "1000" },
+  { label: "1,500+ sqft", value: "1500" },
+  { label: "2,000+ sqft", value: "2000" },
+];
+
 const SORT_OPTIONS = [
   { label: "Best Match",   value: "diverse" },
   { label: "Newest First", value: "newest" },
@@ -63,8 +93,13 @@ export function PropertiesClient({
   initialPage,
   initialQ = "",
   initialBeds = "",
+  initialBaths = "",
   initialMinPrice = "",
   initialMaxPrice = "",
+  initialMinSqft = "",
+  initialMaxSqft = "",
+  initialType = "",
+  initialPets = "",
   initialListingType = "",
   initialSort = "newest",
 }: Props) {
@@ -72,13 +107,21 @@ export function PropertiesClient({
 
   const [q, setQ]                   = useState(initialQ);
   const [beds, setBeds]             = useState(initialBeds);
+  const [baths, setBaths]           = useState(initialBaths);
+  const [propType, setPropType]     = useState(initialType);
+  const [pets, setPets]             = useState(initialPets === "true");
+  const [minSqft, setMinSqft]       = useState(initialMinSqft);
+  const [maxSqft, setMaxSqft]       = useState(initialMaxSqft);
   const [listingType, setListingType] = useState(initialListingType);
   const [sort, setSort]             = useState(initialSort);
   const [priceRange, setPriceRange] = useState(
     initialMinPrice ? (initialMaxPrice ? `${initialMinPrice}-${initialMaxPrice}` : initialMinPrice) : ""
   );
 
-  const [mapResults, setMapResults]     = useState<PropertyListItemAPI[] | null>(null);
+  const [leadCaptured,     setLeadCaptured]     = useState(false);
+  const [bannerDismissed,  setBannerDismissed]  = useState(false);
+  const [aiLoading,        setAiLoading]        = useState(false);
+  const [mapResults, setMapResults]             = useState<PropertyListItemAPI[] | null>(null);
   const [mapLoading, setMapLoading]     = useState(false);
   const [searchOnMove, setSearchOnMove] = useState(true);
   const [activeSlug, setActiveSlug]     = useState<string | null>(null);
@@ -94,7 +137,15 @@ export function PropertiesClient({
   const [locIndex, setLocIndex] = useState(-1);
   const [liveCities, setLiveCities] = useState<{ city: string; state: string }[]>([]);
 
+  // Custom price popover
+  const priceRef = useRef<HTMLDivElement>(null);
+  const [priceOpen, setPriceOpen] = useState(false);
+  const initialCustom = initialMinPrice && !PRICE_RANGES.some((r) => r.value === priceRange);
+  const [customMin, setCustomMin] = useState(initialCustom ? initialMinPrice : "");
+  const [customMax, setCustomMax] = useState(initialCustom ? initialMaxPrice : "");
+
   useEffect(() => {
+    if (sessionStorage.getItem("hasker_lead_captured") === "true") setLeadCaptured(true);
     fetchAllCities().then((cities) => {
       setLiveCities(cities.map((c) => ({ city: c.city, state: c.state })));
     }).catch(() => {});
@@ -116,10 +167,21 @@ export function PropertiesClient({
       if (locationRef.current && !locationRef.current.contains(e.target as Node)) {
         setLocOpen(false); setLocIndex(-1);
       }
+      if (priceRef.current && !priceRef.current.contains(e.target as Node)) {
+        setPriceOpen(false);
+      }
     }
     document.addEventListener("pointerdown", onOut);
     return () => document.removeEventListener("pointerdown", onOut);
   }, []);
+
+  function applyCustomPrice() {
+    const min = customMin.trim();
+    const max = customMax.trim();
+    setPriceRange(min || max ? `${min}-${max}` : "");
+    setPriceOpen(false);
+    navigate({ minPrice: min || undefined, maxPrice: max || undefined });
+  }
 
   useEffect(() => {
     const el = cardListRef.current;
@@ -144,15 +206,20 @@ export function PropertiesClient({
     const base: Record<string, string | undefined> = {
       q:            q || undefined,
       beds:         beds || undefined,
+      baths:        baths || undefined,
+      type:         propType || undefined,
+      pets:         pets ? "true" : undefined,
       listing_type: listingType || undefined,
       minPrice:     prMin || undefined,
       maxPrice:     prMax || undefined,
+      minSqft:      minSqft || undefined,
+      maxSqft:      maxSqft || undefined,
       sort:         sort && sort !== "diverse" ? sort : undefined,
       page:         initialPage > 1 ? String(initialPage) : undefined,
     };
     Object.entries({ ...base, ...overrides }).forEach(([k, v]) => { if (v) p.set(k, v); });
     const qs = p.toString();
-    return `/homes-for-rent${qs ? `?${qs}` : ""}`;
+    return `/houses-for-rent${qs ? `?${qs}` : ""}`;
   }
 
   function navigate(overrides: Record<string, string | undefined> = {}) {
@@ -160,9 +227,25 @@ export function PropertiesClient({
     router.push(buildUrl({ ...overrides, page: undefined }));
   }
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (q.trim()) captureSearchIntent(q.trim(), listingType || undefined);
+    const term = q.trim();
+    if (term) captureSearchIntent(term, listingType || undefined);
+
+    // Smart path: route clearly natural-language queries through the AI parser.
+    if (term && looksNaturalLanguage(term)) {
+      setAiLoading(true);
+      const smart = await parseSmartQuery(term);
+      setAiLoading(false);
+      if (smart) {
+        if (!smart.listing_type && listingType) smart.listing_type = listingType;
+        const params = new URLSearchParams();
+        Object.entries(smart).forEach(([k, v]) => { if (v) params.set(k, v); });
+        setMapResults(null);
+        router.push(`/houses-for-rent?${params.toString()}`);
+        return;
+      }
+    }
     navigate();
   };
 
@@ -201,7 +284,25 @@ export function PropertiesClient({
       image_url: p.primary_image_url, beds: p.bedrooms, baths: p.bathrooms,
     }));
 
-  const activeFiltersCount = [q, beds, priceRange].filter(Boolean).length;
+  const activeFiltersCount = [q, beds, baths, propType, priceRange, minSqft, maxSqft].filter(Boolean).length + (pets ? 1 : 0);
+
+  // Active filter chips — one per applied filter, each removable.
+  const priceLabel = PRICE_RANGES.find((r) => r.value === priceRange)?.label
+    ?? (priceRange ? (() => { const [mn, mx] = priceRange.split("-"); return `$${mn || "0"}–$${mx || "∞"}`; })() : undefined);
+  const activeChips: { key: string; label: string; clear: () => void }[] = [];
+  if (q)          activeChips.push({ key: "q",     label: `"${q}"`, clear: () => { setQ(""); navigate({ q: undefined }); } });
+  if (listingType) activeChips.push({ key: "lt",   label: listingType === "for-rent" ? "For Rent" : "For Sale", clear: () => { setListingType(""); navigate({ listing_type: undefined }); } });
+  if (propType)   activeChips.push({ key: "type",  label: TYPE_OPTIONS.find((t) => t.value === propType)?.label ?? propType, clear: () => { setPropType(""); navigate({ type: undefined }); } });
+  if (beds)       activeChips.push({ key: "beds",  label: BEDS_OPTIONS.find((b) => b.value === beds)?.label ?? `${beds}+ bd`, clear: () => { setBeds(""); navigate({ beds: undefined }); } });
+  if (baths)      activeChips.push({ key: "baths", label: `${baths}+ ba`, clear: () => { setBaths(""); navigate({ baths: undefined }); } });
+  if (priceRange) activeChips.push({ key: "price", label: priceLabel ?? "Price", clear: () => { setPriceRange(""); navigate({ minPrice: undefined, maxPrice: undefined }); } });
+  if (pets)       activeChips.push({ key: "pets",  label: "Pet-friendly", clear: () => { setPets(false); navigate({ pets: undefined }); } });
+  if (minSqft || maxSqft) {
+    const sqftLabel = maxSqft
+      ? `${minSqft || "0"}–${maxSqft} sqft`
+      : `${minSqft}+ sqft`;
+    activeChips.push({ key: "sqft", label: sqftLabel, clear: () => { setMinSqft(""); setMaxSqft(""); navigate({ minSqft: undefined, maxSqft: undefined }); } });
+  }
 
   return (
     <div className="pt-20 h-screen overflow-hidden flex flex-col bg-white">
@@ -212,7 +313,7 @@ export function PropertiesClient({
         style={{
           maxHeight: filterBarVisible ? 160 : 0,
           opacity: filterBarVisible ? 1 : 0,
-          overflow: (filterBarVisible && locOpen && locSuggestions.length > 0) ? "visible" : "hidden",
+          overflow: (filterBarVisible && ((locOpen && locSuggestions.length > 0) || priceOpen)) ? "visible" : "hidden",
         }}
       >
         <form onSubmit={handleSearch}>
@@ -226,7 +327,7 @@ export function PropertiesClient({
                   ref={locationInput}
                   type="text"
                   autoComplete="off"
-                  placeholder="City, ZIP, or neighborhood…"
+                  placeholder="Try: 2 bed pet-friendly in Atlanta under $1,800"
                   value={q}
                   onChange={(e) => { setQ(e.target.value); setLocOpen(true); setLocIndex(-1); }}
                   onFocus={() => setLocOpen(true)}
@@ -295,10 +396,13 @@ export function PropertiesClient({
             <button
               type="submit"
               aria-label="Search"
-              className="flex items-center justify-center gap-2 h-11 w-11 md:w-auto md:px-5 bg-brand hover:bg-brand-hover text-white rounded-xl transition-colors shrink-0 shadow-sm"
+              disabled={aiLoading}
+              className="flex items-center justify-center gap-2 h-11 w-11 md:w-auto md:px-5 bg-brand hover:bg-brand-hover text-white rounded-xl transition-colors shrink-0 shadow-sm disabled:opacity-70"
             >
-              <Search size={16} />
-              <span className="hidden md:inline text-[13px] font-bold">Search</span>
+              {aiLoading
+                ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                : <Search size={16} />}
+              <span className="hidden md:inline text-[13px] font-bold">{aiLoading ? "Thinking…" : "Search"}</span>
             </button>
           </div>
 
@@ -323,19 +427,73 @@ export function PropertiesClient({
               ))}
             </div>
 
-            {/* Price filter */}
-            <FilterPill
-              icon={<DollarSign size={13} />}
-              value={priceRange}
-              label="Price"
-              onChange={(v) => {
-                setPriceRange(v);
-                const [min, max] = v.split("-");
-                navigate({ minPrice: min || undefined, maxPrice: max || undefined });
-              }}
-            >
-              {PRICE_RANGES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
-            </FilterPill>
+            {/* Price filter — presets + custom min/max popover */}
+            <div className="relative shrink-0" ref={priceRef}>
+              <button
+                type="button"
+                onClick={() => setPriceOpen((v) => !v)}
+                className={`flex items-center gap-1.5 border-2 rounded-xl h-11 pl-3 pr-3 transition-all text-[12px] font-bold whitespace-nowrap ${
+                  priceRange
+                    ? "border-brand bg-brand/5 text-brand"
+                    : "border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300"
+                }`}
+              >
+                <DollarSign size={13} className={priceRange ? "text-brand" : "text-neutral-400"} />
+                {priceLabel ?? "Price"}
+                <ChevronDown size={13} className={priceRange ? "text-brand" : "text-neutral-400"} />
+              </button>
+
+              {priceOpen && (
+                <div className="absolute top-full left-0 mt-1.5 w-[260px] bg-white rounded-xl border border-neutral-200 shadow-2xl z-50 p-3">
+                  {/* Preset bands */}
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-2">Quick ranges</p>
+                  <div className="grid grid-cols-2 gap-1.5 mb-3">
+                    {PRICE_RANGES.filter((r) => r.value).map((r) => (
+                      <button
+                        key={r.value}
+                        type="button"
+                        onClick={() => {
+                          setPriceRange(r.value); setCustomMin(""); setCustomMax(""); setPriceOpen(false);
+                          const [min, max] = r.value.split("-");
+                          navigate({ minPrice: min || undefined, maxPrice: max || undefined });
+                        }}
+                        className={`text-[11px] font-semibold rounded-lg px-2 py-2 border transition-colors ${
+                          priceRange === r.value
+                            ? "border-brand bg-brand/5 text-brand"
+                            : "border-neutral-200 text-neutral-600 hover:border-brand/40"
+                        }`}
+                      >
+                        {r.label}
+                      </button>
+                    ))}
+                  </div>
+                  {/* Custom min/max */}
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-2">Custom range</p>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number" inputMode="numeric" min="0" placeholder="Min $"
+                      value={customMin}
+                      onChange={(e) => setCustomMin(e.target.value)}
+                      className="w-full h-9 border border-neutral-200 rounded-lg px-2.5 text-[12px] text-brand-dark placeholder:text-neutral-400 focus:outline-none focus:border-brand"
+                    />
+                    <span className="text-neutral-300">–</span>
+                    <input
+                      type="number" inputMode="numeric" min="0" placeholder="Max $"
+                      value={customMax}
+                      onChange={(e) => setCustomMax(e.target.value)}
+                      className="w-full h-9 border border-neutral-200 rounded-lg px-2.5 text-[12px] text-brand-dark placeholder:text-neutral-400 focus:outline-none focus:border-brand"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={applyCustomPrice}
+                    className="w-full mt-2.5 h-9 bg-brand hover:bg-brand-hover text-white text-[12px] font-bold rounded-lg transition-colors cursor-pointer"
+                  >
+                    Apply
+                  </button>
+                </div>
+              )}
+            </div>
 
             {/* Beds filter */}
             <FilterPill
@@ -347,10 +505,54 @@ export function PropertiesClient({
               {BEDS_OPTIONS.map((b) => <option key={b.value} value={b.value}>{b.label}</option>)}
             </FilterPill>
 
+            {/* Baths filter */}
+            <FilterPill
+              icon={<Bath size={13} />}
+              value={baths}
+              label="Baths"
+              onChange={(v) => { setBaths(v); navigate({ baths: v || undefined }); }}
+            >
+              {BATHS_OPTIONS.map((b) => <option key={b.value} value={b.value}>{b.label}</option>)}
+            </FilterPill>
+
+            {/* Property type filter */}
+            <FilterPill
+              icon={<Home size={13} />}
+              value={propType}
+              label="Type"
+              onChange={(v) => { setPropType(v); navigate({ type: v || undefined }); }}
+            >
+              {TYPE_OPTIONS.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+            </FilterPill>
+
+            {/* Square footage (min) filter */}
+            <FilterPill
+              icon={<Maximize size={13} />}
+              value={minSqft}
+              label="Size"
+              onChange={(v) => { setMinSqft(v); navigate({ minSqft: v || undefined }); }}
+            >
+              {SQFT_OPTIONS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+            </FilterPill>
+
+            {/* Pet-friendly toggle */}
+            <button
+              type="button"
+              onClick={() => { const v = !pets; setPets(v); navigate({ pets: v ? "true" : undefined }); }}
+              className={`shrink-0 flex items-center gap-1.5 h-11 px-4 border-2 rounded-xl text-[12px] font-bold transition-all whitespace-nowrap ${
+                pets
+                  ? "border-brand bg-brand/5 text-brand"
+                  : "border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300"
+              }`}
+            >
+              <PawPrint size={13} className={pets ? "text-brand" : "text-neutral-400"} />
+              Pet-friendly
+            </button>
+
             {/* Clear filters */}
             {activeFiltersCount > 0 && (
               <Link
-                href="/homes-for-rent"
+                href="/houses-for-rent"
                 className="shrink-0 flex items-center gap-1.5 h-9 px-4 text-[12px] font-bold text-red-500 border-2 border-red-200 rounded-xl hover:bg-red-50 active:bg-red-100 transition-colors whitespace-nowrap bg-white"
               >
                 <X size={13} /> Clear
@@ -359,6 +561,30 @@ export function PropertiesClient({
           </div>
         </form>
       </div>
+
+      {/* ── Active filter chips — always visible, persist when filter bar collapses ─ */}
+      {activeChips.length > 0 && (
+        <div className="shrink-0 bg-white border-b border-neutral-100 flex items-center gap-2 overflow-x-auto px-4 py-2 scrollbar-none">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 shrink-0">Filters</span>
+          {activeChips.map((chip) => (
+            <button
+              key={chip.key}
+              type="button"
+              onClick={chip.clear}
+              className="shrink-0 flex items-center gap-1.5 h-7 pl-3 pr-2 bg-brand/5 border border-brand/20 text-brand rounded-full text-[11px] font-bold hover:bg-brand/10 transition-colors cursor-pointer whitespace-nowrap"
+            >
+              {chip.label}
+              <X size={11} className="opacity-70" />
+            </button>
+          ))}
+          <Link
+            href="/houses-for-rent"
+            className="shrink-0 text-[11px] font-bold text-neutral-400 hover:text-red-500 transition-colors whitespace-nowrap ml-1"
+          >
+            Clear all
+          </Link>
+        </div>
+      )}
 
       {/* ── Map + Cards split ─────────────────────────────────────────────── */}
       <div className="flex flex-1 min-h-0">
@@ -410,6 +636,30 @@ export function PropertiesClient({
         {/* Cards panel */}
         <div className={`${mobileView === "map" ? "hidden" : "flex"} lg:flex w-full lg:w-[50%] xl:w-[46%] shrink-0 flex-col border-l border-neutral-200 bg-white`}>
 
+          {/* Overwhelmed banner — shows when 50+ results and user hasn't captured or dismissed */}
+          {initialTotal > 50 && !leadCaptured && !bannerDismissed && (
+            <div className="shrink-0 bg-amber-50 border-b border-amber-200 px-4 py-2.5 flex items-center justify-between gap-3">
+              <p className="text-xs font-semibold text-amber-800 leading-snug">
+                <span className="font-black">{initialTotal.toLocaleString()} homes</span> — overwhelmed? Let an agent narrow it down.
+              </p>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <button
+                  onClick={() => window.dispatchEvent(new Event("hasker:open-callback"))}
+                  className="text-[11px] font-bold text-white bg-brand hover:bg-brand-hover px-3 py-1.5 rounded-lg transition-colors cursor-pointer whitespace-nowrap"
+                >
+                  Get Help
+                </button>
+                <button
+                  onClick={() => setBannerDismissed(true)}
+                  className="text-neutral-400 hover:text-neutral-600 cursor-pointer p-1"
+                  aria-label="Dismiss"
+                >
+                  <X size={13} />
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Panel header */}
           <div className="shrink-0 px-4 py-3 border-b border-neutral-100 flex items-center justify-between gap-3 bg-white">
             <div>
@@ -458,33 +708,72 @@ export function PropertiesClient({
                 />
                 <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-neutral-400 mb-1">No results</p>
                 <p className="text-brand-dark font-black text-[16px] mb-2">No homes match your filters</p>
-                <p className="text-neutral-400 text-[13px] mb-6 max-w-[220px] leading-relaxed">
-                  Try a different location, a wider budget, or remove a filter.
+                <p className="text-neutral-400 text-[13px] mb-4 max-w-[240px] leading-relaxed">
+                  Try widening your search — these usually bring back results:
                 </p>
-                <div className="flex flex-col gap-2 w-full max-w-[200px]">
+
+                {/* Relaxed-search suggestions — drop one filter at a time */}
+                <div className="flex flex-wrap items-center justify-center gap-2 mb-6 max-w-[280px]">
+                  {priceRange && (
+                    <button onClick={() => { setPriceRange(""); navigate({ minPrice: undefined, maxPrice: undefined }); }}
+                      className="text-[12px] font-semibold text-brand bg-brand/5 border border-brand/20 rounded-full px-3 py-1.5 hover:bg-brand/10 transition-colors cursor-pointer">
+                      Remove price limit
+                    </button>
+                  )}
+                  {beds && (
+                    <button onClick={() => { setBeds(""); navigate({ beds: undefined }); }}
+                      className="text-[12px] font-semibold text-brand bg-brand/5 border border-brand/20 rounded-full px-3 py-1.5 hover:bg-brand/10 transition-colors cursor-pointer">
+                      Any bedrooms
+                    </button>
+                  )}
+                  {baths && (
+                    <button onClick={() => { setBaths(""); navigate({ baths: undefined }); }}
+                      className="text-[12px] font-semibold text-brand bg-brand/5 border border-brand/20 rounded-full px-3 py-1.5 hover:bg-brand/10 transition-colors cursor-pointer">
+                      Any baths
+                    </button>
+                  )}
+                  {propType && (
+                    <button onClick={() => { setPropType(""); navigate({ type: undefined }); }}
+                      className="text-[12px] font-semibold text-brand bg-brand/5 border border-brand/20 rounded-full px-3 py-1.5 hover:bg-brand/10 transition-colors cursor-pointer">
+                      Any property type
+                    </button>
+                  )}
+                  {pets && (
+                    <button onClick={() => { setPets(false); navigate({ pets: undefined }); }}
+                      className="text-[12px] font-semibold text-brand bg-brand/5 border border-brand/20 rounded-full px-3 py-1.5 hover:bg-brand/10 transition-colors cursor-pointer">
+                      Drop pet filter
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex flex-col gap-2 w-full max-w-[240px]">
                   {activeFiltersCount > 0 && (
-                    <Link href="/homes-for-rent" className="w-full py-3 px-4 bg-brand text-white text-[13px] font-bold rounded-xl hover:bg-brand-hover transition-colors text-center">
+                    <Link href="/houses-for-rent" className="w-full py-3 px-4 bg-brand text-white text-[13px] font-bold rounded-xl hover:bg-brand-hover transition-colors text-center">
                       Clear all filters
                     </Link>
                   )}
-                  <Link href="/contact" className="w-full py-3 px-4 border-2 border-neutral-200 text-brand-dark text-[13px] font-bold rounded-xl hover:bg-neutral-50 transition-colors text-center">
-                    Ask our team
-                  </Link>
+                  <EmptyStateCallbackForm />
                 </div>
               </div>
             ) : (
               <div className="p-3 grid grid-cols-1 lg:grid-cols-2 gap-3">
-                {results.map((p) => (
-                  <div
-                    key={p.slug}
-                    className="flex flex-col"
-                    ref={(el) => { cardRefs.current[p.slug] = el; }}
-                    onMouseEnter={() => setActiveSlug(p.slug)}
-                    onMouseLeave={() => setActiveSlug(null)}
-                  >
-                    <PanelCard property={p} isActive={activeSlug === p.slug} />
-                  </div>
-                ))}
+                {results.flatMap((p, i) => {
+                  const card = (
+                    <div
+                      key={p.slug}
+                      className="flex flex-col"
+                      ref={(el) => { cardRefs.current[p.slug] = el; }}
+                      onMouseEnter={() => setActiveSlug(p.slug)}
+                      onMouseLeave={() => setActiveSlug(null)}
+                    >
+                      <PanelCard property={p} isActive={activeSlug === p.slug} />
+                    </div>
+                  );
+                  if (i === 2 && results.length > 3 && !leadCaptured) {
+                    return [card, <InlineLeadCard key="inline-lead" onCaptured={() => setLeadCaptured(true)} />];
+                  }
+                  return [card];
+                })}
 
                 {!mapResults && totalPages > 1 && (
                   <div className="col-span-1">
@@ -561,7 +850,7 @@ function FilterPill({
 
 function PanelCard({ property, isActive }: { property: PropertyListItemAPI; isActive: boolean }) {
   const isRental   = property.listing_type !== "for-sale";
-  const detailHref = `/homes-for-rent/${property.slug}`;
+  const detailHref = `/houses-for-rent/${property.slug}`;
   const applyHref  = `/apply?property=${property.slug}`;
 
   return (
@@ -639,18 +928,222 @@ function PanelCard({ property, isActive }: { property: PropertyListItemAPI; isAc
         </p>
       </Link>
 
-      {/* Apply — fully independent, outside the body link */}
-      {isRental && (
-        <div className="px-3 pb-3">
+      {/* Actions — outside the body link */}
+      <div className="px-3 pb-3 flex gap-2">
+        {/* Book Tour — left button, always shown */}
+        <Link
+          href={`${detailHref}#schedule-form`}
+          className="flex-1 flex items-center justify-center gap-1.5 py-3 sm:py-2 border-2 border-brand-dark/80 text-brand-dark hover:bg-brand-dark hover:text-white text-[12px] sm:text-[11px] font-bold rounded-lg transition-colors duration-150"
+        >
+          <Calendar size={12} />
+          Book Tour
+        </Link>
+        {/* Apply Now — right button, rentals only */}
+        {isRental && (
           <Link
             href={applyHref}
-            className="flex items-center justify-center gap-1.5 w-full py-3 sm:py-2 bg-brand hover:bg-brand-hover active:bg-brand-hover text-white text-[12px] sm:text-[11px] font-bold rounded-lg transition-colors duration-150"
+            className="flex-1 flex items-center justify-center gap-1.5 py-3 sm:py-2 bg-brand hover:bg-brand-hover active:bg-brand-hover text-white text-[12px] sm:text-[11px] font-bold rounded-lg transition-colors duration-150"
           >
             Apply Now <ArrowRight size={11} />
           </Link>
-        </div>
-      )}
+        )}
+      </div>
     </article>
+  );
+}
+
+// ── Empty-state callback form ─────────────────────────────────────────────────
+
+function EmptyStateCallbackForm() {
+  const [phone,   setPhone]   = useState("");
+  const [name,    setName]    = useState("");
+  const [loading, setLoading] = useState(false);
+  const [done,    setDone]    = useState(false);
+  const [error,   setError]   = useState("");
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!phone.trim()) { setError("Enter your phone number."); return; }
+    if (!name.trim())  { setError("Enter your name."); return; }
+    setLoading(true); setError("");
+    try {
+      const res = await fetch("/api/v1/leads/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          full_name:         name.trim(),
+          phone:             phone.trim(),
+          source:            "CONTACT_FORM",
+          interest_type:     "RENT",
+          preferred_contact: "PHONE",
+          detected_city:     getBestKnownCity() || undefined,
+          message:           `No-results empty state callback. Phone: ${phone.trim()}` + getDeviceContext(),
+          referral_code:     getStoredReferralCode() || undefined,
+          ...getStoredUTMs(),
+        }),
+      });
+      if (!res.ok) throw new Error("Failed");
+      sessionStorage.setItem("hasker_lead_captured", "true");
+      trackEvent("generate_lead", { source: "empty_state" });
+      setDone(true);
+    } catch {
+      setError("Something went wrong.");
+    } finally { setLoading(false); }
+  }
+
+  if (done) {
+    return (
+      <div className="text-center py-3 text-xs text-emerald-700 font-semibold bg-emerald-50 border border-emerald-200 rounded-xl px-3">
+        We&apos;ll call you back shortly!
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-brand-light border border-brand-muted rounded-xl p-3 space-y-2">
+      <p className="text-[11px] font-bold text-brand-dark text-center">No matches? We&apos;ll find it for you.</p>
+      <form onSubmit={handleSubmit} className="space-y-1.5" noValidate>
+        <input
+          type="text"
+          placeholder="Your name"
+          value={name}
+          onChange={(e) => { setName(e.target.value); setError(""); }}
+          className="w-full h-9 border border-neutral-200 rounded-lg px-3 text-xs text-brand-dark placeholder:text-neutral-400 focus:outline-none focus:border-brand bg-white"
+        />
+        <input
+          type="tel"
+          placeholder="Your phone number"
+          value={phone}
+          onChange={(e) => { setPhone(e.target.value); setError(""); }}
+          className="w-full h-9 border border-neutral-200 rounded-lg px-3 text-xs text-brand-dark placeholder:text-neutral-400 focus:outline-none focus:border-brand bg-white"
+        />
+        {error && <p className="text-red-500 text-[10px]">{error}</p>}
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full h-9 bg-brand hover:bg-brand-hover text-white text-xs font-bold rounded-lg transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center"
+        >
+          {loading ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : "Call Me Back"}
+        </button>
+      </form>
+    </div>
+  );
+}
+
+// ── Inline lead capture card (injected after 6th property) ───────────────────
+
+function InlineLeadCard({ onCaptured }: { onCaptured: () => void }) {
+  const [name,    setName]    = useState("");
+  const [email,   setEmail]   = useState("");
+  const [phone,   setPhone]   = useState("");
+  const [loading, setLoading] = useState(false);
+  const [done,    setDone]    = useState(false);
+  const [error,   setError]   = useState("");
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!name.trim())  { setError("Please enter your name."); return; }
+    if (!email.trim() || !/^\S+@\S+\.\S+$/.test(email)) { setError("Please enter a valid email."); return; }
+    setLoading(true); setError("");
+    try {
+      const res = await fetch("/api/v1/leads/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          full_name:     name.trim(),
+          email:         email.trim(),
+          phone:         phone.trim() || undefined,
+          source:        "CONTACT_FORM",
+          interest_type: "RENT",
+          detected_city: getBestKnownCity() || undefined,
+          message:       "Browse-grid inline card." + getDeviceContext(),
+          referral_code: getStoredReferralCode() || undefined,
+          ...getStoredUTMs(),
+        }),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        throw new Error((d as { detail?: string }).detail ?? "Failed.");
+      }
+      sessionStorage.setItem("hasker_lead_captured", "true");
+      trackEvent("generate_lead", { source: "inline_card" });
+      setDone(true);
+      onCaptured();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const inputCls =
+    "w-full h-10 border border-neutral-200 rounded-lg px-3 text-sm text-brand-dark " +
+    "placeholder:text-neutral-400 focus:outline-none focus:border-brand focus:ring-2 " +
+    "focus:ring-brand/15 transition-all bg-white font-medium";
+
+  if (done) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-3 bg-emerald-50 border border-emerald-200 rounded-xl min-h-[220px] p-5 text-center">
+        <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
+          <ArrowRight size={18} className="text-emerald-600" />
+        </div>
+        <p className="font-serif font-bold text-emerald-800 text-sm">Thanks! We&apos;ll be in touch.</p>
+        <p className="text-xs text-emerald-600 leading-relaxed">Check your inbox — we&apos;ll match you with the right home.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-brand-light border border-brand-muted rounded-xl min-h-[220px] p-5 flex flex-col justify-center gap-3">
+      <div>
+        <p className="text-[10px] font-black tracking-[0.2em] uppercase text-brand mb-1">
+          Personal Match
+        </p>
+        <p className="font-serif font-bold text-brand-dark text-sm leading-snug">
+          Can&apos;t find what you&apos;re looking for?
+        </p>
+        <p className="text-xs text-neutral-500 mt-1 leading-relaxed">
+          Tell us what you need — we&apos;ll find the right home and reach out.
+        </p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-2" noValidate>
+        <input
+          type="text"
+          placeholder="Your name"
+          value={name}
+          onChange={(e) => { setName(e.target.value); setError(""); }}
+          className={inputCls}
+          required
+        />
+        <input
+          type="email"
+          placeholder="Email address"
+          value={email}
+          onChange={(e) => { setEmail(e.target.value); setError(""); }}
+          className={inputCls}
+          required
+        />
+        <input
+          type="tel"
+          placeholder="Phone (optional)"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          className={inputCls}
+        />
+        {error && <p className="text-red-500 text-[11px] font-medium">{error}</p>}
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full h-10 bg-brand hover:bg-brand-hover text-white text-xs font-bold rounded-lg transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center"
+        >
+          {loading
+            ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            : "Find My Match"
+          }
+        </button>
+      </form>
+    </div>
   );
 }
 

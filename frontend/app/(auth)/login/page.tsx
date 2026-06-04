@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { Suspense, useState } from "react";
 import Link from "next/link";
@@ -68,7 +68,7 @@ function SplitScreenLogin() {
     }
   }
 
-  const inputCls = "w-full rounded-xl px-4 py-3.5 text-[14px] text-[#1D1D1F] bg-[#F5F5F7] border border-transparent outline-none transition-all placeholder:text-[#86868B] focus:bg-white focus:border-[#1A56DB] focus:ring-4 focus:ring-[#1A56DB]/10";
+  const inputCls = "w-full rounded-xl px-4 py-3.5 text-[14px] text-[#1D1D1F] bg-[#F5F5F7] border border-transparent outline-none transition-all placeholder:text-[#86868B] focus:bg-white focus:border-[#2563EB] focus:ring-4 focus:ring-[#2563EB]/10";
 
   return (
     <div className="fixed inset-0 z-50 flex h-screen w-full bg-white overflow-hidden font-sans">
@@ -87,12 +87,12 @@ function SplitScreenLogin() {
       `}} />
 
       {/* LEFT SIDE: Visual Hook (60%) */}
-      <div className="hidden lg:flex w-[60%] flex-col gap-6 justify-center bg-[#0B1F3A] relative overflow-hidden">
+      <div className="hidden lg:flex w-[60%] flex-col gap-6 justify-center bg-[#1E3A5F] relative overflow-hidden">
         
         {/* Subtle overlay gradients for smooth edge fading */}
-        <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-[#0B1F3A] to-transparent z-10 pointer-events-none" />
-        <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-[#0B1F3A] to-transparent z-10 pointer-events-none" />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0B1F3A]/60 via-transparent to-[#0B1F3A]/60 z-10 pointer-events-none" />
+        <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-[#1E3A5F] to-transparent z-10 pointer-events-none" />
+        <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-[#1E3A5F] to-transparent z-10 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#1E3A5F]/60 via-transparent to-[#1E3A5F]/60 z-10 pointer-events-none" />
 
         {/* Floating Grid */}
         <div className="flex flex-col gap-6 transform rotate-[-4deg] scale-110 opacity-80">
@@ -156,7 +156,7 @@ function SplitScreenLogin() {
                 <label className="block text-[12px] font-semibold text-[#1D1D1F]">
                   Password
                 </label>
-                <Link href="/forgot-password" className="text-[12px] text-[#1A56DB] hover:underline font-medium">
+                <Link href="/forgot-password" className="text-[12px] text-[#2563EB] hover:underline font-medium">
                   Forgot password?
                 </Link>
               </div>
@@ -182,7 +182,7 @@ function SplitScreenLogin() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#1A56DB] text-white rounded-xl py-3.5 text-[15px] font-semibold hover:bg-[#1447BF] transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:shadow-none mt-2"
+              className="w-full bg-[#2563EB] text-white rounded-xl py-3.5 text-[15px] font-semibold hover:bg-[#1D4ED8] transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:shadow-none mt-2"
             >
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
@@ -197,7 +197,7 @@ function SplitScreenLogin() {
             Don&apos;t have an account?{" "}
             <Link
               href={`/register${next !== "/portal/profile" ? `?next=${encodeURIComponent(next)}` : ""}`}
-              className="text-[#1A56DB] font-semibold hover:underline"
+              className="text-[#2563EB] font-semibold hover:underline"
             >              Sign up
             </Link>
           </p>

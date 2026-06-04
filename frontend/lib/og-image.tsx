@@ -1,8 +1,8 @@
-import type { ReactElement } from 'react'
+﻿import type { ReactElement } from 'react'
 
-// ── Icon assets (URL-encoded SVGs for satori <img>) ──────────────────────────
+// â”€â”€ Icon assets (URL-encoded SVGs for satori <img>) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-// Small icon mark (circle bg + house) — 44×44 viewBox
+// Small icon mark (circle bg + house) — 44Ã—44 viewBox
 const ICON_SVG =
   '%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2044%2044%22%3E' +
   '%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%2222%22%20fill%3D%22%230B1F3A%22/%3E' +
@@ -14,7 +14,7 @@ const ICON_SVG =
   '%3C/g%3E' +
   '%3C/svg%3E'
 
-// Large decorative mark (house only, no circle bg) — 320×320 viewBox
+// Large decorative mark (house only, no circle bg) — 320Ã—320 viewBox
 const DECO_SVG =
   '%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20320%20320%22%3E' +
   '%3Cpolygon%20points%3D%2276%2C160%20160%2C56%20244%2C160%20160%2C264%22%20fill%3D%22none%22%20stroke%3D%22%231A56DB%22%20stroke-width%3D%228%22/%3E' +
@@ -35,7 +35,7 @@ export type OGImageProps = {
 }
 
 /**
- * Shared OG image layout (1200×630) rendered by next/og Satori.
+ * Shared OG image layout (1200Ã—630) rendered by next/og Satori.
  * Layout: brand lockup + eyebrow + headline left | large decorative
  * house mark right. Premium dark-navy aesthetic.
  */
@@ -49,24 +49,24 @@ export function OGImage({ title, subtitle, eyebrow, tags }: OGImageProps): React
         width: '1200px',
         height: '630px',
         display: 'flex',
-        background: '#0B1F3A',
+        background: '#1E3A5F',
         fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
         position: 'relative',
         overflow: 'hidden',
       }}
     >
-      {/* ── Blue left accent rail ──────────────────────────────── */}
+      {/* â”€â”€ Blue left accent rail â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div
         style={{
           position: 'absolute',
           left: 0, top: 0, bottom: 0,
           width: '6px',
-          background: '#1A56DB',
+          background: '#2563EB',
           display: 'flex',
         }}
       />
 
-      {/* ── Right decorative panel ─────────────────────────────── */}
+      {/* â”€â”€ Right decorative panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {/* Outer glow circle */}
       <div
         style={{
@@ -108,7 +108,7 @@ export function OGImage({ title, subtitle, eyebrow, tags }: OGImageProps): React
         <img src={ICON_SRC} width={152} height={152} alt="" />
       </div>
 
-      {/* ── Left content column ────────────────────────────────── */}
+      {/* â”€â”€ Left content column â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div
         style={{
           display: 'flex',
@@ -133,7 +133,7 @@ export function OGImage({ title, subtitle, eyebrow, tags }: OGImageProps): React
               HASKER &amp; CO.
             </div>
             <div style={{
-              color: '#1A56DB',
+              color: '#2563EB',
               fontSize: '11px',
               fontWeight: 400,
               letterSpacing: '3.5px',
@@ -149,7 +149,7 @@ export function OGImage({ title, subtitle, eyebrow, tags }: OGImageProps): React
         <div style={{
           width: '56px',
           height: '3px',
-          background: '#1A56DB',
+          background: '#2563EB',
           borderRadius: '2px',
           marginBottom: '28px',
           display: 'flex',
@@ -199,7 +199,7 @@ export function OGImage({ title, subtitle, eyebrow, tags }: OGImageProps): React
         </div>
       </div>
 
-      {/* ── Bottom strip ──────────────────────────────────────── */}
+      {/* â”€â”€ Bottom strip â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div
         style={{
           position: 'absolute',
@@ -216,7 +216,7 @@ export function OGImage({ title, subtitle, eyebrow, tags }: OGImageProps): React
         {/* Website */}
         <div style={{
           display: 'flex',
-          color: '#1A56DB',
+          color: '#2563EB',
           fontSize: '18px',
           fontWeight: 700,
           letterSpacing: '0.3px',

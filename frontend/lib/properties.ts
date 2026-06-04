@@ -96,8 +96,12 @@ export interface FetchPropertiesParams {
   listing_type?: string;
   q?: string;
   beds?: string;
+  baths?: string;
   min_price?: string;
   max_price?: string;
+  min_sqft?: string;
+  max_sqft?: string;
+  pets?: string;
   is_featured?: string;
   agent?: string;
   state?: string;
@@ -119,8 +123,12 @@ export async function fetchProperties(
   url.searchParams.set("is_published", "true");
   if (params?.q)           url.searchParams.set("q", params.q);
   if (params?.beds)        url.searchParams.set("beds", params.beds);
+  if (params?.baths)       url.searchParams.set("baths", params.baths);
   if (params?.min_price)   url.searchParams.set("min_price", params.min_price);
   if (params?.max_price)   url.searchParams.set("max_price", params.max_price);
+  if (params?.min_sqft)    url.searchParams.set("min_sqft", params.min_sqft);
+  if (params?.max_sqft)    url.searchParams.set("max_sqft", params.max_sqft);
+  if (params?.pets)        url.searchParams.set("pets", params.pets);
   if (params?.is_featured) url.searchParams.set("is_featured", params.is_featured);
   if (params?.agent)       url.searchParams.set("agent", params.agent);
   if (params?.state)       url.searchParams.set("state", params.state);
@@ -136,6 +144,68 @@ export async function fetchProperties(
   const res = await fetch(url.toString(), { next: { revalidate: 300 } });
   if (!res.ok) throw new Error(`fetchProperties: ${res.status}`);
   return res.json();
+}
+
+// ─── Smart (AI) Search ──────────────────────────────────────────────────────
+
+/** URL-param map produced from an AI-parsed natural-language query. */
+export interface SmartFilters {
+  q?: string;
+  beds?: string;
+  baths?: string;
+  type?: string;
+  pets?: string;
+  minPrice?: string;
+  maxPrice?: string;
+  listing_type?: string;
+  sort?: string;
+}
+
+/**
+ * Heuristic: is this query worth sending to the AI parser?
+ * Single city names ("Atlanta", "Charlotte NC") skip AI — the regex/relevance
+ * path already nails them. Multi-word, numeric, or descriptive queries do.
+ */
+export function looksNaturalLanguage(q: string): boolean {
+  const t = q.trim();
+  if (!t) return false;
+  if (t.split(/\s+/).length > 2) return true;
+  if (/\d/.test(t)) return true;
+  return /\b(under|over|below|pet|pets|dog|cat|bed|beds|bedroom|bath|baths|garage|parking|cheap|affordable|budget|with|near|family|yard|spacious)\b/i.test(t);
+}
+
+/**
+ * POSTs a natural-language query to the backend AI parser. Returns a flat
+ * URL-param map on success, or null to fall back to sending the raw `q`.
+ */
+export async function parseSmartQuery(q: string): Promise<SmartFilters | null> {
+  try {
+    const res = await fetch("/api/v1/properties/parse-query/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ q }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!data?.ok || !data.filters) return null;
+
+    const f = data.filters as Record<string, unknown>;
+    const out: SmartFilters = {};
+    if (f.city && f.state)  out.q = `${f.city}, ${f.state}`;
+    else if (f.city)        out.q = String(f.city);
+    else if (f.keywords)    out.q = String(f.keywords);
+    if (f.beds != null)     out.beds = String(f.beds);
+    if (f.baths != null)    out.baths = String(f.baths);
+    if (f.type)             out.type = String(f.type);
+    if (f.pets)             out.pets = "true";
+    if (f.minPrice != null) out.minPrice = String(f.minPrice);
+    if (f.maxPrice != null) out.maxPrice = String(f.maxPrice);
+    if (f.listing_type)     out.listing_type = String(f.listing_type);
+    if (f.sort)             out.sort = String(f.sort);
+    return Object.keys(out).length ? out : null;
+  } catch {
+    return null;
+  }
 }
 
 export async function fetchFeaturedProperties(): Promise<PropertyListItemAPI[]> {

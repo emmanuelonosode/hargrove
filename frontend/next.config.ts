@@ -68,15 +68,26 @@ const nextConfig: NextConfig = {
         destination: "https://haskerrealtygroup.com/:path*",
         permanent: true,
       },
-      // /properties → /homes-for-rent (route rename, 301 preserves SEO equity)
+      // /properties → /houses-for-rent (route rename, 301 preserves SEO equity)
       {
         source: "/properties",
-        destination: "/homes-for-rent",
+        destination: "/houses-for-rent",
         permanent: true,
       },
       {
         source: "/properties/:slug*",
-        destination: "/homes-for-rent/:slug*",
+        destination: "/houses-for-rent/:slug*",
+        permanent: true,
+      },
+      // /homes-for-rent → /houses-for-rent (route rename, 301 preserves SEO equity)
+      {
+        source: "/homes-for-rent",
+        destination: "/houses-for-rent",
+        permanent: true,
+      },
+      {
+        source: "/homes-for-rent/:slug*",
+        destination: "/houses-for-rent/:slug*",
         permanent: true,
       },
     ];

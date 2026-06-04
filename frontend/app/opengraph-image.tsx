@@ -1,4 +1,4 @@
-import { ImageResponse } from 'next/og'
+﻿import { ImageResponse } from 'next/og'
 
 export const runtime = 'edge'
 export const alt = 'Hasker & Co. Realty Group — Quality Homes. Move-In Ready.'
@@ -52,13 +52,13 @@ export default function Image() {
           width: 1200,
           height: 630,
           display: 'flex',
-          background: '#0B1F3A',
+          background: '#1E3A5F',
           fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
           position: 'relative',
           overflow: 'hidden',
         }}
       >
-        {/* ── Right photo panel ──────────────────────────────────────── */}
+        {/* â”€â”€ Right photo panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         <div
           style={{
             position: 'absolute',
@@ -83,7 +83,7 @@ export default function Image() {
               position: 'absolute',
               inset: 0,
               background:
-                'linear-gradient(to right, #0B1F3A 0%, rgba(11,31,58,0.72) 35%, rgba(11,31,58,0.18) 70%, rgba(11,31,58,0.08) 100%)',
+                'linear-gradient(to right, #1E3A5F 0%, rgba(30,58,95,0.72) 35%, rgba(30,58,95,0.18) 70%, rgba(30,58,95,0.08) 100%)',
               display: 'flex',
             }}
           />
@@ -93,13 +93,13 @@ export default function Image() {
               position: 'absolute',
               inset: 0,
               background:
-                'linear-gradient(to bottom, rgba(11,31,58,0.45) 0%, transparent 25%, transparent 75%, rgba(11,31,58,0.55) 100%)',
+                'linear-gradient(to bottom, rgba(30,58,95,0.45) 0%, transparent 25%, transparent 75%, rgba(30,58,95,0.55) 100%)',
               display: 'flex',
             }}
           />
         </div>
 
-        {/* ── Blue left accent rail ──────────────────────────────────── */}
+        {/* â”€â”€ Blue left accent rail â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         <div
           style={{
             position: 'absolute',
@@ -107,12 +107,12 @@ export default function Image() {
             top: 0,
             bottom: 0,
             width: 6,
-            background: 'linear-gradient(to bottom, #1A56DB, #3B82F6)',
+            background: 'linear-gradient(to bottom, #2563EB, #3B82F6)',
             display: 'flex',
           }}
         />
 
-        {/* ── Soft blue glow behind headline ────────────────────────── */}
+        {/* â”€â”€ Soft blue glow behind headline â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         <div
           style={{
             position: 'absolute',
@@ -126,7 +126,7 @@ export default function Image() {
           }}
         />
 
-        {/* ── Left content column ───────────────────────────────────── */}
+        {/* â”€â”€ Left content column â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         <div
           style={{
             display: 'flex',
@@ -158,7 +158,7 @@ export default function Image() {
               </div>
               <div
                 style={{
-                  color: '#1A56DB',
+                  color: '#2563EB',
                   fontSize: 10,
                   fontWeight: 500,
                   letterSpacing: '3.5px',
@@ -176,7 +176,7 @@ export default function Image() {
             style={{
               width: 48,
               height: 3,
-              background: '#1A56DB',
+              background: '#2563EB',
               borderRadius: 2,
               marginBottom: 24,
               display: 'flex',
@@ -195,7 +195,7 @@ export default function Image() {
               marginBottom: 14,
             }}
           >
-            Affordable Homes · 12+ US Cities
+            Affordable Homes Â· 12+ US Cities
           </div>
 
           {/* Headline */}
@@ -323,13 +323,13 @@ export default function Image() {
                 width: 6,
                 height: 6,
                 borderRadius: '50%',
-                background: '#1A56DB',
+                background: '#2563EB',
                 display: 'flex',
               }}
             />
             <span
               style={{
-                color: '#1A56DB',
+                color: '#2563EB',
                 fontSize: 15,
                 fontWeight: 700,
                 letterSpacing: 0.5,
@@ -340,7 +340,7 @@ export default function Image() {
           </div>
         </div>
 
-        {/* ── Bottom-right overlay: key stats floating on the photo ─── */}
+        {/* â”€â”€ Bottom-right overlay: key stats floating on the photo â”€â”€â”€ */}
         <div
           style={{
             position: 'absolute',
@@ -361,7 +361,7 @@ export default function Image() {
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                background: 'rgba(11,31,58,0.82)',
+                background: 'rgba(30,58,95,0.82)',
                 border: '1px solid rgba(255,255,255,0.14)',
                 borderRadius: 8,
                 padding: '10px 18px',

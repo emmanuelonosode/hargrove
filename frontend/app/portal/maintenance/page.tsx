@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
@@ -33,8 +33,8 @@ const PRIORITIES = [
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ElementType }> = {
   SUBMITTED:    { label: "Submitted",    color: "#FF9F0A", icon: Clock },
-  ACKNOWLEDGED: { label: "Acknowledged", color: "#1A56DB", icon: CheckCircle },
-  IN_PROGRESS:  { label: "In Progress",  color: "#1A56DB", icon: Settings },
+  ACKNOWLEDGED: { label: "Acknowledged", color: "#2563EB", icon: CheckCircle },
+  IN_PROGRESS:  { label: "In Progress",  color: "#2563EB", icon: Settings },
   RESOLVED:     { label: "Resolved",     color: "#34C759", icon: CheckCircle },
   CLOSED:       { label: "Closed",       color: "#6E6E73", icon: X },
 };
@@ -125,7 +125,7 @@ function RequestCard({ req }: { req: MaintenanceRequest }) {
           <div className="flex items-center gap-2 pt-1">
             <StatusIcon size={13} style={{ color: cfg.color }} />
             <span className="text-[12px] font-medium" style={{ color: cfg.color }}>{cfg.label}</span>
-            <span className="text-[11px] text-[#6E6E73]">· Updated {timeAgo(req.updated_at)}</span>
+            <span className="text-[11px] text-[#6E6E73]">Â· Updated {timeAgo(req.updated_at)}</span>
           </div>
         </div>
       )}
@@ -254,7 +254,7 @@ export default function MaintenancePage() {
         {/* Two-column layout */}
         <div className="flex flex-col lg:flex-row gap-4 items-start">
 
-          {/* ── Submit Form ───────────────────────────────────────────────── */}
+          {/* â”€â”€ Submit Form â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
           <div className="w-full lg:w-2/5 shrink-0">
             <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] overflow-hidden">
               <div className="px-5 py-4 border-b border-black/[0.04]">
@@ -303,7 +303,7 @@ export default function MaintenancePage() {
                         className={cn(
                           "flex items-center gap-2 px-3 py-2.5 rounded-xl text-[12px] font-semibold transition-all",
                           category === value
-                            ? "bg-[#0B1F3A] text-white"
+                            ? "bg-[#1E3A5F] text-white"
                             : "bg-[#F5F5F7] text-[#3C3C43] hover:bg-[#EBEBED]"
                         )}
                       >
@@ -371,7 +371,7 @@ export default function MaintenancePage() {
                     type="text"
                     value={accessTime}
                     onChange={(e) => setAccessTime(e.target.value)}
-                    placeholder="e.g. Weekdays after 5pm, anytime Sat–Sun"
+                    placeholder="e.g. Weekdays after 5pm, anytime Sat”“Sun"
                     className="w-full bg-[#F5F5F7] rounded-xl px-4 py-3 text-[15px] text-[#1D1D1F] outline-none border border-transparent focus:border-brand/30 transition-colors"
                   />
                 </div>
@@ -438,7 +438,7 @@ export default function MaintenancePage() {
             </div>
           </div>
 
-          {/* ── Request History ───────────────────────────────────────────── */}
+          {/* â”€â”€ Request History â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
           <div className="flex-1 min-w-0 space-y-3">
             <p className="text-[11px] font-semibold tracking-[0.08em] uppercase text-[#6E6E73] px-1">
               Your Requests {requests.length > 0 && `(${requests.length})`}

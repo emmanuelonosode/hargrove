@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -218,7 +218,7 @@ export default function DocumentsPage() {
                   <div key={inv.id} className="px-5 py-3.5 flex items-center justify-between gap-4">
                     <div>
                       <p className="text-[13px] font-semibold text-[#1D1D1F]">{inv.invoice_number}</p>
-                      <p className="text-[11px] text-[#6E6E73]">{fmtDate(inv.issued_date)} · {fmt(inv.total)}</p>
+                      <p className="text-[11px] text-[#6E6E73]">{fmtDate(inv.issued_date)} Â· {fmt(inv.total)}</p>
                     </div>
                     <a
                       href={inv.pdf!}
@@ -237,7 +237,7 @@ export default function DocumentsPage() {
         )}
 
         {/* Urgent CTA */}
-        <div className="bg-[#0B1F3A] rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="bg-[#1E3A5F] rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <p className="text-[13px] font-semibold text-white tracking-tight">Need a document urgently?</p>
             <p className="text-[12px] text-white/40 mt-0.5">Our team responds within 1 business day.</p>

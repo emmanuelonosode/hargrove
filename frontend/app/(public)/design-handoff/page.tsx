@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import Image from "next/image";
 
 export const metadata: Metadata = {
@@ -7,12 +7,12 @@ export const metadata: Metadata = {
 };
 
 const colors = [
-  { name: "Brand Blue",  hex: "#1A56DB", use: "CTAs · Links · Accents",        dark: false },
-  { name: "Dark Navy",   hex: "#0B1F3A", use: "Headers · Dark backgrounds",     dark: true  },
-  { name: "Mid Navy",    hex: "#0D2550", use: "Alt dark sections · Footers",    dark: true  },
+  { name: "Brand Blue",  hex: "#1A56DB", use: "CTAs Â· Links Â· Accents",        dark: false },
+  { name: "Dark Navy",   hex: "#1E3A5F", use: "Headers Â· Dark backgrounds",     dark: true  },
+  { name: "Mid Navy",    hex: "#0D2550", use: "Alt dark sections Â· Footers",    dark: true  },
   { name: "Pale Blue",   hex: "#EFF4FF", use: "Section backgrounds",            dark: false },
-  { name: "Muted Blue",  hex: "#DBEAFE", use: "Badges · Tags · Chips",          dark: false },
-  { name: "White",       hex: "#FFFFFF", use: "Text on dark · Card backgrounds", dark: false },
+  { name: "Muted Blue",  hex: "#DBEAFE", use: "Badges Â· Tags Â· Chips",          dark: false },
+  { name: "White",       hex: "#FFFFFF", use: "Text on dark Â· Card backgrounds", dark: false },
 ];
 
 const messages = [
@@ -26,22 +26,22 @@ const messages = [
 ];
 
 const adSizes = [
-  { platform: "Facebook / Instagram Feed",  size: "1080 × 1080 px",  ratio: "1:1"   },
-  { platform: "Facebook / Instagram Story", size: "1080 × 1920 px",  ratio: "9:16"  },
-  { platform: "Facebook Link Preview",      size: "1200 × 630 px",   ratio: "1.91:1"},
-  { platform: "Google Display (banner)",    size: "728 × 90 px",     ratio: "—"     },
-  { platform: "Google Display (rectangle)", size: "300 × 250 px",    ratio: "—"     },
-  { platform: "Twitter/X Card",             size: "1200 × 675 px",   ratio: "16:9"  },
-  { platform: "LinkedIn Post",              size: "1200 × 627 px",   ratio: "1.91:1"},
-  { platform: "Flyer / Print (portrait)",   size: "2480 × 3508 px",  ratio: "A4"    },
-  { platform: "Billboard (landscape)",      size: "3000 × 1000 px",  ratio: "3:1"   },
+  { platform: "Facebook / Instagram Feed",  size: "1080 Ã— 1080 px",  ratio: "1:1"   },
+  { platform: "Facebook / Instagram Story", size: "1080 Ã— 1920 px",  ratio: "9:16"  },
+  { platform: "Facebook Link Preview",      size: "1200 Ã— 630 px",   ratio: "1.91:1"},
+  { platform: "Google Display (banner)",    size: "728 Ã— 90 px",     ratio: "—"     },
+  { platform: "Google Display (rectangle)", size: "300 Ã— 250 px",    ratio: "—"     },
+  { platform: "Twitter/X Card",             size: "1200 Ã— 675 px",   ratio: "16:9"  },
+  { platform: "LinkedIn Post",              size: "1200 Ã— 627 px",   ratio: "1.91:1"},
+  { platform: "Flyer / Print (portrait)",   size: "2480 Ã— 3508 px",  ratio: "A4"    },
+  { platform: "Billboard (landscape)",      size: "3000 Ã— 1000 px",  ratio: "3:1"   },
 ];
 
 const trust = [
-  "4.9 / 5 on Trustpilot · 2,400+ reviews",
+  "4.9 / 5 on Trustpilot Â· 2,400+ reviews",
   "BBB A+ Accredited (Better Business Bureau)",
   "NAR Member (National Association of Realtors)",
-  "Licensed & Insured · All 6 operating states",
+  "Licensed & Insured Â· All 6 operating states",
   "Equal Housing Opportunity compliant",
   "24-hour application decisions",
 ];
@@ -68,7 +68,7 @@ export default function DesignHandoffPage() {
   return (
     <div className="pt-20 bg-neutral-50 min-h-screen">
 
-      {/* ── Header ── */}
+      {/* â”€â”€ Header â”€â”€ */}
       <div className="bg-brand-dark text-white pt-14 pb-12 px-6">
         <div className="max-w-5xl mx-auto">
           <p className="text-blue-300 text-xs font-semibold tracking-[0.4em] uppercase mb-3">Internal Reference</p>
@@ -82,7 +82,7 @@ export default function DesignHandoffPage() {
 
       <div className="max-w-5xl mx-auto px-6 py-14 space-y-16">
 
-        {/* ── Logo ── */}
+        {/* â”€â”€ Logo â”€â”€ */}
         <section>
           <h2 className="font-sans text-2xl font-bold text-brand-dark mb-6">Logo</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -101,7 +101,7 @@ export default function DesignHandoffPage() {
           </div>
         </section>
 
-        {/* ── Colours ── */}
+        {/* â”€â”€ Colours â”€â”€ */}
         <section>
           <h2 className="font-sans text-2xl font-bold text-brand-dark mb-6">Colour Palette</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
@@ -121,16 +121,16 @@ export default function DesignHandoffPage() {
           </div>
         </section>
 
-        {/* ── Typography ── */}
+        {/* â”€â”€ Typography â”€â”€ */}
         <section>
           <h2 className="font-sans text-2xl font-bold text-brand-dark mb-6">Typography</h2>
           <div className="space-y-4">
             <div className="bg-white border border-neutral-200 rounded-sm p-6">
-              <p className="text-xs text-neutral-400 uppercase tracking-widest mb-3">Display / Hero — Playfair Display, 700–900</p>
+              <p className="text-xs text-neutral-400 uppercase tracking-widest mb-3">Display / Hero — Playfair Display, 700”“900</p>
               <p className="font-serif text-5xl font-bold text-brand-dark leading-tight">Good Homes. Fair Prices.</p>
             </div>
             <div className="bg-white border border-neutral-200 rounded-sm p-6">
-              <p className="text-xs text-neutral-400 uppercase tracking-widest mb-3">Section Heading — DM Sans, 700–800</p>
+              <p className="text-xs text-neutral-400 uppercase tracking-widest mb-3">Section Heading — DM Sans, 700”“800</p>
               <p className="font-sans text-4xl font-bold text-brand-dark">Homes Available Now</p>
             </div>
             <div className="bg-white border border-neutral-200 rounded-sm p-6">
@@ -149,13 +149,13 @@ export default function DesignHandoffPage() {
             </div>
           </div>
           <div className="mt-4 bg-brand-light border border-brand-muted rounded-sm p-5 text-sm text-neutral-600">
-            <p><span className="font-semibold text-brand-dark">Google Fonts:</span> DM Sans · Playfair Display</p>
+            <p><span className="font-semibold text-brand-dark">Google Fonts:</span> DM Sans Â· Playfair Display</p>
             <p className="mt-1"><span className="font-semibold text-brand-dark">Fallback stack:</span> <code className="bg-white px-1.5 py-0.5 rounded text-xs">system-ui, -apple-system, sans-serif</code></p>
             <p className="mt-1"><span className="font-semibold text-brand-dark">Rule:</span> Playfair Display only for large hero moments (&gt;40px). Everything else uses DM Sans.</p>
           </div>
         </section>
 
-        {/* ── Key Messages ── */}
+        {/* â”€â”€ Key Messages â”€â”€ */}
         <section>
           <h2 className="font-sans text-2xl font-bold text-brand-dark mb-6">Key Messages & Copy</h2>
           <div className="space-y-3">
@@ -168,12 +168,12 @@ export default function DesignHandoffPage() {
           </div>
         </section>
 
-        {/* ── Voice Do / Don't ── */}
+        {/* â”€â”€ Voice Do / Don't â”€â”€ */}
         <section>
           <h2 className="font-sans text-2xl font-bold text-brand-dark mb-6">Brand Voice</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="bg-white border border-neutral-200 rounded-sm p-6">
-              <p className="text-xs font-semibold tracking-widest uppercase text-emerald-600 mb-4">✓ Do say</p>
+              <p className="text-xs font-semibold tracking-widest uppercase text-emerald-600 mb-4">âœ“ Do say</p>
               <ul className="space-y-2">
                 {doSay.map((d) => (
                   <li key={d} className="flex items-center gap-2 text-sm text-neutral-700">
@@ -184,7 +184,7 @@ export default function DesignHandoffPage() {
               </ul>
             </div>
             <div className="bg-white border border-neutral-200 rounded-sm p-6">
-              <p className="text-xs font-semibold tracking-widest uppercase text-red-500 mb-4">✕ Don't say</p>
+              <p className="text-xs font-semibold tracking-widest uppercase text-red-500 mb-4">âœ• Don't say</p>
               <ul className="space-y-2">
                 {dontSay.map((d) => (
                   <li key={d} className="flex items-center gap-2 text-sm text-neutral-700">
@@ -197,7 +197,7 @@ export default function DesignHandoffPage() {
           </div>
         </section>
 
-        {/* ── Trust Signals ── */}
+        {/* â”€â”€ Trust Signals â”€â”€ */}
         <section>
           <h2 className="font-sans text-2xl font-bold text-brand-dark mb-6">Trust Signals — Use in Ads</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -210,7 +210,7 @@ export default function DesignHandoffPage() {
           </div>
         </section>
 
-        {/* ── Ad Sizes ── */}
+        {/* â”€â”€ Ad Sizes â”€â”€ */}
         <section>
           <h2 className="font-sans text-2xl font-bold text-brand-dark mb-6">Ad & Poster Sizes</h2>
           <div className="bg-white border border-neutral-200 rounded-sm overflow-hidden">
@@ -235,19 +235,19 @@ export default function DesignHandoffPage() {
           </div>
         </section>
 
-        {/* ── Photo Style ── */}
+        {/* â”€â”€ Photo Style â”€â”€ */}
         <section>
           <h2 className="font-sans text-2xl font-bold text-brand-dark mb-6">Photo & Image Style</h2>
           <div className="bg-white border border-neutral-200 rounded-sm p-6 space-y-3 text-sm text-neutral-600">
             <p><span className="font-semibold text-brand-dark">Subject:</span> Real families in real homes. Bright interiors, welcoming front doors, families unpacking or relaxing. Not staged magazine shoots.</p>
             <p><span className="font-semibold text-brand-dark">Mood:</span> Warm, hopeful, attainable. Natural light. Clutter-free but lived-in.</p>
             <p><span className="font-semibold text-brand-dark">Avoid:</span> Luxury penthouses, crystal chandeliers, marble everything. We are affordable — show it.</p>
-            <p><span className="font-semibold text-brand-dark">Overlay:</span> On hero images use a dark navy gradient (<code className="bg-neutral-100 px-1.5 py-0.5 rounded text-xs">#0B1F3A at 55–85% opacity</code>) so white text stays readable.</p>
+            <p><span className="font-semibold text-brand-dark">Overlay:</span> On hero images use a dark navy gradient (<code className="bg-neutral-100 px-1.5 py-0.5 rounded text-xs">#1E3A5F at 55”“85% opacity</code>) so white text stays readable.</p>
             <p><span className="font-semibold text-brand-dark">Stock sources:</span> Unsplash, Pexels. Search terms: "family home interior", "affordable apartment", "house rental", "moving in family".</p>
           </div>
         </section>
 
-        {/* ── Skill tip ── */}
+        {/* â”€â”€ Skill tip â”€â”€ */}
         <section className="bg-brand-dark rounded-sm p-8 text-white">
           <p className="text-blue-300 text-xs font-semibold tracking-[0.3em] uppercase mb-3">Generate Copy Instantly</p>
           <h2 className="font-sans text-2xl font-bold mb-3">Use the /design-handoff Skill</h2>

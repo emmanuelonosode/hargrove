@@ -2,12 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import {
-  Sparkles, TrendingUp, ChevronRight, ShieldCheck
-} from "lucide-react";
+import { Sparkles, ChevronRight, ShieldCheck } from "lucide-react";
 import { PropertyEligibilityDrawer } from "./PropertyEligibilityDrawer";
 import { ActiveSpecialModal } from "./ActiveSpecialModal";
-import { formatPrice } from "@/lib/utils";
 
 interface PropertyLeadCTAsProps {
   mode: "banner" | "sidebar" | "mobile-sticky";
@@ -75,7 +72,7 @@ export function PropertyLeadCTAs({
     return (
       <>
         <div className="space-y-3">
-          {/* Income status verification indicator */}
+          {/* Trust badge */}
           <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-100/80 rounded-xl p-3.5 text-xs text-emerald-800">
             <ShieldCheck size={16} className="text-emerald-500 shrink-0" />
             <div className="leading-snug">
@@ -83,23 +80,22 @@ export function PropertyLeadCTAs({
             </div>
           </div>
 
-          {/* Primary CTA - Apply */}
-          <Link
-            href={`/apply?property=${propertySlug}`}
-            className="w-full flex items-center justify-center h-12 bg-brand hover:bg-brand-hover text-white text-sm font-bold rounded-xl shadow-lg shadow-brand/15 hover:shadow-brand/25 transition-all cursor-pointer"
-          >
-            Apply Free — Decision in 24 Hours
-          </Link>
-
-          {/* Secondary CTA - Check Eligibility */}
+          {/* Book a Tour — primary */}
           <button
             onClick={() => setEligibilityOpen(true)}
-            className="w-full flex items-center justify-center gap-2 h-12 border-2 border-brand-dark/90 text-brand-dark hover:bg-brand-dark hover:text-white text-sm font-bold rounded-xl transition-all cursor-pointer bg-white group"
+            className="w-full flex items-center justify-center h-13 py-3.5 bg-brand hover:bg-brand-hover text-white text-sm font-bold rounded-xl shadow-lg shadow-brand/15 hover:shadow-brand/25 transition-all cursor-pointer"
           >
-            <TrendingUp size={15} className="text-brand group-hover:text-white transition-colors" />
-            Check Eligibility in 30s
+            Book a Tour
           </button>
-          
+
+          {/* Apply Now — secondary */}
+          <Link
+            href={`/apply?property=${propertySlug}`}
+            className="w-full flex items-center justify-center h-13 py-3.5 border-2 border-brand-dark/90 text-brand-dark hover:bg-brand-dark hover:text-white text-sm font-bold rounded-xl transition-all cursor-pointer bg-white"
+          >
+            Apply Now
+          </Link>
+
           <p className="text-[10px] text-center text-neutral-400">
             Guideline: Monthly Gross Income ≥ 3x rent (${(propertyPrice * 3).toLocaleString()}/mo)
           </p>
@@ -121,22 +117,21 @@ export function PropertyLeadCTAs({
   if (mode === "mobile-sticky") {
     return (
       <>
-        <div className="flex items-center gap-3 w-full">
-          {/* Check Eligibility Button */}
+        <div className="flex items-center gap-2.5 w-full">
+          {/* Book a Tour */}
           <button
             onClick={() => setEligibilityOpen(true)}
-            className="flex-1 h-11 border border-brand-dark text-brand-dark text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 hover:bg-neutral-50 transition-colors cursor-pointer bg-white"
+            className="flex-1 h-12 border-2 border-brand-dark text-brand-dark text-sm font-bold rounded-xl flex items-center justify-center hover:bg-brand-dark hover:text-white transition-all cursor-pointer bg-white"
           >
-            <TrendingUp size={13} className="text-brand" />
-            Eligibility Check
+            Book a Tour
           </button>
 
-          {/* Apply Button */}
+          {/* Apply Now */}
           <Link
             href={`/apply?property=${propertySlug}`}
-            className="flex-1 h-11 bg-brand text-white text-xs font-bold rounded-xl flex items-center justify-center hover:bg-brand-hover transition-colors cursor-pointer"
+            className="flex-1 h-12 bg-brand text-white text-sm font-bold rounded-xl flex items-center justify-center hover:bg-brand-hover transition-colors cursor-pointer shadow-md shadow-brand/20"
           >
-            Apply Free
+            Apply Now
           </Link>
         </div>
 

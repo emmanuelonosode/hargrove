@@ -33,7 +33,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // ── Static pages ───────────────────────────────────────────────────────────
   const staticPages: MetadataRoute.Sitemap = [
     { url: BASE_URL,                    lastModified: new Date(), changeFrequency: "daily",   priority: 1.0 },
-    { url: `${BASE_URL}/homes-for-rent`, lastModified: new Date(), changeFrequency: "daily",   priority: 0.9 },
+    { url: `${BASE_URL}/houses-for-rent`, lastModified: new Date(), changeFrequency: "daily",   priority: 0.9 },
     { url: `${BASE_URL}/apply`,         lastModified: new Date(), changeFrequency: "monthly", priority: 0.9 },
     { url: `${BASE_URL}/agents`,        lastModified: new Date(), changeFrequency: "daily",   priority: 0.8 },
     { url: `${BASE_URL}/blog`,          lastModified: new Date(), changeFrequency: "daily",   priority: 0.8 },
@@ -85,7 +85,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // ── All property listing pages (uses /api/v1/properties/sitemap/ — no row cap) ──
   const propertyPages: MetadataRoute.Sitemap = properties.map(({ slug, lastModified }) => ({
-    url: `${BASE_URL}/homes-for-rent/${slug}`,
+    url: `${BASE_URL}/houses-for-rent/${slug}`,
     lastModified: new Date(lastModified),
     changeFrequency: "daily" as const,
     priority: 0.85,

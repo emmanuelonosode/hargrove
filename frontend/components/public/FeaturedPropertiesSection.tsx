@@ -29,9 +29,9 @@ export function FeaturedPropertiesSection({ properties, totalCount }: Props) {
   ];
 
   const viewAllHref =
-    tab === "for-rent" ? "/homes-for-rent?listing_type=for-rent" :
-    tab === "for-sale" ? "/homes-for-rent?listing_type=for-sale" :
-    "/homes-for-rent";
+    tab === "for-rent" ? "/houses-for-rent?listing_type=for-rent" :
+    tab === "for-sale" ? "/houses-for-rent?listing_type=for-sale" :
+    "/houses-for-rent";
 
   return (
     <section className="py-[88px] px-8 bg-white">
@@ -51,7 +51,7 @@ export function FeaturedPropertiesSection({ properties, totalCount }: Props) {
             )}
           </div>
           <Link
-            href="/homes-for-rent"
+            href="/houses-for-rent"
             className="shrink-0 inline-flex items-center gap-1.5 text-brand text-[14px] font-medium hover:opacity-80 transition-opacity"
           >
             Browse all rentals <ArrowRight size={14} />

@@ -42,10 +42,10 @@ const footerCols = [
   {
     h: "Rent",
     links: [
-      { label: "Browse homes",         href: "/homes-for-rent" },
-      { label: "By city",              href: "/homes-for-rent" },
-      { label: "Pet-friendly",         href: "/homes-for-rent?q=pet" },
-      { label: "New listings",         href: "/homes-for-rent" },
+      { label: "Browse homes",         href: "/houses-for-rent" },
+      { label: "By city",              href: "/houses-for-rent" },
+      { label: "Pet-friendly",         href: "/houses-for-rent?q=pet" },
+      { label: "New listings",         href: "/houses-for-rent" },
     ],
   },
   {
@@ -79,7 +79,7 @@ const footerCols = [
 
 export function Footer() {
   return (
-    <footer style={{ background: "#08152A", color: "rgba(255,255,255,0.5)" }}>
+    <footer style={{ background: "#1E3A5F", color: "rgba(255,255,255,0.5)" }}>
       {/* Main columns */}
       <div className="max-w-7xl mx-auto px-8 pt-14 pb-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[1.5fr_repeat(4,1fr)] gap-10">
@@ -92,9 +92,15 @@ export function Footer() {
               Good Homes. Fair Prices. No Surprises.<br />Housing 2,400+ families across the U.S. since 2012.
             </p>
             <p className="mt-3" style={{ fontFamily: "DM Sans, sans-serif", fontSize: 12.5, color: "rgba(255,255,255,0.45)" }}>
-              info@haskerrealtygroup.com<br />
               204 Colonial Hills Rd, Winder GA 30680
             </p>
+            <Link
+              href="/contact"
+              className="inline-block mt-2 transition-colors hover:text-white"
+              style={{ fontFamily: "DM Sans, sans-serif", fontSize: 12.5, color: "rgba(255,255,255,0.55)" }}
+            >
+              Contact us →
+            </Link>
             <div className="flex gap-2.5 mt-5">
               {[
                 { href: "https://www.facebook.com/share/1G6G3YcUd3/?mibextid=wwXIfr", label: "Facebook",  Icon: FacebookIcon },
@@ -158,8 +164,6 @@ export function Footer() {
             </div>
           </div>
           <p style={{ fontFamily: "DM Sans, sans-serif", fontSize: 11, color: "rgba(255,255,255,0.35)", lineHeight: 1.65, maxWidth: "56rem" }}>
-            <span style={{ color: "rgba(255,255,255,0.5)", fontWeight: 500 }}>Hasker &amp; Co. Realty Group</span> is a licensed real estate company — License&nbsp;
-            <span style={{ fontFamily: "monospace", color: "rgba(255,255,255,0.45)" }}>#[LICENSE]</span>. Main office: 204 Colonial Hills Rd, Winder, GA 30680.
             All advertising conforms to the Fair Housing Act. &ldquo;REALTOR&reg;&rdquo; is a registered collective membership mark identifying real estate professionals who are members of the National Association of REALTORS&reg; and subscribe to its Code of Ethics.
           </p>
         </div>

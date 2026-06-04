@@ -178,8 +178,25 @@ export function getDeviceContext(): string {
     const lang     = navigator.language;
     const screen   = `${window.screen.width}×${window.screen.height}`;
     const referrer = document.referrer ? document.referrer : "Direct / None";
+    const ua      = navigator.userAgent;
+    const browser = /Edg\//.test(ua)
+      ? `Edge ${ua.match(/Edg\/([\d.]+)/)?.[1] ?? ""}`
+      : /Chrome\//.test(ua)
+      ? `Chrome ${ua.match(/Chrome\/([\d.]+)/)?.[1] ?? ""}`
+      : /Firefox\//.test(ua)
+      ? `Firefox ${ua.match(/Firefox\/([\d.]+)/)?.[1] ?? ""}`
+      : /Safari\//.test(ua)
+      ? `Safari ${ua.match(/Version\/([\d.]+)/)?.[1] ?? ""}`
+      : "Unknown";
+    const os = /Windows/.test(ua) ? "Windows"
+      : /iPhone|iPad/.test(ua) ? "iOS"
+      : /Android/.test(ua) ? "Android"
+      : /Mac OS X/.test(ua) ? "macOS"
+      : /Linux/.test(ua) ? "Linux" : "Unknown";
+    const conn = (navigator as { connection?: { effectiveType?: string } }).connection?.effectiveType;
     lines.push(`\n--- Session Context ---`);
     lines.push(`Device: ${device} | Screen: ${screen}`);
+    lines.push(`Browser: ${browser} | OS: ${os}${conn ? ` | Connection: ${conn}` : ""}`);
     lines.push(`Timezone: ${tz} | Language: ${lang}`);
     lines.push(`Referrer: ${referrer}`);
     lines.push(`Page: ${window.location.pathname}`);
@@ -187,6 +204,56 @@ export function getDeviceContext(): string {
     // never block a form submission
   }
   return lines.join("\n");
+}
+
+/**
+ * Returns structured device/browser data as a plain object.
+ * Used by the visitor session capture to send individual fields to the backend.
+ */
+export interface DeviceData {
+  browser:     string;
+  os:          string;
+  device_type: string;
+  screen:      string;
+  language:    string;
+  timezone:    string;
+  referrer:    string;
+  landing_page: string;
+}
+
+export function getStructuredDevice(): DeviceData {
+  if (typeof window === "undefined") {
+    return { browser: "", os: "", device_type: "", screen: "", language: "", timezone: "", referrer: "", landing_page: "" };
+  }
+  try {
+    const ua     = navigator.userAgent;
+    const browser = /Edg\//.test(ua)
+      ? `Edge ${ua.match(/Edg\/([\d.]+)/)?.[1] ?? ""}`
+      : /Chrome\//.test(ua)
+      ? `Chrome ${ua.match(/Chrome\/([\d.]+)/)?.[1] ?? ""}`
+      : /Firefox\//.test(ua)
+      ? `Firefox ${ua.match(/Firefox\/([\d.]+)/)?.[1] ?? ""}`
+      : /Safari\//.test(ua)
+      ? `Safari ${ua.match(/Version\/([\d.]+)/)?.[1] ?? ""}`
+      : "Unknown";
+    const os = /Windows/.test(ua) ? "Windows"
+      : /iPhone|iPad/.test(ua) ? "iOS"
+      : /Android/.test(ua)     ? "Android"
+      : /Mac OS X/.test(ua)    ? "macOS"
+      : /Linux/.test(ua)       ? "Linux" : "Unknown";
+    return {
+      browser,
+      os,
+      device_type:  /Mobi|Android/i.test(ua) ? "Mobile" : "Desktop",
+      screen:       `${window.screen.width}×${window.screen.height}`,
+      language:     navigator.language,
+      timezone:     Intl.DateTimeFormat().resolvedOptions().timeZone,
+      referrer:     document.referrer || "",
+      landing_page: window.location.pathname + window.location.search,
+    };
+  } catch {
+    return { browser: "", os: "", device_type: "", screen: "", language: "", timezone: "", referrer: "", landing_page: "" };
+  }
 }
 
 // ── GTM Events ────────────────────────────────────────────────────────────────

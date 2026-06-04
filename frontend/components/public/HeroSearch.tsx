@@ -3,18 +3,36 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Search, X } from "lucide-react";
+import { looksNaturalLanguage, parseSmartQuery } from "@/lib/properties";
 
 export function HeroSearch() {
   const router = useRouter();
   const [listingType, setListingType] = useState<"for-rent" | "for-sale">("for-rent");
   const [location, setLocation] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
 
-  function handleSearch(e: React.FormEvent) {
+  async function handleSearch(e: React.FormEvent) {
     e.preventDefault();
+    const term = location.trim();
+
+    // Smart path: parse natural-language queries into structured filters.
+    if (term && looksNaturalLanguage(term)) {
+      setAiLoading(true);
+      const smart = await parseSmartQuery(term);
+      setAiLoading(false);
+      if (smart) {
+        if (!smart.listing_type) smart.listing_type = listingType;
+        const p = new URLSearchParams();
+        Object.entries(smart).forEach(([k, v]) => { if (v) p.set(k, v); });
+        router.push(`/houses-for-rent?${p.toString()}`);
+        return;
+      }
+    }
+
     const params = new URLSearchParams();
     params.set("listing_type", listingType);
-    if (location.trim()) params.set("q", location.trim());
-    router.push(`/homes-for-rent?${params.toString()}`);
+    if (term) params.set("q", term);
+    router.push(`/houses-for-rent?${params.toString()}`);
   }
 
   return (
@@ -47,7 +65,7 @@ export function HeroSearch() {
 
         <input
           type="text"
-          placeholder="City, neighborhood, or ZIP…"
+          placeholder="Try: pet-friendly 3 bed in Atlanta under $2,000"
           value={location}
           autoComplete="off"
           onChange={(e) => setLocation(e.target.value)}
@@ -67,9 +85,11 @@ export function HeroSearch() {
 
         <button
           type="submit"
-          className="m-2 px-6 sm:px-8 h-[44px] sm:h-[48px] bg-brand hover:bg-brand-hover text-white font-bold text-[14px] rounded-xl transition-colors duration-150 shrink-0 cursor-pointer whitespace-nowrap"
+          disabled={aiLoading}
+          className="m-2 px-6 sm:px-8 h-[44px] sm:h-[48px] bg-brand hover:bg-brand-hover text-white font-bold text-[14px] rounded-xl transition-colors duration-150 shrink-0 cursor-pointer whitespace-nowrap disabled:opacity-70 flex items-center gap-2"
         >
-          Search
+          {aiLoading && <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
+          {aiLoading ? "Thinking…" : "Search"}
         </button>
       </form>
     </div>

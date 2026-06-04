@@ -74,7 +74,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
             position: "absolute",
             inset: 0,
             background:
-              "linear-gradient(to bottom, rgba(11,31,58,0.15) 0%, rgba(11,31,58,0.3) 40%, rgba(11,31,58,0.88) 75%, rgba(11,31,58,0.96) 100%)",
+              "linear-gradient(to bottom, rgba(30,58,95,0.15) 0%, rgba(30,58,95,0.3) 40%, rgba(30,58,95,0.88) 75%, rgba(30,58,95,0.96) 100%)",
             display: "flex",
           }}
         />
@@ -88,7 +88,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
             display: "flex",
             alignItems: "center",
             gap: 12,
-            background: "rgba(11,31,58,0.82)",
+            background: "rgba(30,58,95,0.82)",
             border: "1px solid rgba(255,255,255,0.18)",
             borderRadius: 6,
             padding: "10px 20px 10px 12px",
@@ -100,7 +100,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
             <span style={{ color: "#ffffff", fontSize: 15, fontWeight: 800, letterSpacing: 0.3, lineHeight: 1 }}>
               HASKER &amp; CO.
             </span>
-            <span style={{ color: "#1A56DB", fontSize: 9, fontWeight: 500, letterSpacing: 3, lineHeight: 1 }}>
+            <span style={{ color: "#2563EB", fontSize: 9, fontWeight: 500, letterSpacing: 3, lineHeight: 1 }}>
               REALTY GROUP
             </span>
           </div>

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import "leaflet/dist/leaflet.css";
 import { useEffect, useRef, type MutableRefObject } from "react";
@@ -22,8 +22,8 @@ interface Props {
   nearby: DetailMarker[];
 }
 
-const NAVY = "#0B1F3A";
-const BLUE = "#1A56DB";
+const NAVY = "#1E3A5F";
+const BLUE = "#2563EB";
 const GREEN = "#16a34a";
 
 function validCoord(m: { lat: number; lng: number }) {
@@ -81,7 +81,7 @@ function buildCurrentPopup(m: DetailMarker) {
           $${m.price.toLocaleString()}<span style="font-size:11px;font-weight:400;color:#888">${m.price_label ?? ""}</span>
         </div>
         <div style="font-size:12px;font-weight:600;color:${NAVY};margin-bottom:2px;line-height:1.3">${m.title}</div>
-        <div style="font-size:11px;color:#888">${m.beds} bd · ${m.baths} ba &nbsp;·&nbsp; ${m.city}, ${m.state}</div>
+        <div style="font-size:11px;color:#888">${m.beds} bd Â· ${m.baths} ba &nbsp;Â·&nbsp; ${m.city}, ${m.state}</div>
       </div>
     </div>`;
 }
@@ -97,9 +97,9 @@ function buildNearbyPopup(m: DetailMarker) {
           $${m.price.toLocaleString()}<span style="font-size:11px;font-weight:400;color:#888">${m.price_label ?? ""}</span>
         </div>
         <div style="font-size:12px;font-weight:600;color:${NAVY};margin-bottom:2px;line-height:1.3">${m.title}</div>
-        <div style="font-size:11px;color:#888;margin-bottom:8px">${m.beds} bd · ${m.baths} ba &nbsp;·&nbsp; ${m.city}, ${m.state}</div>
+        <div style="font-size:11px;color:#888;margin-bottom:8px">${m.beds} bd Â· ${m.baths} ba &nbsp;Â·&nbsp; ${m.city}, ${m.state}</div>
         <div style="background:${BLUE};color:#fff;text-align:center;padding:8px 12px;border-radius:6px;font-size:12px;font-weight:700;">
-          View Property →
+          View Property â†’
         </div>
       </div>
     </a>`;
@@ -175,7 +175,7 @@ export function PropertyDetailMap({ current, nearby }: Props) {
 
       L.control.zoom({ position: "bottomright" }).addTo(map);
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        attribution: 'Â© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
         maxZoom: 19,
       }).addTo(map);
 

@@ -1,11 +1,11 @@
-import Image from "next/image";
+﻿import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { HeroSearch } from "@/components/public/HeroSearch";
+import { HeroCallbackStrip } from "@/components/public/HeroCallbackStrip";
 import { FeaturedPropertiesSection } from "@/components/public/FeaturedPropertiesSection";
 import { WorkersScene, PetScene } from "@/components/public/HomepageIllustrations";
 import { fetchHomepageProperties, fetchProperties, toPropertyCardShape } from "@/lib/properties";
-import { formatPrice } from "@/lib/utils";
 import { CITIES, fetchAllCities, buildGenericCityData, type CityData } from "@/lib/cities";
 
 export const metadata = {
@@ -13,22 +13,22 @@ export const metadata = {
   description:
     "Hasker & Co. Realty Group — find affordable homes to rent and buy across Atlanta, Charlotte, Houston, Dallas, Nashville and Phoenix. Decisions in 24 hrs.",
   keywords: [
-    "affordable homes for rent",
-    "cheap apartments near me",
+    "houses for rent",
+    "homes for rent near me",
     "houses for rent Atlanta",
     "affordable rentals Charlotte",
-    "cheap homes Houston",
+    "rental homes Houston",
     "rental homes Dallas",
     "affordable housing Nashville",
     "homes for sale affordable",
     "move-in ready rental",
     "24 hour rental approval",
     "pet friendly rentals",
-    "rent with bad credit",
-    "2 bedroom apartments for rent",
-    "3 bedroom houses for rent affordable",
+    "2 bedroom houses for rent",
+    "3 bedroom houses for rent",
     "affordable housing for families",
-    "first time renter apartments",
+    "Hasker Realty Group",
+    "haskerrealtygroup.com",
   ],
   openGraph: {
     title: "Hasker & Co. Realty Group | Affordable Homes to Rent & Buy",
@@ -99,7 +99,7 @@ const WEBSITE_SCHEMA = {
   url: BASE_URL,
   potentialAction: {
     "@type": "SearchAction",
-    target: { "@type": "EntryPoint", urlTemplate: `${BASE_URL}/homes-for-rent?q={search_term_string}` },
+    target: { "@type": "EntryPoint", urlTemplate: `${BASE_URL}/houses-for-rent?q={search_term_string}` },
     "query-input": "required name=search_term_string",
   },
 };
@@ -166,7 +166,7 @@ const HOW_IT_WORKS_SCHEMA = {
   totalTime: "PT10M",
   estimatedCost: { "@type": "MonetaryAmount", currency: "USD", value: "0" },
   step: [
-    { "@type": "HowToStep", position: 1, name: "Browse available homes", text: "Filter by city, beds, and budget. Every listing has photos, full pricing, and pet policy.", url: `${BASE_URL}/homes-for-rent` },
+    { "@type": "HowToStep", position: 1, name: "Browse available homes", text: "Filter by city, beds, and budget. Every listing has photos, full pricing, and pet policy.", url: `${BASE_URL}/houses-for-rent` },
     { "@type": "HowToStep", position: 2, name: "Apply in 10 minutes", text: "One online form. No paperwork run-around. Reviewed within 24 hours.", url: `${BASE_URL}/apply` },
     { "@type": "HowToStep", position: 3, name: "Move in", text: "Sign your lease, pay your deposit, get your keys. We handle the rest.", url: `${BASE_URL}/apply` },
   ],
@@ -236,17 +236,18 @@ export default async function HomePage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(AGGREGATE_RATING_SCHEMA) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(HOW_IT_WORKS_SCHEMA) }} />
 
-      {/* ── HERO ──────────────────────────────────────────────────── */}
+      {/* â”€â”€ HERO â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <section className="relative flex flex-col items-center justify-center overflow-hidden text-center" style={{ minHeight: 620 }}>
         <Image
-          src="https://images.unsplash.com/photo-1560184897-ae75f418493e?w=1920&q=85"
+          src="https://images.unsplash.com/photo-1560184897-ae75f418493e?w=1400&q=75&fm=webp&auto=format"
           alt="Beautiful home available through Hasker & Co. Realty Group"
           fill
           className="object-cover object-center"
           sizes="100vw"
           priority
+          fetchPriority="high"
         />
-        <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(11,31,58,0.25) 0%, rgba(11,31,58,0.65) 100%)" }} />
+        <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(30,58,95,0.15) 0%, rgba(30,58,95,0.50) 100%)" }} />
 
         <div className="relative z-10 w-full flex flex-col items-center px-5 sm:px-8 pt-28 pb-16">
           {/* Available pill */}
@@ -259,7 +260,7 @@ export default async function HomePage() {
 
           {/* H1 */}
           <h1 className="font-serif font-bold text-white leading-[1.05] mb-[18px] text-[2.6rem] sm:text-[3.5rem] lg:text-[4.5rem]" style={{ letterSpacing: "-0.02em", maxWidth: 900 }}>
-            Best-maintained homes for rent,<br className="hidden sm:block" /> in 12+ U.S. cities.
+            Best-maintained houses for rent,<br className="hidden sm:block" /> in 12+ U.S. cities.
           </h1>
 
           {/* Subhead */}
@@ -268,19 +269,22 @@ export default async function HomePage() {
           </p>
 
           {/* Search */}
-          <div className="w-full max-w-[760px] mb-7">
+          <div className="w-full max-w-[760px] mb-3">
             <HeroSearch />
           </div>
 
+          {/* Phone callback strip — lowest friction above-fold capture */}
+          <HeroCallbackStrip />
+
           {/* Trust micro-line */}
           <p className="text-[12px] tracking-[0.05em]" style={{ color: "rgba(255,255,255,0.55)" }}>
-            2,400+ families housed · BBB A+ · 4.9 on Trustpilot
+            2,400+ families housed Â· BBB A+ Â· 4.9 on Trustpilot
           </p>
         </div>
       </section>
 
-      {/* ── STATS STRIP ───────────────────────────────────────────── */}
-      <section style={{ background: "#0B1F3A", color: "#fff" }}>
+      {/* â”€â”€ STATS STRIP â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      <section style={{ background: "#1E3A5F", color: "#fff" }}>
         <div className="max-w-7xl mx-auto px-8">
           <div className="grid grid-cols-2 lg:grid-cols-4">
             {[
@@ -299,10 +303,10 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── FEATURED RENTALS ──────────────────────────────────────── */}
+      {/* â”€â”€ FEATURED RENTALS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <FeaturedPropertiesSection properties={featuredProperties} totalCount={totalProperties} />
 
-      {/* ── HOW IT WORKS ──────────────────────────────────────────── */}
+      {/* â”€â”€ HOW IT WORKS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <section style={{ background: "#EFF4FF" }} className="py-[88px] px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
@@ -331,7 +335,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── MAINTENANCE PITCH ─────────────────────────────────────── */}
+      {/* â”€â”€ MAINTENANCE PITCH â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <section className="py-[88px] px-8 border-t border-[#F1F5F9]" style={{ background: "#FBF9F4" }}>
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
@@ -357,18 +361,34 @@ export default async function HomePage() {
                       </svg>
                     </div>
                     <div>
-                      <div className="font-semibold mb-[3px]" style={{ fontFamily: "DM Sans, sans-serif", fontSize: 14.5, color: "#0B1F3A" }}>{pr.h}</div>
+                      <div className="font-semibold mb-[3px]" style={{ fontFamily: "DM Sans, sans-serif", fontSize: 14.5, color: "#1E3A5F" }}>{pr.h}</div>
                       <div className="leading-[1.55]" style={{ fontFamily: "DM Sans, sans-serif", fontSize: 13, color: "#475569" }}>{pr.d}</div>
                     </div>
                   </div>
                 ))}
+              </div>
+
+              {/* CTA */}
+              <div className="mt-9 flex flex-col sm:flex-row gap-3">
+                <Link
+                  href="/houses-for-rent"
+                  className="inline-flex items-center justify-center gap-2 bg-brand hover:bg-brand-hover text-white font-bold text-[15px] px-8 py-4 rounded-xl shadow-lg shadow-brand/20 hover:shadow-brand/30 transition-all"
+                >
+                  Browse Houses for Rent <ArrowRight size={16} />
+                </Link>
+                <Link
+                  href="/apply"
+                  className="inline-flex items-center justify-center gap-2 border-2 border-brand-dark/80 text-brand-dark hover:bg-brand-dark hover:text-white font-bold text-[15px] px-8 py-4 rounded-xl transition-all"
+                >
+                  Apply Free — 24hr Decision
+                </Link>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── CITIES ────────────────────────────────────────────────── */}
+      {/* â”€â”€ CITIES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <section className="py-[88px] px-8 bg-white">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-8">
@@ -382,7 +402,7 @@ export default async function HomePage() {
               </p>
             </div>
             <Link
-              href="/homes-for-rent"
+              href="/houses-for-rent"
               className="shrink-0 inline-flex items-center gap-1.5 text-brand text-[14px] font-medium hover:opacity-80 transition-opacity"
             >
               See all cities <ArrowRight size={14} />
@@ -404,11 +424,11 @@ export default async function HomePage() {
                   className="object-cover object-center"
                   sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
                 />
-                <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(11,31,58,0) 40%, rgba(11,31,58,0.85) 100%)" }} />
+                <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(30,58,95,0) 40%, rgba(30,58,95,0.85) 100%)" }} />
                 <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
                   <div className="font-serif font-bold leading-[1.1]" style={{ fontSize: 20 }}>{city.name}</div>
                   <div className="mt-0.5" style={{ fontFamily: "DM Sans, sans-serif", fontSize: 11, color: "rgba(255,255,255,0.6)" }}>
-                    {city.state} · from {city.avgRent}/mo
+                    {city.state} Â· from {city.avgRent}/mo
                   </div>
                 </div>
               </Link>
@@ -417,7 +437,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── PET PITCH ─────────────────────────────────────────────── */}
+      {/* â”€â”€ PET PITCH â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <section className="py-[88px] px-8 bg-white border-t border-[#F1F5F9]">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
@@ -434,14 +454,14 @@ export default async function HomePage() {
                   <span
                     key={tag}
                     className="inline-flex items-center border border-[#F1F5F9] rounded-sm"
-                    style={{ background: "#FBF9F4", color: "#0B1F3A", fontFamily: "DM Sans, sans-serif", fontSize: 12.5, fontWeight: 500, padding: "7px 12px" }}
+                    style={{ background: "#FBF9F4", color: "#1E3A5F", fontFamily: "DM Sans, sans-serif", fontSize: 12.5, fontWeight: 500, padding: "7px 12px" }}
                   >
                     {tag}
                   </span>
                 ))}
               </div>
               <Link
-                href="/homes-for-rent?q=pet"
+                href="/houses-for-rent?q=pet"
                 className="inline-flex items-center gap-1.5 text-brand text-[14px] font-medium hover:opacity-80 transition-opacity"
               >
                 Browse pet-friendly rentals <ArrowRight size={14} />
@@ -455,7 +475,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── WHY HASKER ────────────────────────────────────────────── */}
+      {/* â”€â”€ WHY HASKER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <section className="py-[88px] px-8 bg-white border-t border-[#F1F5F9]">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-20 items-start">
@@ -489,7 +509,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── FAQ ───────────────────────────────────────────────────── */}
+      {/* â”€â”€ FAQ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <section className="py-[88px] px-8 border-t border-[#F1F5F9]" style={{ background: "#FBF9F4" }}>
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
@@ -507,7 +527,7 @@ export default async function HomePage() {
                 >
                   <span>{faq.q}</span>
                   <span className="shrink-0 ml-4 text-brand text-[20px] leading-none select-none group-open:hidden">+</span>
-                  <span className="shrink-0 ml-4 text-brand text-[20px] leading-none select-none hidden group-open:inline">−</span>
+                  <span className="shrink-0 ml-4 text-brand text-[20px] leading-none select-none hidden group-open:inline">âˆ’</span>
                 </summary>
                 <p className="leading-[1.65] mt-3.5" style={{ fontFamily: "DM Sans, sans-serif", fontSize: 15, color: "#475569", maxWidth: 720 }}>{faq.a}</p>
               </details>
@@ -517,8 +537,8 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── FINAL CTA ─────────────────────────────────────────────── */}
-      <section className="py-[88px] px-8 text-center" style={{ background: "#0B1F3A", color: "#fff" }}>
+      {/* â”€â”€ FINAL CTA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      <section className="py-[88px] px-8 text-center" style={{ background: "#1E3A5F", color: "#fff" }}>
         <div className="max-w-7xl mx-auto">
           <p className="text-[11px] font-semibold tracking-[0.3em] uppercase" style={{ color: "#A9C5F6" }}>Ready when you are</p>
           <h2 className="font-serif font-bold text-white leading-[1.05] mt-3.5" style={{ fontSize: 48, letterSpacing: "-0.02em" }}>
@@ -529,7 +549,7 @@ export default async function HomePage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link
-              href="/homes-for-rent"
+              href="/houses-for-rent"
               className="inline-flex items-center justify-center gap-2 bg-brand text-white h-[50px] px-7 rounded-sm text-[14px] font-medium tracking-[0.05em] hover:bg-brand-hover transition-colors"
             >
               Browse homes <ArrowRight size={14} />

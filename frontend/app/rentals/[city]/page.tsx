@@ -163,7 +163,7 @@ export default async function CityRentalsPage(
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: "https://haskerrealtygroup.com" },
-      { "@type": "ListItem", position: 2, name: "Properties", item: "https://haskerrealtygroup.com/homes-for-rent" },
+      { "@type": "ListItem", position: 2, name: "Properties", item: "https://haskerrealtygroup.com/houses-for-rent" },
       { "@type": "ListItem", position: 3, name: `${city.name}, ${city.stateCode}`, item: `https://haskerrealtygroup.com/rentals/${slug}` },
     ],
   };
@@ -247,7 +247,7 @@ export default async function CityRentalsPage(
             <ol className="flex items-center gap-2 text-xs text-blue-200">
               <li><Link href="/" className="hover:text-white transition-colors">Home</Link></li>
               <li className="text-blue-400">/</li>
-              <li><Link href="/homes-for-rent" className="hover:text-white transition-colors">Properties</Link></li>
+              <li><Link href="/houses-for-rent" className="hover:text-white transition-colors">Properties</Link></li>
               <li className="text-blue-400">/</li>
               <li className="text-white font-medium">{city.name}, {city.stateCode}</li>
             </ol>
@@ -270,7 +270,7 @@ export default async function CityRentalsPage(
 
           <div className="flex flex-wrap gap-3 mt-8 hero-animate" style={{ animationDelay: "240ms" }}>
             <Button variant="accent" size="lg" asChild>
-              <Link href={`/homes-for-rent?q=${encodeURIComponent(city.name)}`}>
+              <Link href={`/houses-for-rent?q=${encodeURIComponent(city.name)}`}>
                 Browse {city.name} Inventory
                 <ArrowRight size={16} />
               </Link>
@@ -316,7 +316,7 @@ export default async function CityRentalsPage(
               </h2>
             </div>
             <Link
-              href={`/homes-for-rent?q=${encodeURIComponent(city.name)}`}
+              href={`/houses-for-rent?q=${encodeURIComponent(city.name)}`}
               className="hidden sm:flex items-center gap-2 text-sm text-brand font-medium hover:underline"
             >
               View All {city.name} Listings
@@ -352,7 +352,7 @@ export default async function CityRentalsPage(
                   our currently available properties across 12+ cities.
                 </p>
                 <Button variant="accent" asChild className="self-start">
-                  <Link href="/homes-for-rent">Browse All Properties <ArrowRight size={14} /></Link>
+                  <Link href="/houses-for-rent">Browse All Properties <ArrowRight size={14} /></Link>
                 </Button>
               </div>
             </div>
@@ -361,7 +361,7 @@ export default async function CityRentalsPage(
           {/* Mobile CTA */}
           <div className="mt-8 sm:hidden">
             <Button variant="outline-blue" className="w-full" asChild>
-              <Link href={`/homes-for-rent?q=${encodeURIComponent(city.name)}`}>
+              <Link href={`/houses-for-rent?q=${encodeURIComponent(city.name)}`}>
                 View All {city.name} Listings
                 <ArrowRight size={14} />
               </Link>
@@ -371,7 +371,7 @@ export default async function CityRentalsPage(
       </section>
 
       {/* ── LEAD CAPTURE ─────────────────────────────────────────── */}
-      <section className="bg-[#0B1F3A] py-16 lg:py-20 px-6">
+      <section className="bg-[#1E3A5F] py-16 lg:py-20 px-6">
         <div className="max-w-xl mx-auto text-center">
           <p className="text-brand text-xs font-semibold tracking-[0.2em] uppercase mb-3">Be First</p>
           <h2 className="font-serif text-3xl lg:text-4xl font-bold text-white mb-4">
@@ -434,7 +434,7 @@ export default async function CityRentalsPage(
                   <Link href="/apply">Apply in 10 Minutes</Link>
                 </Button>
                 <Button variant="outline-blue" asChild>
-                  <Link href={`/homes-for-rent?q=${encodeURIComponent(city.name)}`}>
+                  <Link href={`/houses-for-rent?q=${encodeURIComponent(city.name)}`}>
                     Browse {city.name} Listings
                   </Link>
                 </Button>

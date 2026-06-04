@@ -10,7 +10,7 @@ export default function ForgotPasswordPage() {
   const [message, setMessage] = useState("");
 
   const inputCls =
-    "w-full rounded-xl px-4 py-3 text-[14px] text-[#1D1D1F] bg-[#F5F5F7] outline-none transition-all focus:bg-white focus:ring-2 focus:ring-brand/30 focus:shadow-[0_0_0_1px_#1A56DB]";
+    "w-full rounded-xl px-4 py-3 text-[14px] text-[#1D1D1F] bg-[#F5F5F7] outline-none transition-all focus:bg-white focus:ring-2 focus:ring-brand/30 focus:shadow-[0_0_0_1px_#2563EB]";
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

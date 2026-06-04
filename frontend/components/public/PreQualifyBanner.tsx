@@ -45,7 +45,7 @@ export function PreQualifyBanner() {
         body: JSON.stringify({
           full_name: name.trim(),
           email: email.trim(),
-          source: "QUALIFY_FORM",
+          source: "CONTACT_FORM",
           interest_type: "RENT",
           message: `Pre-qualify form: monthly income ${income}.`,
           ...getStoredUTMs(),
@@ -77,7 +77,7 @@ export function PreQualifyBanner() {
           Based on your income, we have homes that fit your budget. Browse them now.
         </p>
         <button
-          onClick={() => router.push(`/homes-for-rent?listing_type=for-rent&maxPrice=${selected?.maxPrice ?? maxPrice}`)}
+          onClick={() => router.push(`/houses-for-rent?listing_type=for-rent&maxPrice=${selected?.maxPrice ?? maxPrice}`)}
           className="inline-flex items-center gap-2 bg-brand text-white font-bold px-7 py-3 rounded-xl hover:bg-brand-hover transition-colors cursor-pointer"
         >
           View Matching Homes <ArrowRight size={15} />

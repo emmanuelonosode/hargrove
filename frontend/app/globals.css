@@ -2,13 +2,13 @@
 
 /* ─── Brand Design Tokens (Tailwind v4 CSS-first @theme) ──────────── */
 @theme {
-  /* Corporate Blue Palette */
-  --color-brand:       #1A56DB;   /* primary corporate blue  — CTAs, accents, icons  */
-  --color-brand-hover: #1447BF;   /* darker blue for hover states                    */
-  --color-brand-dark:  #0B1F3A;   /* deep navy — headers, footer, stat bars          */
-  --color-brand-navy:  #0D2550;   /* mid-navy — alternate dark sections              */
-  --color-brand-light: #EFF4FF;   /* pale blue tint — section backgrounds            */
-  --color-brand-muted: #DBEAFE;   /* light blue — badges, tags, chips                */
+  /* Warm Sky Blue Palette */
+  --color-brand:       #2563EB;   /* sky blue — CTAs, accents, icons                 */
+  --color-brand-hover: #1D4ED8;   /* deeper hover state                              */
+  --color-brand-dark:  #1E3A5F;   /* deep slate-blue — headers, footer, stat bars    */
+  --color-brand-navy:  #243E6B;   /* mid slate-blue — alternate dark sections        */
+  --color-brand-light: #F0F9FF;   /* warm pale tint — section backgrounds            */
+  --color-brand-muted: #BAE6FD;   /* warm light blue — badges, tags, chips           */
 
   /* Fonts — DM Sans for body, Poppins for headings */
   --font-sans:  var(--font-dm-sans), system-ui, sans-serif;
@@ -34,14 +34,14 @@
 /* ─── Scrollbar ───────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: #f1f5f9; }
-::-webkit-scrollbar-thumb { background: #1A56DB; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #1447BF; }
+::-webkit-scrollbar-thumb { background: #2563EB; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #1D4ED8; }
 
 /* ─── Selection ──────────────────────────────────────────────────── */
-::selection { background: #1A56DB; color: white; }
+::selection { background: #2563EB; color: white; }
 
 /* ─── Focus ring ─────────────────────────────────────────────────── */
-:focus-visible { outline: 2px solid #1A56DB; outline-offset: 2px; }
+:focus-visible { outline: 2px solid #2563EB; outline-offset: 2px; }
 
 /* ─── Smooth scroll + scroll-padding for fixed navbar ───────────── */
 html {

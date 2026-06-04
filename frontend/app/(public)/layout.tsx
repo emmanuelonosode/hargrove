@@ -1,5 +1,7 @@
 import { Navbar } from "@/components/public/Navbar";
 import { FooterWrapper } from "@/components/public/FooterWrapper";
+import { ExitIntentPopup } from "@/components/public/ExitIntentPopup";
+import { FloatingCallbackButton } from "@/components/public/FloatingCallbackButton";
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -13,6 +15,8 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
       <Navbar />
       <main id="main-content" className="flex flex-col flex-1">{children}</main>
       <FooterWrapper />
+      <ExitIntentPopup />
+      <FloatingCallbackButton />
     </>
   );
 }

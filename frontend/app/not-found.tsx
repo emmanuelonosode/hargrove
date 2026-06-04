@@ -1,4 +1,4 @@
-import Image from "next/image";
+﻿import Image from "next/image";
 import Link from "next/link";
 
 export default function NotFound() {
@@ -15,7 +15,7 @@ export default function NotFound() {
       <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-[#C97757] mb-3">
         404 — Page Not Found
       </p>
-      <h1 className="font-serif text-4xl lg:text-5xl font-bold text-[#0B1F3A] mb-4 leading-tight">
+      <h1 className="font-serif text-4xl lg:text-5xl font-bold text-[#1E3A5F] mb-4 leading-tight">
         This door&apos;s locked.
       </h1>
       <p className="text-[#475569] text-base leading-relaxed max-w-sm mb-10">
@@ -23,14 +23,14 @@ export default function NotFound() {
       </p>
       <div className="flex flex-col sm:flex-row gap-3">
         <Link
-          href="/homes-for-rent"
-          className="inline-flex items-center justify-center gap-2 bg-[#1A56DB] text-white text-sm font-semibold px-7 py-3.5 rounded-sm hover:bg-[#1447BF] transition-colors"
+          href="/houses-for-rent"
+          className="inline-flex items-center justify-center gap-2 bg-[#2563EB] text-white text-sm font-semibold px-7 py-3.5 rounded-sm hover:bg-[#1D4ED8] transition-colors"
         >
           Browse Homes
         </Link>
         <Link
           href="/contact"
-          className="inline-flex items-center justify-center gap-2 border border-[#0B1F3A]/20 text-[#0B1F3A] text-sm font-semibold px-7 py-3.5 rounded-sm hover:bg-[#0B1F3A]/5 transition-colors"
+          className="inline-flex items-center justify-center gap-2 border border-[#1E3A5F]/20 text-[#1E3A5F] text-sm font-semibold px-7 py-3.5 rounded-sm hover:bg-[#1E3A5F]/5 transition-colors"
         >
           Get in Touch
         </Link>

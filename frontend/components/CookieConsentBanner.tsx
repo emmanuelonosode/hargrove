@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { consentDecided, grantConsent, denyConsent } from "@/lib/tracking";
@@ -28,7 +28,7 @@ export function CookieConsentBanner() {
     <div
       role="dialog"
       aria-label="Cookie consent"
-      className="fixed bottom-0 left-0 right-0 z-[9999] bg-[#0B1F3A] border-t border-[#1A56DB]/40 shadow-[0_-4px_24px_rgba(0,0,0,0.4)]"
+      className="fixed bottom-0 left-0 right-0 z-[9999] bg-[#1E3A5F] border-t border-[#2563EB]/40 shadow-[0_-4px_24px_rgba(0,0,0,0.4)]"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <p className="text-sm text-slate-300 leading-relaxed">
@@ -49,7 +49,7 @@ export function CookieConsentBanner() {
           </button>
           <button
             onClick={handleAccept}
-            className="cursor-pointer px-5 py-2 text-sm font-semibold bg-[#1A56DB] text-white rounded-md hover:bg-blue-500 transition-colors"
+            className="cursor-pointer px-5 py-2 text-sm font-semibold bg-[#2563EB] text-white rounded-md hover:bg-blue-500 transition-colors"
           >
             Accept All
           </button>

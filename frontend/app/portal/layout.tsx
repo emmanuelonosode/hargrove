@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect } from "react";
 import Link from "next/link";
@@ -51,8 +51,8 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
   return (
     <div className="min-h-screen bg-[#F5F5F7] flex">
 
-      {/* ── Sidebar ──────────────────────────────────────────────────────── */}
-      <aside className="hidden lg:flex flex-col w-60 bg-[#0B1F3A] shrink-0">
+      {/* â”€â”€ Sidebar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      <aside className="hidden lg:flex flex-col w-60 bg-[#1E3A5F] shrink-0">
 
         {/* Logo */}
         <div className="px-5 py-7">
@@ -132,8 +132,8 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
         </div>
       </aside>
 
-      {/* ── Mobile header ────────────────────────────────────────────────── */}
-      <div className="lg:hidden fixed top-0 inset-x-0 z-50 bg-[#0B1F3A]/95 backdrop-blur-xl px-4 py-3 flex items-center justify-between">
+      {/* â”€â”€ Mobile header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      <div className="lg:hidden fixed top-0 inset-x-0 z-50 bg-[#1E3A5F]/95 backdrop-blur-xl px-4 py-3 flex items-center justify-between">
         <Link href="/">
           <Image
             src="/logo.svg"
@@ -162,7 +162,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
         </div>
       </div>
 
-      {/* ── Mobile bottom nav ────────────────────────────────────────────── */}
+      {/* â”€â”€ Mobile bottom nav â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <nav className="lg:hidden fixed bottom-0 inset-x-0 z-50 bg-white/90 backdrop-blur-xl border-t border-black/[0.06] flex">
         {mobileNavItems.map(({ label, href, icon: Icon }) => {
           const active = pathname === href || (href !== "/portal/profile" && pathname.startsWith(href));
@@ -189,7 +189,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
         </button>
       </nav>
 
-      {/* ── Main ─────────────────────────────────────────────────────────── */}
+      {/* â”€â”€ Main â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <main className="flex-1 min-w-0 pt-16 pb-24 lg:pt-0 lg:pb-0 overflow-auto">
         {children}
       </main>

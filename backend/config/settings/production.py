@@ -4,6 +4,11 @@ from decouple import config, Csv
 
 DEBUG = True
 
+# MySQL on this host doesn't have timezone tables installed, so CONVERT_TZ
+# would return NULL and break date_hierarchy in the admin. Using UTC means
+# Django never calls CONVERT_TZ (stored timezone == display timezone).
+TIME_ZONE = "UTC"
+
 # Hardcoded production domains to prevent DisallowedHost errors
 ALLOWED_HOSTS = [
     "admin.haskerrealtygroup.com",
@@ -71,3 +76,39 @@ SENTRY_DSN = config("SENTRY_DSN", default="")
 if SENTRY_DSN:
     import sentry_sdk
     sentry_sdk.init(dsn=SENTRY_DSN, traces_sample_rate=0.2)
+
+import os
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "[{asctime}] {levelname} {name} {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "file": {
+            "class": "logging.FileHandler",
+            "filename": os.path.join(BASE_DIR, "logs", "django.log"),
+            "formatter": "verbose",
+            "level": "ERROR",
+        },
+    },
+    "root": {
+        "handlers": ["file"],
+        "level": "ERROR",
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["file"],
+            "level": "ERROR",
+            "propagate": False,
+        },
+        "django.request": {
+            "handlers": ["file"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
+    },
+}
